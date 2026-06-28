@@ -55,5 +55,6 @@ yarn-error.log*
 shared/build/
 composeApp/build/
 
-#Claude
+#AI Agents
 .claude
+.agents

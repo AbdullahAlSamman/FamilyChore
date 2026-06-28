@@ -1,0 +1,59 @@
+# IDE & General
+.idea/
+.vscode/
+*.iml
+*.swp
+*.bak
+.DS_Store
+
+# Gradle
+.gradle/
+build/
+**/build/
+.kotlin/
+.konan/
+local.properties
+
+# Android
+*.ap_
+*.apk
+*.dex
+bin/
+gen/
+out/
+captures/
+*.hprof
+.externalNativeBuild
+.cxx
+
+# iOS (Xcode & CocoaPods)
+DerivedData/
+*.xcworkspace
+!default.xcworkspace
+*.xcscheme
+!default.xcscheme
+*.xcuserstatedata
+Pods/
+xcuserdata/
+*.moved-aside
+*.pbxuser
+*.mode*
+*.perspective*
+
+# Web (Node & JS)
+node_modules/
+dist/
+.wasm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.*
+!.env.example
+
+# KMP Specific
+shared/build/
+composeApp/build/
+
+#Claude
+.claude

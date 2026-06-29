@@ -1,38 +1,30 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidMultiplatformLibrary)
+    id("familychore.kmp.library")
+    id("familychore.compose")
+    id("familychore.room")
+    id("familychore.ktor")
+    id("familychore.koin")
 }
 
 kotlin {
-    iosArm64()
-    iosSimulatorArm64()
-    
-    jvm()
-    
-    androidLibrary {
-       namespace = "org.aals.family.chore.core"
-       compileSdk = libs.versions.android.compileSdk.get().toInt()
-       minSdk = libs.versions.android.minSdk.get().toInt()
-    
-       compilerOptions {
-           jvmTarget = JvmTarget.JVM_11
-       }
-       androidResources {
-           enable = true
-       }
-       withHostTest {
-           isIncludeAndroidResources = true
-       }
+    android {
+        namespace = "org.aals.family.chore.core"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
     }
-    
+
     sourceSets {
         commonMain.dependencies {
-            // put your Multiplatform dependencies here
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.components.resources)
         }
     }
+}
+
+dependencies {
+    // Room KSP for all targets
+    val roomCompiler = libs.room.compiler
+    add("kspAndroid", roomCompiler)
+    add("kspJvm", roomCompiler)
+    add("kspIosArm64", roomCompiler)
+    add("kspIosSimulatorArm64", roomCompiler)
 }

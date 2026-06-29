@@ -1,0 +1,26 @@
+package org.aals.family.chore.convention
+
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.getByType
+
+class AndroidFeatureConventionPlugin : Plugin<Project> {
+    override fun apply(target: Project) {
+        with(target) {
+            pluginManager.apply("familychore.android.library")
+            pluginManager.apply("familychore.compose")
+            pluginManager.apply("familychore.koin")
+
+            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+
+            dependencies {
+                "implementation"(project(":core"))
+                
+                "implementation"(libs.findLibrary("androidx.lifecycle.runtimeCompose").get())
+                "implementation"(libs.findLibrary("androidx.lifecycle.viewmodelCompose").get())
+            }
+        }
+    }
+}

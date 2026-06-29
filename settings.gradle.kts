@@ -15,6 +15,8 @@ pluginManagement {
     }
 }
 
+includeBuild("build-logic")
+
 dependencyResolutionManagement {
     repositories {
         google {

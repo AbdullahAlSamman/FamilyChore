@@ -1,5 +1,5 @@
 # FamilyChore App: The Ultimate Implementation Blueprint
-**Revision: 1.2**
+**Revision: 1.5**
 
 This document serves as the comprehensive, self-contained technical specification and implementation plan for the **FamilyChore** application.
 
@@ -30,6 +30,7 @@ A `MEMORY.md` file will be maintained in the project root. Every time a major ar
 6. **Build Infrastructure**: We will use **Gradle Convention Plugins** in a `:build-logic` module. No direct dependency management in feature `build.gradle.kts` files.
 7. **Strict MVI & UI Split**: Every screen MUST be split into a **Root** (logical/DI) and **Screen** (dumb UI) composable. ViewModels MUST follow the `State`, `Action`, `Event` pattern.
 8. **Multi-Tenant Scoping**: Every database entity and server-side request MUST be scoped via `familyId`. The Ktor server will embed this in the JWT payload.
+9. **Test-Driven Execution**: Every implementation phase MUST conclude with comprehensive unit tests before proceeding to the next phase. Verification of the foundation layer is the immediate priority.
 
 ### C. Plan & Artifact Mirroring
 To ensure the implementation plan and key artifacts are versioned and accessible within the codebase:
@@ -157,14 +158,48 @@ sealed interface Result<out D, out E : Error> {
 
 sealed interface DataError : Error {
     enum class Network : DataError {
-        NO_INTERNET, SERVER_ERROR, UNAUTHORIZED, UNKNOWN
+        BAD_REQUEST,
+        REQUEST_TIMEOUT,
+        UNAUTHORIZED,
+        FORBIDDEN,
+        NOT_FOUND,
+        CONFLICT,
+        TOO_MANY_REQUESTS,
+        NO_INTERNET,
+        PAYLOAD_TOO_LARGE,
+        SERVER_ERROR,
+        SERVICE_UNAVAILABLE,
+        SERIALIZATION,
+        UNKNOWN
     }
+
     enum class Local : DataError {
-        DISK_FULL, UNKNOWN
+        DISK_FULL,
+        NOT_FOUND,
+        UNKNOWN
     }
 }
 
 typealias EmptyResult<E> = Result<Unit, E>
+```
+
+#### [NEW] [Domain Models](file:///Users/aalsamman/AndroidProjects/FamilyChore/core/src/commonMain/kotlin/org/aals/family/chore/core/domain/model)
+Core models used across all modules.
+```kotlin
+data class User(
+    val id: String,
+    val familyId: String,
+    val nickname: String,
+    val role: UserRole,
+    val points: Int
+)
+
+enum class UserRole { PARENT, CHILD }
+
+data class Family(
+    val id: String,
+    val name: String
+)
 ```
 
 #### [NEW] [UiText.kt](file:///Users/aalsamman/AndroidProjects/FamilyChore/core/src/commonMain/kotlin/org/aals/family/chore/core/presentation/UiText.kt)
@@ -197,6 +232,7 @@ Room database definition for KMP. Every entity includes a `familyId`.
     entities = [ChoreEntity::class, UserEntity::class],
     version = 1
 )
+@ConstructedBy(FamilyDatabaseConstructor::class)
 abstract class FamilyDatabase : RoomDatabase() {
     abstract fun choreDao(): ChoreDao
     abstract fun userDao(): UserDao
@@ -212,12 +248,43 @@ data class ChoreEntity(
 )
 ```
 
+### Phase 5.5: Foundation Testing
+Before proceeding to features, we must verify the stability of our core infrastructure.
+
+#### [NEW] [ResultTest.kt](file:///Users/aalsamman/AndroidProjects/FamilyChore/core/src/commonTest/kotlin/org/aals/family/chore/core/domain/util/ResultTest.kt)
+Unit tests for `Result` functional operators (map, onSuccess, onFailure).
+
+#### [NEW] [SafeCallTest.kt](file:///Users/aalsamman/AndroidProjects/FamilyChore/core/src/commonTest/kotlin/org/aals/family/chore/core/data/remote/SafeCallTest.kt)
+Integration tests using Ktor `MockEngine` to verify that HTTP status codes (401, 404, 500, etc.) are correctly mapped to `DataError.Network`.
+
+#### [NEW] [UiTextTest.kt](file:///Users/aalsamman/AndroidProjects/FamilyChore/core/src/commonTest/kotlin/org/aals/family/chore/core/presentation/UiTextTest.kt)
+Validation of resource string resolution logic.
+
+---
+
+### Phase 6: Onboarding & Secure Pairing
+This phase implements the initial handshake between the mobile clients and the local Ktor server.
+
+#### [NEW] [:feature:auth](file:///Users/aalsamman/AndroidProjects/FamilyChore/feature/auth)
+A new feature module for handling pairing, user selection, and PIN authentication.
+
+#### Server-Side Pairing Logic
+- **`POST /auth/family/create`**: Initialize a new family context.
+- **`POST /auth/pair/generate`**: Generate a temporary `PairingToken` (Parent only).
+- **`POST /auth/pair/confirm`**: Exchange `PairingToken` for a `familyId` + `userId` + `JWT`.
+
+#### App-Side Onboarding UI
+1. **Welcome Screen**: "Setup New Family" vs "Join Family".
+2. **QR Scanner**: Scan the Parent device to retrieve `serverIp` and `PairingToken`.
+3. **User Selection**: After pairing, select a profile (Parent/Child) and set/verify PIN.
+
 ---
 
 ## 6. Technical Stack
 - **UI**: Compose Multiplatform (M3, Dark Mode, RTL Arabic Support).
 - **Navigation**: Type-Safe Compose Navigation (@Serializable routes).
 - **Dependency Injection**: Koin.
+- **Testing**: JUnit5, AssertK (Assertions), Turbine (Flow testing), Ktor MockEngine.
 - **DB**: Room KMP (Multi-tenant scoped via `familyId`).
 - **Sync**: Ktor WebSockets & Platform Workers (WorkManager/BGTasks).
 - **Interop**: SKIE (Swift Kotlin Interface Enhancer) for iOS.
@@ -225,6 +292,6 @@ data class ChoreEntity(
 
 ---
 
-## 6. Verification Plan
+## 7. Verification Plan
 - **Automated**: Audit log integrity, Sync conflict resolution, Auth recovery flows.
 - **Manual**: RTL mirroring, Strict Camera enforcement, Vacation Mode validation.

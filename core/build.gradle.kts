@@ -17,6 +17,13 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.components.resources)
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.assertk)
+            implementation(libs.turbine)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.ktor.client.mock)
+        }
     }
 }
 

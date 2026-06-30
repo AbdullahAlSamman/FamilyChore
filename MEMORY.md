@@ -3,6 +3,7 @@
 ## General Rules
 **After finishing up with implementation and testing always update documentation files `README.md`**
 **before reading files of any module, read documentation first `README.md` file then if necessary read files**
+Tests must be related to implementation don't placeholder tests.
 
 This file tracks critical architectural decisions and domain rules for the FamilyChore project.
 ## Critical Engineering Decisions
@@ -22,3 +23,4 @@ This file tracks critical architectural decisions and domain rules for the Famil
 - **Chore Verification**: Mandatory live photo (no gallery uploads).
 - **Points**: Points are never deducted without parent approval (default).
 - **Authentication**: Optional 4-digit PIN for child profiles.
+- **Secure Communication**: [FUTURE] Migrate from cleartext HTTP to HTTPS for all server communications (currently using `usesCleartextTraffic` for development).

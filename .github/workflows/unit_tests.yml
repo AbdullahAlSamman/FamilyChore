@@ -29,3 +29,29 @@ jobs:
 
       - name: Run All Checks
         run: ./gradlew check --continue --stacktrace
+
+      - name: Show JVM Crash Logs
+        if: failure()
+        run: |
+          find . -name "hs_err_pid*.log" -exec echo "--- {} ---" \; -exec cat {} \;
+
+      - name: Upload Build Reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-reports
+          retention-days: 7
+          path: |
+            **/build/reports/
+            **/build/test-results/
+            **/hs_err_pid*.log
+
+      - name: Build Summary
+        if: failure()
+        run: |
+          echo "## ❌ Build Failed" >> $GITHUB_STEP_SUMMARY
+          echo "Build or tests failed. Please check the **build-reports** artifact for details." >> $GITHUB_STEP_SUMMARY
+          if ls **/hs_err_pid*.log 1> /dev/null 2>&1; then
+            echo "### ⚠️ JVM Crashes Detected" >> $GITHUB_STEP_SUMMARY
+            echo "JVM crash logs were found and printed to the workflow logs." >> $GITHUB_STEP_SUMMARY
+          fi

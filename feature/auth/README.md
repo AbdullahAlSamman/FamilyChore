@@ -14,6 +14,7 @@ This module handles the onboarding and authentication flow for the FamilyChore a
 Follows the project's strict MVI pattern:
 - **Root/Screen Split**: Logic (DI, Events) in Root, UI (State, Actions) in Screen.
 - **ViewModel**: Uses `State`, `Action`, and `Event` pattern.
+- **Type-Safe States**: Complex screens (PIN Entry, QR Scanning, User Selection) use `sealed interface` for states to ensure compile-time safety and prevent illegal UI states (e.g., showing a user list while loading).
 - **Navigation**: Uses Type-Safe Compose Navigation with local routes.
 
 ## Dependencies

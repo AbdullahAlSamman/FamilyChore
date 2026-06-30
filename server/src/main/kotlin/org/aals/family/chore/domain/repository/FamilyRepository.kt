@@ -9,4 +9,6 @@ interface FamilyRepository {
     suspend fun addUserToFamily(familyId: String, nickname: String, role: org.aals.family.chore.core.domain.model.UserRole): User
     suspend fun getUsersInFamily(familyId: String): List<User>
     suspend fun getUser(id: String): User?
+    suspend fun setPin(userId: String, pin: String)
+    suspend fun verifyPin(userId: String, pin: String): Boolean
 }

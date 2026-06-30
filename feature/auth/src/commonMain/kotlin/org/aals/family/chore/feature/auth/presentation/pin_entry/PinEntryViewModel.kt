@@ -6,11 +6,16 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.aals.family.chore.core.domain.repository.AuthRepository
+import org.aals.family.chore.core.domain.util.onFailure
+import org.aals.family.chore.core.domain.util.onSuccess
 
 class PinEntryViewModel(
+    private val authRepository: AuthRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private val userId: String = checkNotNull(savedStateHandle["userId"])
     private val isSetupMode: Boolean = savedStateHandle["isSetupMode"] ?: false
 
     private val _state = MutableStateFlow(PinEntryState())
@@ -39,9 +44,21 @@ class PinEntryViewModel(
     private fun submitPin() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            // TODO: Call repository to verify or setup PIN
-            _state.update { it.copy(isLoading = false) }
-            _events.send(PinEntryEvent.PinVerified)
+            val pin = _state.value.pin
+            val result = if (isSetupMode) {
+                authRepository.setupPin(userId, pin)
+            } else {
+                authRepository.verifyPin(userId, pin)
+            }
+
+            result
+                .onSuccess {
+                    _state.update { it.copy(isLoading = false) }
+                    _events.send(PinEntryEvent.PinVerified)
+                }
+                .onFailure { error ->
+                    _state.update { it.copy(isLoading = false, error = error.toString()) }
+                }
         }
     }
 }

@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
+import org.aals.family.chore.feature.auth.presentation.create_family.CreateFamilyRoot
 import org.aals.family.chore.feature.auth.presentation.pin_entry.PinEntryRoot
 import org.aals.family.chore.feature.auth.presentation.qr_scanner.QrScannerRoot
 import org.aals.family.chore.feature.auth.presentation.user_selection.UserSelectionRoot
@@ -14,6 +15,7 @@ import org.aals.family.chore.feature.auth.presentation.welcome.WelcomeRoot
 @Serializable object AuthGraph
 
 @Serializable object WelcomeRoute
+@Serializable object CreateFamilyRoute
 @Serializable object QrScannerRoute
 @Serializable data class UserSelectionRoute(val pairingToken: String)
 @Serializable data class PinEntryRoute(val userId: String, val isSetupMode: Boolean = false)
@@ -26,12 +28,18 @@ fun NavGraphBuilder.authGraph(
         composable<WelcomeRoute> {
             WelcomeRoot(
                 onNavigateToSetupFamily = {
-                    // For now, let's assume setup family leads to QR scanner or similar
-                    // Actually, setup family should lead to a CreateFamily screen
-                    // But I'll just skip to QR for now to demonstrate navigation
+                    navController.navigate(CreateFamilyRoute)
                 },
                 onNavigateToJoinFamily = {
                     navController.navigate(QrScannerRoute)
+                }
+            )
+        }
+        composable<CreateFamilyRoute> {
+            CreateFamilyRoot(
+                onNavigateBack = { navController.popBackStack() },
+                onFamilyCreated = { familyId, userId ->
+                    navController.navigate(PinEntryRoute(userId, isSetupMode = true))
                 }
             )
         }

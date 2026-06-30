@@ -1,9 +1,10 @@
 # FamilyChore Project Memory
 
+## General Rules
+**After finishing up with implementation and testing always update documentation files `README.md`**
+**before reading files of any module, read documentation first `README.md` file then if necessary read files**
+
 This file tracks critical architectural decisions and domain rules for the FamilyChore project.
-
-**before reading files of any module, read documentation first README.md file then if necessary read files**
-
 ## Critical Engineering Decisions
 - **Role-Based UX**: Unified binary, branched UI (Parent vs. Child dashboards).
 - **Offline-First**: Room KMP is the Single Source of Truth.
@@ -15,6 +16,7 @@ This file tracks critical architectural decisions and domain rules for the Famil
 - **Strict MVI & UI Split**: Every screen MUST be split into a **Root** (logical/DI) and **Screen** (dumb UI) composable. ViewModels MUST follow the `State`, `Action`, `Event` pattern.
 - **Test-Driven Execution**: Every implementation phase MUST conclude with comprehensive unit tests before proceeding to the next phase. Foundation testing (Result, SafeCall mapping, UiText) is complete.
 - **Pairing Flow**: Onboarding uses a QR handshake. QR content is a JSON `PairingToken` (ip, token). Joining a family involves scanning, fetching users via token, and picking a profile.
+- **PIN Authentication**: 4-digit PIN is verified against the server. During onboarding, the parent sets a PIN (setup mode), and subsequent joins or re-auths use verification mode.
 
 ## Domain Rules
 - **Chore Verification**: Mandatory live photo (no gallery uploads).

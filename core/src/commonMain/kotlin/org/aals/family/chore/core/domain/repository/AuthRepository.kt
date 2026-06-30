@@ -10,4 +10,6 @@ interface AuthRepository {
     suspend fun generatePairingToken(familyId: String): Result<String, DataError.Network>
     suspend fun getPairingUsers(pairingToken: String): Result<List<User>, DataError.Network>
     suspend fun confirmPairing(pairingToken: String, userId: String): Result<User, DataError.Network>
+    suspend fun setupPin(userId: String, pin: String): Result<Unit, DataError.Network>
+    suspend fun verifyPin(userId: String, pin: String): Result<Unit, DataError.Network>
 }

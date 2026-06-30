@@ -4,7 +4,9 @@
 The `:server` module contains the Ktor backend application. It serves as the local family hub, managing data isolation and synchronization between family members.
 
 ## Key Features
-- **Family Isolation**: Implements multi-tenancy using scoped routing (e.g., `/{familyId}/chores`).
+- **Pairing & Onboarding**: Handles QR-based family setup and device pairing via short-lived tokens.
+- **PIN Authentication**: Implements user-specific 4-digit PIN verification.
+- **Family Isolation**: Implements multi-tenancy using scoped routing and `familyId` identifiers.
 - **Data Sovereignty**: Designed for home-lab deployment (no external data tracking).
 - **Serialization**: uses KotlinX Serialization for all JSON responses.
 

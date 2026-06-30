@@ -84,5 +84,21 @@ fun Route.pairingRoutes(
                 )
             )
         }
+
+        post("/pin/setup") {
+            val request = call.receive<SetupPinRequest>()
+            familyRepository.setPin(request.userId, request.pin)
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/pin/verify") {
+            val request = call.receive<VerifyPinRequest>()
+            val isValid = familyRepository.verifyPin(request.userId, request.pin)
+            if (isValid) {
+                call.respond(HttpStatusCode.OK)
+            } else {
+                call.respond(HttpStatusCode.Unauthorized, "Invalid PIN")
+            }
+        }
     }
 }

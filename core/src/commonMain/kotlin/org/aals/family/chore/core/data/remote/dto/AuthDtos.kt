@@ -45,3 +45,15 @@ data class ConfirmPairingResponse(
     val user: User,
     val token: String
 )
+
+@Serializable
+data class SetupPinRequest(
+    val userId: String,
+    val pin: String
+)
+
+@Serializable
+data class VerifyPinRequest(
+    val userId: String,
+    val pin: String
+)

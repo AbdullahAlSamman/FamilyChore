@@ -5,9 +5,10 @@ This module handles the onboarding and authentication flow for the FamilyChore a
 
 ## Key Screens
 - **WelcomeScreen**: Entry point for setting up or joining a family.
+- **CreateFamilyScreen**: Allows parents to initialize a new family hub and parent profile.
 - **QrScannerScreen**: Handles scanning the pairing QR code from a parent device.
 - **UserSelectionScreen**: Fetches and displays available profiles in a paired family.
-- **PinEntryScreen**: Handles PIN setup and verification.
+- **PinEntryScreen**: Handles PIN setup (for new users) and verification (for existing users).
 
 ## Architecture
 Follows the project's strict MVI pattern:
@@ -22,4 +23,5 @@ Follows the project's strict MVI pattern:
 - **Lifecycle Compose**: State observation.
 
 ## Testing
-- (Planned) Unit tests for ViewModels and Repositories.
+- **ViewModel Unit Tests**: Comprehensive coverage for all onboarding flows using JUnit5, Turbine, and AssertK.
+- **Repository Tests**: (In `:core`) Verified auth logic and token storage.

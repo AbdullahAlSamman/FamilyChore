@@ -5,6 +5,7 @@ import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.isEqualTo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -16,8 +17,8 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ServerDiscoveryViewModelTest {
-
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: ServerDiscoveryViewModel
     private lateinit var serverDiscovery: FakeServerDiscovery
@@ -56,7 +57,7 @@ class ServerDiscoveryViewModelTest {
 
         viewModel.events.test {
             viewModel.onAction(ServerDiscoveryAction.OnServerSelected(server))
-            
+
             assertThat(tokenStorage.getServerUrl()).isEqualTo(server.url)
             assertThat(tokenStorage.getServerName()).isEqualTo(server.name)
             assertThat(awaitItem()).isEqualTo(ServerDiscoveryEvent.NavigateToWelcome)
@@ -67,11 +68,11 @@ class ServerDiscoveryViewModelTest {
     fun `clicking scan again clears results and restarts`() = runTest {
         val server = DiscoveredServer("My Server", "http://my.server:8080")
         serverDiscovery.emit(server)
-        
+
         assertThat(viewModel.state.value.discoveredServers).contains(server)
-        
+
         viewModel.onAction(ServerDiscoveryAction.OnScanAgainClick)
-        
+
         assertThat(viewModel.state.value.discoveredServers).isEqualTo(emptyList())
         assertThat(viewModel.state.value.isScanning).isEqualTo(true)
     }

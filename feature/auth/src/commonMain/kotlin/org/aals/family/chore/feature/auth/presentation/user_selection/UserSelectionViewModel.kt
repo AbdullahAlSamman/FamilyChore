@@ -17,7 +17,7 @@ class UserSelectionViewModel(
 
     private val pairingToken: String = checkNotNull(savedStateHandle["pairingToken"])
 
-    private val _state = MutableStateFlow(UserSelectionState())
+    private val _state = MutableStateFlow<UserSelectionState>(UserSelectionState.Loading)
     val state = _state.asStateFlow()
 
     private val _events = Channel<UserSelectionEvent>()
@@ -35,27 +35,29 @@ class UserSelectionViewModel(
 
     private fun loadUsers() {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
+            _state.value = UserSelectionState.Loading
             authRepository.getPairingUsers(pairingToken)
                 .onSuccess { users ->
-                    _state.update { it.copy(users = users, isLoading = false) }
+                    _state.value = UserSelectionState.Success(users = users)
                 }
                 .onFailure { error ->
-                    _state.update { it.copy(isLoading = false, error = error.toString()) }
+                    _state.value = UserSelectionState.Error(error.toString())
                 }
         }
     }
 
     private fun confirmPairing(userId: String) {
+        val currentSuccess = _state.value as? UserSelectionState.Success ?: return
+
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
+            _state.value = currentSuccess.copy(isConfirming = true, error = null)
             authRepository.confirmPairing(pairingToken, userId)
                 .onSuccess { user ->
-                    _state.update { it.copy(isLoading = false) }
+                    _state.value = currentSuccess.copy(isConfirming = false)
                     _events.send(UserSelectionEvent.PairingConfirmed(user.id))
                 }
                 .onFailure { error ->
-                    _state.update { it.copy(isLoading = false, error = error.toString()) }
+                    _state.value = currentSuccess.copy(isConfirming = false, error = error.toString())
                 }
         }
     }

@@ -4,29 +4,27 @@ import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.aals.family.chore.feature.auth.presentation.FakeAuthRepository
-import org.aals.family.chore.feature.auth.presentation.FakeTokenStorage
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class CreateFamilyViewModelTest {
-
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: CreateFamilyViewModel
     private lateinit var authRepository: FakeAuthRepository
-    private lateinit var tokenStorage: FakeTokenStorage
 
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         authRepository = FakeAuthRepository()
-        tokenStorage = FakeTokenStorage()
-        viewModel = CreateFamilyViewModel(authRepository, tokenStorage)
+        viewModel = CreateFamilyViewModel(authRepository)
     }
 
     @AfterTest

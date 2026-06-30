@@ -15,7 +15,7 @@ class QrScannerViewModel(
     private val tokenStorage: TokenStorage
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(QrScannerState())
+    private val _state = MutableStateFlow<QrScannerState>(QrScannerState.NoPermission())
     val state = _state.asStateFlow()
 
     private val _events = Channel<QrScannerEvent>()
@@ -24,7 +24,9 @@ class QrScannerViewModel(
     fun onAction(action: QrScannerAction) {
         when (action) {
             is QrScannerAction.OnQrCodeScanned -> {
-                parseQrContent(action.content)
+                if (_state.value is QrScannerState.Scanning) {
+                    parseQrContent(action.content)
+                }
             }
             QrScannerAction.OnBackClick -> {
                 viewModelScope.launch {
@@ -32,12 +34,20 @@ class QrScannerViewModel(
                 }
             }
             is QrScannerAction.OnPermissionResult -> {
-                _state.value = _state.value.copy(hasCameraPermission = action.granted)
+                if (action.granted) {
+                    _state.value = QrScannerState.Scanning()
+                } else {
+                    val currentCount = (_state.value as? QrScannerState.NoPermission)?.permissionRequestCount ?: 0
+                    _state.value = QrScannerState.NoPermission(currentCount)
+                }
             }
             QrScannerAction.OnRetryPermissionClick -> {
-                _state.value = _state.value.copy(
-                    permissionRequestCount = _state.value.permissionRequestCount + 1
-                )
+                val currentState = _state.value as? QrScannerState.NoPermission
+                if (currentState != null) {
+                    _state.value = currentState.copy(
+                        permissionRequestCount = currentState.permissionRequestCount + 1
+                    )
+                }
             }
         }
     }
@@ -50,7 +60,7 @@ class QrScannerViewModel(
                 _events.send(QrScannerEvent.QrCodeDetected(pairingToken.serverIp, pairingToken.token))
             }
         } catch (e: Exception) {
-            _state.value = _state.value.copy(error = "Invalid QR code")
+            _state.value = QrScannerState.Scanning(error = "Invalid QR code")
         }
     }
 }

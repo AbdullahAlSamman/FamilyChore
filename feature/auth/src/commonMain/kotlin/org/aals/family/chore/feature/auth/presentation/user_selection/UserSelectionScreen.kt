@@ -50,28 +50,44 @@ fun UserSelectionScreen(
                 .padding(padding),
             contentAlignment = Alignment.Center
         ) {
-            if (state.isLoading) {
-                CircularProgressIndicator()
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(state.users) { user ->
-                        ListItem(
-                            headlineContent = { Text(user.nickname) },
-                            supportingContent = { Text(user.role.name) },
-                            modifier = Modifier.clickable {
-                                onAction(UserSelectionAction.OnUserClick(user))
+            when (state) {
+                is UserSelectionState.Loading -> {
+                    CircularProgressIndicator()
+                }
+                is UserSelectionState.Success -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(state.users) { user ->
+                                ListItem(
+                                    headlineContent = { Text(user.nickname) },
+                                    supportingContent = { Text(user.role.name) },
+                                    modifier = Modifier.clickable(enabled = !state.isConfirming) {
+                                        onAction(UserSelectionAction.OnUserClick(user))
+                                    }
+                                )
                             }
-                        )
+                        }
+
+                        if (state.isConfirming) {
+                            CircularProgressIndicator()
+                        }
+
+                        state.error?.let {
+                            Text(
+                                text = it,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)
+                            )
+                        }
                     }
                 }
-            }
-
-            state.error?.let {
-                Text(it, color = MaterialTheme.colorScheme.error)
+                is UserSelectionState.Error -> {
+                    Text(state.message, color = MaterialTheme.colorScheme.error)
+                }
             }
         }
     }

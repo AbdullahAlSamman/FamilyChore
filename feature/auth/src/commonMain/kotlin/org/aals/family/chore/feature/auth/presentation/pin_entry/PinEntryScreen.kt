@@ -39,6 +39,9 @@ fun PinEntryScreen(
     state: PinEntryState,
     onAction: (PinEntryAction) -> Unit
 ) {
+    val isLoading = state is PinEntryState.Verifying
+    val error = (state as? PinEntryState.Entering)?.error
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Enter PIN") })
@@ -53,9 +56,9 @@ fun PinEntryScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text("Enter your 4-digit PIN to continue.")
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             OutlinedTextField(
                 value = state.pin,
                 onValueChange = { onAction(PinEntryAction.OnPinChange(it)) },
@@ -63,22 +66,23 @@ fun PinEntryScreen(
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 modifier = Modifier.width(150.dp),
+                enabled = !isLoading,
                 singleLine = true
             )
-            
-            state.error?.let {
+
+            error?.let {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(it, color = MaterialTheme.colorScheme.error)
             }
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
+
             Button(
                 onClick = { onAction(PinEntryAction.OnSubmit) },
-                enabled = state.pin.length == 4 && !state.isLoading,
+                enabled = state.pin.length == 4 && !isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (state.isLoading) {
+                if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 } else {
                     Text("Submit")

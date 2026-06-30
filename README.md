@@ -1,22 +1,23 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Desktop (JVM), Server.
+# FamilyChore
 
-* [/app/iosApp](./app/iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+A Kotlin Multiplatform project for managing family chores, targeting Android, iOS, Desktop (JVM), and a local Server.
 
-* [/app/shared](./app/shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./app/shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./app/shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./app/shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
+## Project Structure
 
-* [/core](./core/src) is for the code that will be shared between all targets in the project.
-  The most important subfolder is [commonMain](./core/src/commonMain/kotlin). If preferred, you
-  can add code to the platform-specific folders here too.
+* **[:app:androidApp](./app/androidApp)**: Android-specific entry point and configuration.
+* **[:app:desktopApp](./app/desktopApp)**: Desktop (JVM) entry point using Compose for Desktop.
+* **[:app:shared](./app/shared)**: Shared UI and navigation orchestration for all client platforms.
+* **[:core](./core)**: Shared domain models, infrastructure, and common utilities used by both client and server.
+* **[:feature:auth](./feature/auth)**: Authentication and onboarding feature module (QR pairing, PIN entry).
+* **[:server](./server)**: Ktor-based backend serving as the local family hub.
+* **[:build-logic](./build-logic)**: Gradle Convention Plugins for centralized build configuration.
 
-* [/server](./server/src/main/kotlin) is for the Ktor server application.
+### Shared Code Strategy
+
+The project maximizes code sharing across all targets:
+- **Business Logic**: Common in `:core` and feature modules.
+- **UI**: Shared using Compose Multiplatform in `:app:shared` and features.
+- **Platform Specifics**: Handled via `expect`/`actual` (e.g., QR scanning in `:feature:auth`).
 
 ### Running the apps
 

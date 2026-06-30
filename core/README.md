@@ -21,6 +21,7 @@ The `:core` module provides shared infrastructure, domain models, and utilities 
 ## Consumers
 - `:server`: Uses domain models, Result wrapper, and shared data entities.
 - `:app:shared`: Main consumer for UI logic and local database access.
+- `:feature:auth`: Uses domain models and presentation utilities for onboarding.
 - All future feature modules.
 
 ## Testing

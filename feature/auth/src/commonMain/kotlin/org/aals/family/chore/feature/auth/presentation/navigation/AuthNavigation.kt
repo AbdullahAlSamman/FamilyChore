@@ -22,6 +22,13 @@ import org.aals.family.chore.feature.auth.presentation.welcome.WelcomeRoot
 @Serializable data class UserSelectionRoute(val pairingToken: String)
 @Serializable data class PinEntryRoute(val userId: String, val isSetupMode: Boolean = false)
 
+/**
+ * Defines the navigation graph for the authentication and onboarding flow.
+ * 
+ * @param navController The navigation controller to use for transitions.
+ * @param startAtWelcome If true, skips server discovery and starts at the Welcome screen.
+ * @param onOnboardingComplete Callback triggered when the onboarding/auth flow is finished.
+ */
 fun NavGraphBuilder.authGraph(
     navController: NavController,
     startAtWelcome: Boolean = false,

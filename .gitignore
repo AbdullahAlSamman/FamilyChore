@@ -6,6 +6,11 @@
 *.bak
 .DS_Store
 
+#AI Agents
+.claude
+.agents
+.artifacts
+
 # Gradle
 .gradle/
 build/
@@ -54,8 +59,3 @@ yarn-error.log*
 # KMP Specific
 shared/build/
 composeApp/build/
-
-#AI Agents
-.claude
-.agents
-.artifacts

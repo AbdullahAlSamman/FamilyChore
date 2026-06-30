@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,11 +32,26 @@ fun QrScannerRoot(
         }
     }
 
+    if (!state.hasCameraPermission) {
+        RequestCameraPermission(
+            trigger = state.permissionRequestCount,
+            onResult = { granted ->
+                viewModel.onAction(QrScannerAction.OnPermissionResult(granted))
+            }
+        )
+    }
+
     QrScannerScreen(
         state = state,
         onAction = viewModel::onAction
     )
 }
+
+@Composable
+expect fun RequestCameraPermission(
+    trigger: Any,
+    onResult: (Boolean) -> Unit
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,13 +78,30 @@ fun QrScannerScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(250.dp)
-                    .background(Color.Black),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Camera Preview Placeholder", color = Color.White)
+            if (state.hasCameraPermission) {
+                QrScannerView(
+                    onQrCodeScanned = { content ->
+                        onAction(QrScannerAction.OnQrCodeScanned(content))
+                    },
+                    modifier = Modifier
+                        .size(250.dp)
+                        .background(Color.Black)
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(250.dp)
+                        .background(Color.Black),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("Camera permission required", color = Color.White)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        IconButton(onClick = { onAction(QrScannerAction.OnRetryPermissionClick) }) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Retry", tint = Color.White)
+                        }
+                    }
+                }
             }
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -77,15 +111,6 @@ fun QrScannerScreen(
             state.error?.let {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(it, color = MaterialTheme.colorScheme.error)
-            }
-
-            // Dummy button to simulate a scan for now
-            Spacer(modifier = Modifier.height(32.dp))
-            Button(onClick = { 
-                // In a real app, this would be triggered by the camera/ML Kit
-                onAction(QrScannerAction.OnQrCodeScanned("{\"token\":\"dummy-token\",\"serverIp\":\"http://192.168.1.100:8080\"}"))
-            }) {
-                Text("Simulate Scan")
             }
         }
     }

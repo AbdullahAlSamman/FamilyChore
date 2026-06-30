@@ -52,4 +52,21 @@ class QrScannerViewModelTest {
             assertThat(awaitItem().error).isEqualTo("Invalid QR code")
         }
     }
+
+    @Test
+    fun `permission result updates state`() = runTest {
+        viewModel.state.test {
+            assertThat(awaitItem().hasCameraPermission).isEqualTo(false)
+            viewModel.onAction(QrScannerAction.OnPermissionResult(granted = true))
+            assertThat(awaitItem().hasCameraPermission).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun `back click sends navigate back event`() = runTest {
+        viewModel.events.test {
+            viewModel.onAction(QrScannerAction.OnBackClick)
+            assertThat(awaitItem()).isEqualTo(QrScannerEvent.NavigateBack)
+        }
+    }
 }

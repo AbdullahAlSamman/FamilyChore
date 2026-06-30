@@ -31,6 +31,14 @@ class QrScannerViewModel(
                     _events.send(QrScannerEvent.NavigateBack)
                 }
             }
+            is QrScannerAction.OnPermissionResult -> {
+                _state.value = _state.value.copy(hasCameraPermission = action.granted)
+            }
+            QrScannerAction.OnRetryPermissionClick -> {
+                _state.value = _state.value.copy(
+                    permissionRequestCount = _state.value.permissionRequestCount + 1
+                )
+            }
         }
     }
 

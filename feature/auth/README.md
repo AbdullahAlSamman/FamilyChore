@@ -21,7 +21,13 @@ Follows the project's strict MVI pattern:
 - **Koin**: Dependency injection.
 - **Navigation Compose**: Shared navigation logic.
 - **Lifecycle Compose**: State observation.
+- **CameraX & ML Kit (Android)**: Real-time QR code scanning infrastructure.
+
+## Implementation Details
+- **QrScannerView**: A platform-specific Composable implemented via `expect`/`actual`.
+    - **Android**: Uses CameraX for preview and Google ML Kit Barcode Scanning for detection.
+    - **JVM/iOS**: Current placeholder implementation.
+- **Permission Handling**: `RequestCameraPermission` (expect/actual) handles the camera permission request flow, updating the MVI `QrScannerState`.
 
 ## Testing
-- **ViewModel Unit Tests**: Comprehensive coverage for all onboarding flows using JUnit5, Turbine, and AssertK.
-- **Repository Tests**: (In `:core`) Verified auth logic and token storage.
+- **ViewModel Unit Tests**: Comprehensive coverage for all onboarding flows, including QR parsing, permission state updates, and navigation events, using JUnit5, Turbine, and AssertK.

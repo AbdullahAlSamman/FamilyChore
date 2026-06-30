@@ -1,0 +1,19 @@
+- [x] **Core Module**
+    - [x] Add `jmdns` dependency to `core/build.gradle.kts`
+    - [x] Update `ServerDiscovery.kt` interface and `DiscoveredServer` model
+    - [x] Update platform implementations (`AndroidServerDiscovery.kt`, `JvmServerDiscovery.kt`, `IosServerDiscovery.kt`)
+- [x] **Feature: Discovery**
+    - [x] Implement `ServerDiscoveryScreen.kt`
+    - [x] Implement `ServerDiscoveryViewModel.kt`
+- [x] **Feature: Auth & Onboarding Refactor**
+    - [x] Refactor `AuthNavigation.kt` to include Discovery
+    - [x] Refactor `WelcomeViewModel.kt` (remove discovery logic)
+- [x] **App Level**
+    - [x] Implement Smart Start logic in `App.kt`
+- [x] **Server Module**
+    - [x] Enhance `DiscoveryBroadcaster.kt`
+- [x] **Verification**
+    - [x] Unit tests for `ServerDiscoveryViewModel`
+    - [x] Manual verification of the flow (Build successful, JVM tests passed)
+    - [ ] Unit tests for `ServerDiscoveryViewModel`
+    - [ ] Manual verification of the flow

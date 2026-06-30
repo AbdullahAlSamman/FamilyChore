@@ -6,6 +6,7 @@ class FakeTokenStorage : TokenStorage {
     private var token: String? = null
     private var familyId: String? = null
     private var serverUrl: String? = null
+    private var serverName: String? = null
 
     override suspend fun saveToken(token: String) {
         this.token = token
@@ -25,9 +26,16 @@ class FakeTokenStorage : TokenStorage {
 
     override suspend fun getServerUrl(): String? = serverUrl
 
+    override suspend fun saveServerName(name: String) {
+        this.serverName = name
+    }
+
+    override suspend fun getServerName(): String? = serverName
+
     override suspend fun clear() {
         token = null
         familyId = null
         serverUrl = null
+        serverName = null
     }
 }

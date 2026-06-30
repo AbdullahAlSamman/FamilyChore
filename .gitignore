@@ -58,3 +58,4 @@ composeApp/build/
 #AI Agents
 .claude
 .agents
+.artifacts

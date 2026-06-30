@@ -14,8 +14,7 @@ import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
 
 class CreateFamilyViewModel(
-    private val authRepository: AuthRepository,
-    private val tokenStorage: TokenStorage
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CreateFamilyState())
@@ -26,9 +25,6 @@ class CreateFamilyViewModel(
 
     fun onAction(action: CreateFamilyAction) {
         when (action) {
-            is CreateFamilyAction.OnServerIpChange -> {
-                _state.update { it.copy(serverIp = action.ip) }
-            }
             is CreateFamilyAction.OnFamilyNameChange -> {
                 _state.update { it.copy(familyName = action.name) }
             }
@@ -45,18 +41,16 @@ class CreateFamilyViewModel(
     }
 
     private fun createFamily() {
-        val serverIp = _state.value.serverIp
         val familyName = _state.value.familyName
         val parentNickname = _state.value.parentNickname
 
-        if (serverIp.isBlank() || familyName.isBlank() || parentNickname.isBlank()) {
+        if (familyName.isBlank() || parentNickname.isBlank()) {
             _state.update { it.copy(error = "Please fill all fields") }
             return
         }
 
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            tokenStorage.saveServerUrl(serverIp)
             authRepository.createFamily(familyName, parentNickname)
                 .onSuccess { user ->
                     _state.update { it.copy(isLoading = false) }

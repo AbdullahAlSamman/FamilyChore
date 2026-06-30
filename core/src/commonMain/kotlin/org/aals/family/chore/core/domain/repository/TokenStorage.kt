@@ -7,5 +7,7 @@ interface TokenStorage {
     suspend fun getFamilyId(): String?
     suspend fun saveServerUrl(url: String)
     suspend fun getServerUrl(): String?
+    suspend fun saveServerName(name: String)
+    suspend fun getServerName(): String?
     suspend fun clear()
 }

@@ -13,8 +13,11 @@ kotlin {
 }
 dependencies {
     implementation(projects.app.shared)
+    implementation(projects.core)
+    implementation(projects.feature.auth)
 
     implementation(libs.androidx.activity.compose)
+    implementation(libs.koin.android)
 
     implementation(libs.compose.uiToolingPreview)
     debugImplementation(libs.compose.uiTooling)

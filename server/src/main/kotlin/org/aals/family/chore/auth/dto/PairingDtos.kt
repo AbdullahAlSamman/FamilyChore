@@ -1,0 +1,42 @@
+package org.aals.family.chore.auth.dto
+
+import kotlinx.serialization.Serializable
+import org.aals.family.chore.core.domain.model.User
+import org.aals.family.chore.core.domain.model.UserRole
+
+@Serializable
+data class CreateFamilyRequest(
+    val familyName: String,
+    val parentNickname: String
+)
+
+@Serializable
+data class CreateFamilyResponse(
+    val familyId: String,
+    val parentUser: User,
+    val token: String // Initial token for the parent
+)
+
+@Serializable
+data class GeneratePairingTokenRequest(
+    val familyId: String
+)
+
+@Serializable
+data class GeneratePairingTokenResponse(
+    val pairingToken: String
+)
+
+@Serializable
+data class ConfirmPairingRequest(
+    val pairingToken: String,
+    val nickname: String,
+    val role: UserRole
+)
+
+@Serializable
+data class ConfirmPairingResponse(
+    val familyId: String,
+    val user: User,
+    val token: String // JWT token
+)

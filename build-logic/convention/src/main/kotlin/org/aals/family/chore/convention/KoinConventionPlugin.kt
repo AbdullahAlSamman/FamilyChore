@@ -14,6 +14,8 @@ class KoinConventionPlugin : Plugin<Project> {
             extensions.findByType(KotlinMultiplatformExtension::class.java)?.let { kmpExtension ->
                 kmpExtension.sourceSets.getByName("commonMain").dependencies {
                     implementation(libs.findLibrary("koin.core").get())
+                    implementation(libs.findLibrary("koin.compose").get())
+                    implementation(libs.findLibrary("koin.compose.viewmodel").get())
                 }
             }
         }

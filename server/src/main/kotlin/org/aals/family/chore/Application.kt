@@ -7,7 +7,10 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.aals.family.chore.auth.PairingManager
+import org.aals.family.chore.auth.pairingRoutes
 import org.aals.family.chore.core.data.local.entity.ChoreEntity
+import org.aals.family.chore.data.repository.InMemoryFamilyRepository
 
 fun main() {
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
@@ -19,10 +22,15 @@ fun Application.module() {
         json()
     }
 
+    val familyRepository = InMemoryFamilyRepository()
+    val pairingManager = PairingManager()
+
     routing {
         get("/") {
             call.respondText("FamilyChore Server Running")
         }
+
+        pairingRoutes(familyRepository, pairingManager)
 
         route("/{familyId}") {
             get("/chores") {

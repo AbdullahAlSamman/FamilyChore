@@ -14,36 +14,26 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import org.jetbrains.compose.resources.painterResource
-
-import familychore.app.shared.generated.resources.Res
-import familychore.app.shared.generated.resources.compose_multiplatform
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.rememberNavController
+import org.aals.family.chore.feature.auth.presentation.navigation.AuthGraph
+import org.aals.family.chore.feature.auth.presentation.navigation.authGraph
 
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        val navController = rememberNavController()
+        NavHost(
+            navController = navController,
+            startDestination = AuthGraph
         ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+            authGraph(
+                navController = navController,
+                onOnboardingComplete = {
+                    // Navigate to Main dashboard
                 }
-            }
+            )
         }
     }
 }

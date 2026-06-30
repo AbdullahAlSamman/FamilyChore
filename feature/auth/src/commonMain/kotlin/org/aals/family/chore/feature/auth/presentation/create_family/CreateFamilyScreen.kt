@@ -64,6 +64,13 @@ fun CreateFamilyScreen(
             )
             Spacer(modifier = Modifier.height(32.dp))
             OutlinedTextField(
+                value = state.serverIp,
+                onValueChange = { onAction(CreateFamilyAction.OnServerIpChange(it)) },
+                label = { Text("Server URL (e.g. http://192.168.1.100:8080)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
                 value = state.familyName,
                 onValueChange = { onAction(CreateFamilyAction.OnFamilyNameChange(it)) },
                 label = { Text("Family Name") },

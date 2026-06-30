@@ -21,6 +21,7 @@ To build a high-engagement, gamified KMP application with a local Ktor backbone,
 - **Convention Plugins**: Establishing `:build-logic` for `android-feature`, `compose`, `room`, `ktor`, and `koin`.
 - **Foundation Layer**: `Result` wrappers, `SafeCall` helpers, and `UiText` resources in `:core`.
 - **Phase 6: Onboarding**: QR Handshake, Family Creation, and PIN authentication are fully implemented and unit-tested.
+- **Phase 6.5: Automated Server Discovery**: [NEW] Automated mDNS or LAN scanning to find the Ktor server and cache its IP in `TokenStorage`.
 
 ### 2. Phase 7: The Points Economy (ACTIVE)
 This phase introduces the base token economy and dashboards.

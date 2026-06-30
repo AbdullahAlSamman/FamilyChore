@@ -84,10 +84,11 @@ graph TD
 - Build logic, `Result` wrappers, `SafeCall`, `UiText`, and Room/Ktor factory setup.
 
 ### Phase 6: Onboarding & Secure Pairing (COMPLETED)
-- QR-based pairing handshake.
-- Family creation flow.
-- Profile selection and PIN-based authentication (Setup & Verify modes).
-- Full unit test coverage for Auth features.
+- **Server Discovery**: Automated search (mDNS/LAN) and IP caching for seamless server connection.
+- **QR-based pairing handshake**: Real-time camera scanning for device linking.
+- **Family creation flow**: Parent-driven family initialization.
+- **Profile selection and PIN-based authentication**: Setup & Verify modes with 4-digit security.
+- **Full unit test coverage**: All Auth features verified.
 
 ### Phase 7: The Points Economy (ACTIVE)
 - **Goal**: Implement the core token economy.

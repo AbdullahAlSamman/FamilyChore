@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.aals.family.chore.feature.auth.presentation.FakeAuthRepository
+import org.aals.family.chore.feature.auth.presentation.FakeTokenStorage
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -18,12 +19,14 @@ class CreateFamilyViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: CreateFamilyViewModel
     private lateinit var authRepository: FakeAuthRepository
+    private lateinit var tokenStorage: FakeTokenStorage
 
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         authRepository = FakeAuthRepository()
-        viewModel = CreateFamilyViewModel(authRepository)
+        tokenStorage = FakeTokenStorage()
+        viewModel = CreateFamilyViewModel(authRepository, tokenStorage)
     }
 
     @AfterTest

@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap
 class InMemoryFamilyRepository : FamilyRepository {
     private val families = ConcurrentHashMap<String, Family>()
     private val users = ConcurrentHashMap<String, MutableList<User>>()
+    private val pins = ConcurrentHashMap<String, String>()
 
     override suspend fun createFamily(name: String): Family {
         val family = Family(
@@ -42,5 +43,13 @@ class InMemoryFamilyRepository : FamilyRepository {
 
     override suspend fun getUser(id: String): User? {
         return users.values.flatten().find { it.id == id }
+    }
+
+    override suspend fun setPin(userId: String, pin: String) {
+        pins[userId] = pin
+    }
+
+    override suspend fun verifyPin(userId: String, pin: String): Boolean {
+        return pins[userId] == pin
     }
 }

@@ -1,297 +1,71 @@
-# FamilyChore App: The Ultimate Implementation Blueprint
-**Revision: 1.5**
+# FamilyChore Implementation Plan: Full Roadmap & Phase 7
 
-This document serves as the comprehensive, self-contained technical specification and implementation plan for the **FamilyChore** application.
+This document outlines the complete roadmap for the **FamilyChore** application, focusing on the upcoming **Phase 7: The Points Economy**.
 
-## 1. Project Vision
-A high-engagement, gamified KMP application for managing family chores.
-- **Backbone**: Local Ktor server (Home Lab/Server).
-- **Clients**: Android, iOS (Compose Multiplatform), and Web (Wasm).
-- **Core Value**: Offline-first, privacy-focused, local network synchronization, and asymmetric gamification.
+## Goal Description
+To build a high-engagement, gamified KMP application with a local Ktor backbone, offline-first Room KMP storage, and a multi-tenant architecture scoped by `familyId`.
 
 ---
 
-## 2. Project Knowledge Management & Critical Decisions
+## User Review Required
 
-To ensure continuity across development sessions and provide agents with a high-fidelity context without relying on transient memory:
-
-### A. The `MEMORY.md` Protocol
-A `MEMORY.md` file will be maintained in the project root. Every time a major architectural decision is made or a platform-specific hurdle is overcome, it MUST be recorded here.
-- **Decision Log**: Record "Why" (e.g., "Why Room KMP over SQLDelight?").
-- **Domain Rules**: Explicitly list business logic (e.g., "Chore photos must be live-only").
-- **Platform Quirks**: Notes on iOS/Web/Desktop behavior (e.g., "Wasm target requires special Linker flags").
-
-### B. Critical Engineering Decisions (Principal Review Summary)
-1. **Role-Based UX**: The app binary is unified, but the UI is a total branch. `Parent` dashboard vs. `Child` dashboard is decided at the entry point via `UserRole` enum.
-2. **Offline-First**: Room KMP is the **Single Source of Truth**. Networking code (Ktor) only updates the database. The UI only observes the database.
-3. **Data Sovereignty (COPPA)**: No third-party analytics or cloud sync. The Ktor server is the family's private hub. Nicknames only.
-4. **Sync Strategy**: WebSocket for live updates + Platform Workers for background integrity.
-5. **Conflict Resolution**: Version-based Last Write Wins (LWW) is the default; manual resolution for chore completion/approval state collisions.
-6. **Build Infrastructure**: We will use **Gradle Convention Plugins** in a `:build-logic` module. No direct dependency management in feature `build.gradle.kts` files.
-7. **Strict MVI & UI Split**: Every screen MUST be split into a **Root** (logical/DI) and **Screen** (dumb UI) composable. ViewModels MUST follow the `State`, `Action`, `Event` pattern.
-8. **Multi-Tenant Scoping**: Every database entity and server-side request MUST be scoped via `familyId`. The Ktor server will embed this in the JWT payload.
-9. **Test-Driven Execution**: Every implementation phase MUST conclude with comprehensive unit tests before proceeding to the next phase. Verification of the foundation layer is the immediate priority.
-
-### C. Plan & Artifact Mirroring
-To ensure the implementation plan and key artifacts are versioned and accessible within the codebase:
-- The final approved `implementation_plan.artifact.md` will be mirrored to the project root at `/artifacts/implementation_plan.md`.
-- All design diagrams and ADRs (Architecture Decision Records) will be stored in the project's `/artifacts/` directory.
+> [!IMPORTANT]
+> **Phase 7 - Point Integrity**: As we introduce point transactions, we must ensure the local Room database remains the source of truth, but server-side validation is required to prevent "ghost" points.
+> **Role-Based UI**: Phase 7 will heavily differentiate the UI between Parents (award/deduct) and Children (view balance/history).
 
 ---
 
-## 3. Core Feature Requirements
+## Proposed Changes
 
-### A. Authentication & Role-Based UX
-- **User Personas**: Distinct `Parent` and `Child` dashboards in a single app binary.
-- **Primary Auth**: 4-digit PIN per user profile (Optional for child profiles to support younger children).
-- **Pairing**: Secure QR-based handshake to exchange server IP/Port and initial pairing tokens.
-- **Security**: Role-based access control (RBAC) enforced on the Ktor server.
-- **Recovery Paths**:
-    1. **Parent Recovery Secret**: Security facts set during onboarding.
-    2. **Parent-to-Child**: Parents can override and reset any child's PIN.
-    3. **Server-Side Fallback**: CLI or protected endpoint on the Ktor server to reset settings or PINs.
+### 1. Foundation & Infrastructure (Completed)
+- **Convention Plugins**: Establishing `:build-logic` for `android-feature`, `compose`, `room`, `ktor`, and `koin`.
+- **Foundation Layer**: `Result` wrappers, `SafeCall` helpers, and `UiText` resources in `:core`.
+- **Phase 6: Onboarding**: QR Handshake, Family Creation, and PIN authentication are fully implemented and unit-tested.
 
-### B. The Gamification Engine
-- **Token Economy**: Points are the central currency.
-- **Task Verification**: Child marks "Complete" (Mandatory Live Camera Photo) -> Parent receives WebSocket alert -> Parent "Approves" -> Points awarded.
-- **Behavioral Ledger**:
-    - **Dos**: Spontaneous bonus points for good behavior (Green).
-    - **Don'ts**: Immediate penalties for infractions (Red).
+### 2. Phase 7: The Points Economy (ACTIVE)
+This phase introduces the base token economy and dashboards.
 
-### C. Task & Reward Management
-- **Personalized Chores**: Assigned to specific children; individual task lists.
-- **Frequencies**: Daily, Weekly, Monthly, and One-off.
-- **Deadline Penalties**: Optional point deduction if a chore is missed.
-- **Vacation Mode**: Admin toggle to pause deadline penalties globally.
-- **Reward Store**: Custom rewards with images. Redemption requires parental approval.
+#### [NEW] Transaction Domain models
+- Already defined `Transaction` and `TransactionType` in `:core`.
 
-### D. Verification & Profile Customization
-- **Strict Photo Policy**: Verification photos for chores **must** be taken live.
-- **Profiles**: Children can set a profile picture via live selfie OR choose from default avatar sets (monsters/animals).
+#### [NEW] Transaction Repository
+- **`TransactionRepository`**: Interface in `:core:domain` for fetching family point history and recording new entries.
+- **`TransactionRepositoryImpl`**: Implementation in `:core:data` with Room & Ktor sync logic.
 
-### E. Connectivity, Synchronization & Offline-First
-- **Offline-First Strategy**: Room KMP as the local source of truth.
-- **Conflict Resolution**: Last Write Wins (LWW) with `version` tracking; Manual Merge UI for critical mismatches.
-- **Discovery**: Automated local network scanning (mDNS).
-- **Server Health**: Real-time "Green Dot" indicator (Heartbeat).
-- **Background Sync**: Platform-specific workers (WorkManager/BGTasks) keep local Room DB in sync.
-- **Asynchronous UI**: Loading, Success, Error, and Retry states for all interactions.
+#### [NEW] Feature: Points Module
+- **`DashboardParentScreen`**: Summary of family points + Navigation to transaction history.
+- **`DashboardChildScreen`**: Personal point balance + animated celebratory UI for new points.
+- **`TransactionHistoryScreen`**: Detailed ledger of all point movements.
 
-### F. Privacy, Compliance (COPPA) & Debugging
-- **Data Sovereignty**: Local Ktor server keeps PII within the home network.
-- **Minimal Data**: No email/phone for children; nicknames only.
-- **Audit Log**: Every point transaction and setting change is logged with Device Metadata.
-- **Local Dumps**: Export debug logs and server state (JSON) to local storage.
+#### [MODIFY] Server-Side Point Logic
+- **`POST /points/transaction`**: Secure endpoint to record point changes (Parent only).
+- **`GET /points/history`**: Scoped history retrieval.
 
-### G. Multi-Family Support
-- **Server-Side Isolation**: The Ktor server must support hosting multiple independent families. Each family’s data (chores, rewards, points) is isolated via a `familyId`.
-- **App-Side Multi-Tenancy**: The application must support belonging to multiple families. Users can switch between family contexts within the app.
-- **Pairing**: The QR handshake will now include a `familyId` to ensure the device is paired to the correct family context.
+### 3. Future Phases (Roadmap)
+- **Phase 8: Task Management**: Personalized chores, frequencies, and deadline penalties.
+- **Phase 9: Behavioral Ledger (Dos & Don'ts)**: Spontaneous point adjustments and behavior tracking.
+- **Phase 10: Reward Store**: Custom rewards and redemption workflow.
+- **Phase 11: Sync & Background Workers**: WebSocket live updates and Platform Workers for database integrity.
 
 ---
 
-## 4. Architecture Diagrams
+## Verification Plan
 
-### A. Phased Onboarding (QR Handshake)
-```mermaid
-sequenceDiagram
-    participant P as Parent Device
-    participant S as Ktor Server
-    participant C as Child Device
+### Automated Tests
+- **Repository Tests**: `TransactionRepository` logic verified with `MockEngine`.
+- **Domain Logic**: Unit tests for point balance calculation from transaction logs.
+- **MVI Tests**: ViewModel testing for Parent/Child dashboard states.
 
-    P->>S: Generate Pairing Token
-    S-->>P: Token + Server IP
-    P->>P: Display QR Code
-    C->>P: Scan QR Code
-    C->>S: Authenticate with Token
-    S-->>C: Pairing Success + Profile Setup
-```
-
-### B. Chore Verification Flow
-```mermaid
-sequenceDiagram
-    participant C as Child Device
-    participant S as Ktor Server
-    participant P as Parent Device
-
-    C->>C: Take Live Photo
-    C->>S: Submit Chore (Photo + Metadata)
-    S->>P: WebSocket Alert (New Verification)
-    P->>S: Approve/Reject
-    S->>C: Points Awarded / Try Again
-```
-
-### C. Offline-First Sync
-```mermaid
-graph TD
-    A[Action: Complete Chore] --> B{Network Available?}
-    B -- No --> C[Store in Room PENDING_SYNC]
-    B -- Yes --> D[Push to Server]
-    C --> E[SyncWorker Triggered]
-    E --> F[Push PENDING to Server]
-    F --> G[Resolve Conflicts LWW]
-    G --> H[Update Local Room]
-```
+### Manual Verification
+- **E2E Transactions**: Award points on Parent device -> Verify WebSocket/Sync -> Check balance on Child device.
+- **Role Enforcement**: Ensure Child accounts cannot access "Deduct/Award" endpoints.
 
 ---
 
-## 5. Proposed Changes
+## Documentation & Knowledge Management
 
-### Build Infrastructure
-We will establish a scalable build system using Gradle Convention Plugins.
+### [MEMORY.md](file:///Users/aalsamman/AndroidProjects/FamilyChore/MEMORY.md)
+Updated with pairing logic, PIN authentication decisions, and transaction model definitions.
 
-#### [NEW] [:build-logic](file:///Users/aalsamman/AndroidProjects/FamilyChore/build-logic)
-Create convention plugins for `android-feature`, `compose`, `room`, `ktor`, and `koin` to ensure consistency across all modules.
-
-### Core Module Setup
-We need to establish the shared architecture in the `:core` subprojects following established KMP best practices.
-
-#### [NEW] [Result.kt](file:///Users/aalsamman/AndroidProjects/FamilyChore/core/src/commonMain/kotlin/org/aals/family/chore/core/domain/util/Result.kt)
-Generic Result wrapper and error handling helpers.
-```kotlin
-interface Error
-
-sealed interface Result<out D, out E : Error> {
-    data class Success<out D>(val data: D) : Result<D, Nothing>
-    data class Error<out E : org.aals.family.chore.core.domain.util.Error>(val error: E) : Result<Nothing, E>
-}
-
-sealed interface DataError : Error {
-    enum class Network : DataError {
-        BAD_REQUEST,
-        REQUEST_TIMEOUT,
-        UNAUTHORIZED,
-        FORBIDDEN,
-        NOT_FOUND,
-        CONFLICT,
-        TOO_MANY_REQUESTS,
-        NO_INTERNET,
-        PAYLOAD_TOO_LARGE,
-        SERVER_ERROR,
-        SERVICE_UNAVAILABLE,
-        SERIALIZATION,
-        UNKNOWN
-    }
-
-    enum class Local : DataError {
-        DISK_FULL,
-        NOT_FOUND,
-        UNKNOWN
-    }
-}
-
-typealias EmptyResult<E> = Result<Unit, E>
-```
-
-#### [NEW] [Domain Models](file:///Users/aalsamman/AndroidProjects/FamilyChore/core/src/commonMain/kotlin/org/aals/family/chore/core/domain/model)
-Core models used across all modules.
-```kotlin
-data class User(
-    val id: String,
-    val familyId: String,
-    val nickname: String,
-    val role: UserRole,
-    val points: Int
-)
-
-enum class UserRole { PARENT, CHILD }
-
-data class Family(
-    val id: String,
-    val name: String
-)
-```
-
-#### [NEW] [UiText.kt](file:///Users/aalsamman/AndroidProjects/FamilyChore/core/src/commonMain/kotlin/org/aals/family/chore/core/presentation/UiText.kt)
-Resource-aware string wrapper.
-```kotlin
-sealed interface UiText {
-    data class DynamicString(val value: String) : UiText
-    class StringResource(
-        val id: StringResource,
-        val args: Array<Any> = emptyArray()
-    ) : UiText
-
-    @Composable
-    fun asString(): String {
-        return when (this) {
-            is DynamicString -> value
-            is StringResource -> stringResource(id, *args)
-        }
-    }
-}
-```
-
-### Data Layer (Multi-Tenant & Offline-First)
-Setting up the shared database with family-based isolation.
-
-#### [NEW] [FamilyDatabase.kt](file:///Users/aalsamman/AndroidProjects/FamilyChore/core/src/commonMain/kotlin/org/aals/family/chore/core/data/local/FamilyDatabase.kt)
-Room database definition for KMP. Every entity includes a `familyId`.
-```kotlin
-@Database(
-    entities = [ChoreEntity::class, UserEntity::class],
-    version = 1
-)
-@ConstructedBy(FamilyDatabaseConstructor::class)
-abstract class FamilyDatabase : RoomDatabase() {
-    abstract fun choreDao(): ChoreDao
-    abstract fun userDao(): UserDao
-}
-
-@Entity(primaryKeys = ["id", "familyId"])
-data class ChoreEntity(
-    val id: String,
-    val familyId: String, // Scoping
-    val title: String,
-    val isCompleted: Boolean,
-    val version: Long
-)
-```
-
-### Phase 5.5: Foundation Testing
-Before proceeding to features, we must verify the stability of our core infrastructure.
-
-#### [NEW] [ResultTest.kt](file:///Users/aalsamman/AndroidProjects/FamilyChore/core/src/commonTest/kotlin/org/aals/family/chore/core/domain/util/ResultTest.kt)
-Unit tests for `Result` functional operators (map, onSuccess, onFailure).
-
-#### [NEW] [SafeCallTest.kt](file:///Users/aalsamman/AndroidProjects/FamilyChore/core/src/commonTest/kotlin/org/aals/family/chore/core/data/remote/SafeCallTest.kt)
-Integration tests using Ktor `MockEngine` to verify that HTTP status codes (401, 404, 500, etc.) are correctly mapped to `DataError.Network`.
-
-#### [NEW] [UiTextTest.kt](file:///Users/aalsamman/AndroidProjects/FamilyChore/core/src/commonTest/kotlin/org/aals/family/chore/core/presentation/UiTextTest.kt)
-Validation of resource string resolution logic.
-
----
-
-### Phase 6: Onboarding & Secure Pairing
-This phase implements the initial handshake between the mobile clients and the local Ktor server.
-
-#### [NEW] [:feature:auth](file:///Users/aalsamman/AndroidProjects/FamilyChore/feature/auth)
-A new feature module for handling pairing, user selection, and PIN authentication.
-
-#### Server-Side Pairing Logic
-- **`POST /auth/family/create`**: Initialize a new family context.
-- **`POST /auth/pair/generate`**: Generate a temporary `PairingToken` (Parent only).
-- **`POST /auth/pair/confirm`**: Exchange `PairingToken` for a `familyId` + `userId` + `JWT`.
-
-#### App-Side Onboarding UI
-1. **Welcome Screen**: "Setup New Family" vs "Join Family".
-2. **QR Scanner**: Scan the Parent device to retrieve `serverIp` and `PairingToken`.
-3. **User Selection**: After pairing, select a profile (Parent/Child) and set/verify PIN.
-
----
-
-## 6. Technical Stack
-- **UI**: Compose Multiplatform (M3, Dark Mode, RTL Arabic Support).
-- **Navigation**: Type-Safe Compose Navigation (@Serializable routes).
-- **Dependency Injection**: Koin.
-- **Testing**: JUnit5, AssertK (Assertions), Turbine (Flow testing), Ktor MockEngine.
-- **DB**: Room KMP (Multi-tenant scoped via `familyId`).
-- **Sync**: Ktor WebSockets & Platform Workers (WorkManager/BGTasks).
-- **Interop**: SKIE (Swift Kotlin Interface Enhancer) for iOS.
-- **Resources**: JB Compose Resources API.
-
----
-
-## 7. Verification Plan
-- **Automated**: Audit log integrity, Sync conflict resolution, Auth recovery flows.
-- **Manual**: RTL mirroring, Strict Camera enforcement, Vacation Mode validation.
+### Module READMEs
+All existing modules updated. New feature modules MUST include a `README.md` before implementation begins.

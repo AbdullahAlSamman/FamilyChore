@@ -45,4 +45,14 @@ class AuthRepositoryImpl(
             response.user
         }
     }
+
+    override suspend fun setupPin(userId: String, pin: String): Result<Unit, DataError.Network> {
+        val serverUrl = tokenStorage.getServerUrl() ?: return Result.Error(DataError.Network.UNKNOWN)
+        return pairingDataSource.setupPin(serverUrl, userId, pin)
+    }
+
+    override suspend fun verifyPin(userId: String, pin: String): Result<Unit, DataError.Network> {
+        val serverUrl = tokenStorage.getServerUrl() ?: return Result.Error(DataError.Network.UNKNOWN)
+        return pairingDataSource.verifyPin(serverUrl, userId, pin)
+    }
 }

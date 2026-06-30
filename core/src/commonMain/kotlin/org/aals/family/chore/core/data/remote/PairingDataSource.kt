@@ -50,4 +50,26 @@ class PairingDataSource(
             body = ConfirmPairingRequest(pairingToken, userId)
         )
     }
+
+    suspend fun setupPin(
+        serverUrl: String,
+        userId: String,
+        pin: String
+    ): Result<Unit, DataError.Network> {
+        return httpClient.post<SetupPinRequest, Unit>(
+            route = "$serverUrl/auth/pin/setup",
+            body = SetupPinRequest(userId, pin)
+        )
+    }
+
+    suspend fun verifyPin(
+        serverUrl: String,
+        userId: String,
+        pin: String
+    ): Result<Unit, DataError.Network> {
+        return httpClient.post<VerifyPinRequest, Unit>(
+            route = "$serverUrl/auth/pin/verify",
+            body = VerifyPinRequest(userId, pin)
+        )
+    }
 }

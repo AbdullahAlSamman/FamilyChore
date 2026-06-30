@@ -7,6 +7,7 @@ import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
 import org.aals.family.chore.feature.auth.presentation.create_family.CreateFamilyRoot
+import org.aals.family.chore.feature.auth.presentation.discovery.ServerDiscoveryRoot
 import org.aals.family.chore.feature.auth.presentation.pin_entry.PinEntryRoot
 import org.aals.family.chore.feature.auth.presentation.qr_scanner.QrScannerRoot
 import org.aals.family.chore.feature.auth.presentation.user_selection.UserSelectionRoot
@@ -14,6 +15,7 @@ import org.aals.family.chore.feature.auth.presentation.welcome.WelcomeRoot
 
 @Serializable object AuthGraph
 
+@Serializable object ServerDiscoveryRoute
 @Serializable object WelcomeRoute
 @Serializable object CreateFamilyRoute
 @Serializable object QrScannerRoute
@@ -22,9 +24,19 @@ import org.aals.family.chore.feature.auth.presentation.welcome.WelcomeRoot
 
 fun NavGraphBuilder.authGraph(
     navController: NavController,
+    startAtWelcome: Boolean = false,
     onOnboardingComplete: () -> Unit
 ) {
-    navigation<AuthGraph>(startDestination = WelcomeRoute) {
+    navigation<AuthGraph>(
+        startDestination = if (startAtWelcome) WelcomeRoute else ServerDiscoveryRoute
+    ) {
+        composable<ServerDiscoveryRoute> {
+            ServerDiscoveryRoot(
+                onNavigateToWelcome = {
+                    navController.navigate(WelcomeRoute)
+                }
+            )
+        }
         composable<WelcomeRoute> {
             WelcomeRoot(
                 onNavigateToSetupFamily = {

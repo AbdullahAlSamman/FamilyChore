@@ -6,6 +6,8 @@
 - Tests must be related to implementation don't placeholder tests.
 - No placeholders UI components in any screen, implement real feature with permission requesting in mind e.g camera for QR code scans, if clarification is required then stop implementation and ask
 - Don't add any file as placeholder unless you add to `TODO` inside it explain why! should be also document it `README.md` so you can pick it up from there next time.
+- Always keep the architecture as agreed on based on the skills available to you.
+- Each transaction with server side should be logged to logs to followup on issues.
 
 This file tracks critical architectural decisions and domain rules for the FamilyChore project.
 ## Critical Engineering Decisions

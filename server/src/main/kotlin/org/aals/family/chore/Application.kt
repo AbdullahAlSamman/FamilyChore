@@ -13,7 +13,11 @@ import org.aals.family.chore.core.data.local.entity.ChoreEntity
 import org.aals.family.chore.data.repository.InMemoryFamilyRepository
 
 fun main() {
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
+    val port = 8080
+    val broadcaster = DiscoveryBroadcaster()
+    broadcaster.start(port)
+
+    embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 

@@ -1,72 +1,45 @@
-# FamilyChore Implementation Plan: Full Roadmap & Phase 7
+# FamilyChore Implementation Plan: Full Roadmap & Current Progress
 
-This document outlines the complete roadmap for the **FamilyChore** application, focusing on the upcoming **Phase 7: The Points Economy**.
+This document outlines the complete roadmap for the **FamilyChore** application, including past achievements and upcoming phases.
 
-## Goal Description
-To build a high-engagement, gamified KMP application with a local Ktor backbone, offline-first Room KMP storage, and a multi-tenant architecture scoped by `familyId`.
-
----
-
-## User Review Required
-
-> [!IMPORTANT]
-> **Phase 7 - Point Integrity**: As we introduce point transactions, we must ensure the local Room database remains the source of truth, but server-side validation is required to prevent "ghost" points.
-> **Role-Based UI**: Phase 7 will heavily differentiate the UI between Parents (award/deduct) and Children (view balance/history).
+## Current Focus: Phase 6.5 - Smart Startup & Offline Support
+Implementing fast startup checks, connectivity status, and offline-first dashboard behavior to ensure a smooth user experience even without an active connection.
 
 ---
 
-## Proposed Changes
+## Roadmap
 
 ### 1. Foundation & Infrastructure (Completed)
 - **Convention Plugins**: Establishing `:build-logic` for `android-feature`, `compose`, `room`, `ktor`, and `koin`.
 - **Foundation Layer**: `Result` wrappers, `SafeCall` helpers, and `UiText` resources in `:core`.
-- **Phase 6: Onboarding**: QR Handshake, Family Creation, and PIN authentication are fully implemented and unit-tested.
-- **Phase 6.5: Automated Server Discovery**: [NEW] Automated mDNS or LAN scanning to find the Ktor server and cache its IP in `TokenStorage`.
 
-### 2. Phase 7: The Points Economy (ACTIVE)
-This phase introduces the base token economy and dashboards.
+### 2. Onboarding & Discovery (Completed)
+- **Phase 6**: QR Handshake, Family Creation, and PIN authentication.
+- **Phase 6.5 (Discovery)**: Automated mDNS/LAN scanning to find the Ktor server and cache its IP.
 
-#### [NEW] Transaction Domain models
-- Already defined `Transaction` and `TransactionType` in `:core`.
+### 3. Phase 6.5 - Smart Startup & Offline Support (ACTIVE)
+- **Fast Startup**: Perform health check on cached server URL.
+- **Smart Navigation**: Skip Discovery/Onboarding if `token`, `serverUrl`, and `familyId` are cached.
+- **Offline Dashboard**: Load cached data and disable mutation actions when the server is unreachable.
 
-#### [NEW] Transaction Repository
-- **`TransactionRepository`**: Interface in `:core:domain` for fetching family point history and recording new entries.
-- **`TransactionRepositoryImpl`**: Implementation in `:core:data` with Room & Ktor sync logic.
+### 4. Phase 7: The Points Economy (Next)
+- **Point Integrity**: Source of truth in Room with server-side validation.
+- **Transaction Domain**: `Transaction` and `TransactionType` models.
+- **Dashboard Refactor**: Role-based UI for Parents and Children.
+- **History**: Detailed ledger of all point movements.
 
-#### [NEW] Feature: Points Module
-- **`DashboardParentScreen`**: Summary of family points + Navigation to transaction history.
-- **`DashboardChildScreen`**: Personal point balance + animated celebratory UI for new points.
-- **`TransactionHistoryScreen`**: Detailed ledger of all point movements.
+### 5. Phase 8: Health & Connectivity
+- **Global Connectivity Status**: Implement a periodic `ServerHealthMonitor` for real-time status updates.
+- **Logging Migration**: Migrate all logging to **Kermit** for unified multiplatform logging.
 
-#### [MODIFY] Server-Side Point Logic
-- **`POST /points/transaction`**: Secure endpoint to record point changes (Parent only).
-- **`GET /points/history`**: Scoped history retrieval.
-
-### 3. Future Phases (Roadmap)
-- **Phase 8: Task Management**: Personalized chores, frequencies, and deadline penalties.
-- **Phase 9: Behavioral Ledger (Dos & Don'ts)**: Spontaneous point adjustments and behavior tracking.
-- **Phase 10: Reward Store**: Custom rewards and redemption workflow.
-- **Phase 11: Sync & Background Workers**: WebSocket live updates and Platform Workers for database integrity.
+### 6. Future Roadmap
+- **Phase 9: Task Management**: Personalized chores and verification workflow.
+- **Phase 10: Behavioral Ledger**: Spontaneous point adjustments.
+- **Phase 11: Reward Store**: Redemption workflow.
+- **Phase 12: Sync & Background Workers**: WebSocket updates and database integrity workers.
 
 ---
 
-## Verification Plan
-
-### Automated Tests
-- **Repository Tests**: `TransactionRepository` logic verified with `MockEngine`.
-- **Domain Logic**: Unit tests for point balance calculation from transaction logs.
-- **MVI Tests**: ViewModel testing for Parent/Child dashboard states.
-
-### Manual Verification
-- **E2E Transactions**: Award points on Parent device -> Verify WebSocket/Sync -> Check balance on Child device.
-- **Role Enforcement**: Ensure Child accounts cannot access "Deduct/Award" endpoints.
-
----
-
-## Documentation & Knowledge Management
-
-### [MEMORY.md](file:///Users/aalsamman/AndroidProjects/FamilyChore/MEMORY.md)
-Updated with pairing logic, PIN authentication decisions, and transaction model definitions.
-
-### Module READMEs
-All existing modules updated. New feature modules MUST include a `README.md` before implementation begins.
+## Verification Strategy
+- **Automated**: Unit tests for all repositories, ViewModels, and navigation logic.
+- **Manual**: E2E verification across Android and JVM targets.

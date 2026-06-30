@@ -22,12 +22,14 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.auth)
+            implementation(libs.datastore.preferences)
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }
         jvmMain.dependencies {
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.jmdns)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -38,6 +40,7 @@ kotlin {
             implementation(libs.turbine)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.ktor.client.mock)
+            implementation(libs.okio.fakefilesystem)
         }
     }
 }

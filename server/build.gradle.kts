@@ -18,7 +18,20 @@ dependencies {
     implementation(libs.ktor.serverNetty)
     implementation(libs.ktor.serverContentNegotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.jmdns)
     
     testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.kotlin.testJunit)
+}
+
+tasks.withType<org.gradle.api.tasks.Sync> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType<Jar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType<AbstractCopyTask> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

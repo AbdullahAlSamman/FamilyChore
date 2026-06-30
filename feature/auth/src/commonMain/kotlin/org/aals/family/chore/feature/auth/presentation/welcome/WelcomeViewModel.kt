@@ -3,10 +3,10 @@ package org.aals.family.chore.feature.auth.presentation.welcome
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.aals.family.chore.core.domain.discovery.ServerDiscovery
+import org.aals.family.chore.core.domain.repository.TokenStorage
 
 class WelcomeViewModel : ViewModel() {
 

@@ -68,6 +68,7 @@ suspend inline fun <reified T> safeCall(
         return Result.Error(DataError.Network.SERIALIZATION)
     } catch (e: Exception) {
         if (e is CancellationException) throw e
+        println("Network Error: ${e.message}")
         e.printStackTrace()
         return Result.Error(DataError.Network.UNKNOWN)
     }

@@ -4,7 +4,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import androidx.navigation.toRoute
 import kotlinx.serialization.Serializable
 import org.aals.family.chore.feature.auth.presentation.create_family.CreateFamilyRoot
 import org.aals.family.chore.feature.auth.presentation.discovery.ServerDiscoveryRoot
@@ -57,7 +56,7 @@ fun NavGraphBuilder.authGraph(
         composable<CreateFamilyRoute> {
             CreateFamilyRoot(
                 onNavigateBack = { navController.popBackStack() },
-                onFamilyCreated = { familyId, userId ->
+                onFamilyCreated = { _, userId ->
                     navController.navigate(PinEntryRoute(userId, isSetupMode = true))
                 }
             )
@@ -70,8 +69,7 @@ fun NavGraphBuilder.authGraph(
                 }
             )
         }
-        composable<UserSelectionRoute> { backStackEntry ->
-            val route: UserSelectionRoute = backStackEntry.toRoute()
+        composable<UserSelectionRoute> {
             UserSelectionRoot(
                 onPairingConfirmed = { userId ->
                     navController.navigate(PinEntryRoute(userId))

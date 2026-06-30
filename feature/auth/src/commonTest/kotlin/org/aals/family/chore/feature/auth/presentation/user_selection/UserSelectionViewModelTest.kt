@@ -44,7 +44,8 @@ class UserSelectionViewModelTest {
         viewModel = UserSelectionViewModel(authRepository, SavedStateHandle(mapOf("pairingToken" to pairingToken)))
 
         viewModel.state.test {
-            assertThat(awaitItem()).isEqualTo(UserSelectionState.Loading)
+            // With UnconfinedTestDispatcher, the init block runs immediately.
+            // We expect the final Success state.
             assertThat(awaitItem()).isEqualTo(UserSelectionState.Success(users))
         }
     }

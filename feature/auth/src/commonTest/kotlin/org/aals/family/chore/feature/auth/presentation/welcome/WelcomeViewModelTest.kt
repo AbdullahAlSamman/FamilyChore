@@ -17,12 +17,17 @@ import kotlin.test.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class WelcomeViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
+    private lateinit var tokenStorage: FakeTokenStorage
     private lateinit var viewModel: WelcomeViewModel
 
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = WelcomeViewModel()
+        tokenStorage = FakeTokenStorage()
+    }
+
+    private fun createViewModel() {
+        viewModel = WelcomeViewModel(tokenStorage)
     }
 
     @AfterTest
@@ -31,7 +36,18 @@ class WelcomeViewModelTest {
     }
 
     @Test
+    fun `initialization loads server name from token storage`() = runTest {
+        tokenStorage.saveServerName("Test Family")
+        createViewModel()
+
+        viewModel.state.test {
+            assertThat(awaitItem().serverName).isEqualTo("Test Family")
+        }
+    }
+
+    @Test
     fun `clicking setup new family sends NavigateToSetupFamily event`() = runTest {
+        createViewModel()
         viewModel.events.test {
             viewModel.onAction(WelcomeAction.OnSetupNewFamilyClick)
             assertThat(awaitItem()).isEqualTo(WelcomeEvent.NavigateToSetupFamily)
@@ -40,6 +56,7 @@ class WelcomeViewModelTest {
 
     @Test
     fun `clicking join family sends NavigateToJoinFamily event`() = runTest {
+        createViewModel()
         viewModel.events.test {
             viewModel.onAction(WelcomeAction.OnJoinFamilyClick)
             assertThat(awaitItem()).isEqualTo(WelcomeEvent.NavigateToJoinFamily)

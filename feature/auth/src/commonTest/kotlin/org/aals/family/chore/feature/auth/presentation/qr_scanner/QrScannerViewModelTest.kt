@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -13,6 +14,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class QrScannerViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -35,6 +37,8 @@ class QrScannerViewModelTest {
     fun `valid QR code saves server url and sends event`() = runTest {
         val qrContent = "{\"serverIp\": \"192.168.1.10\", \"token\": \"pairing_token\"}"
         
+        viewModel.onAction(QrScannerAction.OnPermissionResult(granted = true))
+
         viewModel.events.test {
             viewModel.onAction(QrScannerAction.OnQrCodeScanned(qrContent))
             assertThat(awaitItem()).isEqualTo(QrScannerEvent.QrCodeDetected("192.168.1.10", "pairing_token"))
@@ -47,18 +51,22 @@ class QrScannerViewModelTest {
         val qrContent = "invalid_json"
         
         viewModel.state.test {
-            assertThat(awaitItem().error).isEqualTo(null) // Initial state
+            assertThat(awaitItem()).isEqualTo(QrScannerState.NoPermission()) // Initial state
+            viewModel.onAction(QrScannerAction.OnPermissionResult(granted = true))
+            assertThat(awaitItem()).isEqualTo(QrScannerState.Scanning())
+            
             viewModel.onAction(QrScannerAction.OnQrCodeScanned(qrContent))
-            assertThat(awaitItem().error).isEqualTo("Invalid QR code")
+            val state = awaitItem() as QrScannerState.Scanning
+            assertThat(state.error).isEqualTo("Invalid QR code")
         }
     }
 
     @Test
     fun `permission result updates state`() = runTest {
         viewModel.state.test {
-            assertThat(awaitItem().hasCameraPermission).isEqualTo(false)
+            assertThat(awaitItem()).isEqualTo(QrScannerState.NoPermission())
             viewModel.onAction(QrScannerAction.OnPermissionResult(granted = true))
-            assertThat(awaitItem().hasCameraPermission).isEqualTo(true)
+            assertThat(awaitItem()).isEqualTo(QrScannerState.Scanning())
         }
     }
 

@@ -5,6 +5,7 @@ import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -14,8 +15,8 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class PinEntryViewModelTest {
-
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: PinEntryViewModel
     private lateinit var authRepository: FakeAuthRepository
@@ -34,7 +35,10 @@ class PinEntryViewModelTest {
 
     @Test
     fun `submitting 4 digit pin in setup mode calls setupPin`() = runTest {
-        viewModel = PinEntryViewModel(authRepository, SavedStateHandle(mapOf("userId" to userId, "isSetupMode" to true)))
+        viewModel = PinEntryViewModel(
+            authRepository,
+            SavedStateHandle(mapOf("userId" to userId, "isSetupMode" to true))
+        )
 
         viewModel.events.test {
             viewModel.onAction(PinEntryAction.OnPinChange("1234"))
@@ -52,7 +56,8 @@ class PinEntryViewModelTest {
             viewModel.onAction(PinEntryAction.OnPinChange("123"))
             assertThat(awaitItem().pin).isEqualTo("123")
             viewModel.onAction(PinEntryAction.OnSubmit)
-            assertThat(awaitItem().error).isEqualTo("PIN must be 4 digits")
+            val state = awaitItem() as PinEntryState.Entering
+            assertThat(state.error).isEqualTo("PIN must be 4 digits")
         }
     }
 }

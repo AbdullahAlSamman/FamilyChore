@@ -5,6 +5,7 @@ import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -16,6 +17,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class UserSelectionViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -42,7 +44,8 @@ class UserSelectionViewModelTest {
         viewModel = UserSelectionViewModel(authRepository, SavedStateHandle(mapOf("pairingToken" to pairingToken)))
 
         viewModel.state.test {
-            assertThat(awaitItem().users).isEqualTo(users)
+            assertThat(awaitItem()).isEqualTo(UserSelectionState.Loading)
+            assertThat(awaitItem()).isEqualTo(UserSelectionState.Success(users))
         }
     }
 

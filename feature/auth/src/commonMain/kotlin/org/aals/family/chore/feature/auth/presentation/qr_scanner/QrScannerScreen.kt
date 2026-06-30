@@ -32,9 +32,10 @@ fun QrScannerRoot(
         }
     }
 
-    if (!state.hasCameraPermission) {
+    val noPermissionState = state as? QrScannerState.NoPermission
+    if (noPermissionState != null) {
         RequestCameraPermission(
-            trigger = state.permissionRequestCount,
+            trigger = noPermissionState.permissionRequestCount,
             onResult = { granted ->
                 viewModel.onAction(QrScannerAction.OnPermissionResult(granted))
             }
@@ -78,37 +79,41 @@ fun QrScannerScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            if (state.hasCameraPermission) {
-                QrScannerView(
-                    onQrCodeScanned = { content ->
-                        onAction(QrScannerAction.OnQrCodeScanned(content))
-                    },
-                    modifier = Modifier
-                        .size(250.dp)
-                        .background(Color.Black)
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(250.dp)
-                        .background(Color.Black),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Camera permission required", color = Color.White)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        IconButton(onClick = { onAction(QrScannerAction.OnRetryPermissionClick) }) {
-                            Icon(Icons.Default.Refresh, contentDescription = "Retry", tint = Color.White)
+            when (state) {
+                is QrScannerState.Scanning -> {
+                    QrScannerView(
+                        onQrCodeScanned = { content ->
+                            onAction(QrScannerAction.OnQrCodeScanned(content))
+                        },
+                        modifier = Modifier
+                            .size(250.dp)
+                            .background(Color.Black)
+                    )
+                }
+                is QrScannerState.NoPermission -> {
+                    Box(
+                        modifier = Modifier
+                            .size(250.dp)
+                            .background(Color.Black),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Camera permission required", color = Color.White)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            IconButton(onClick = { onAction(QrScannerAction.OnRetryPermissionClick) }) {
+                                Icon(Icons.Default.Refresh, contentDescription = "Retry", tint = Color.White)
+                            }
                         }
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             Text("Point your camera at the QR code on the parent device.")
-            
-            state.error?.let {
+
+            val error = (state as? QrScannerState.Scanning)?.error
+            error?.let {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(it, color = MaterialTheme.colorScheme.error)
             }

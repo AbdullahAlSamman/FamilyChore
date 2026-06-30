@@ -18,33 +18,39 @@ class PinEntryViewModel(
     private val userId: String = checkNotNull(savedStateHandle["userId"])
     private val isSetupMode: Boolean = savedStateHandle["isSetupMode"] ?: false
 
-    private val _state = MutableStateFlow(PinEntryState())
+    private val _state = MutableStateFlow<PinEntryState>(PinEntryState.Entering())
     val state = _state.asStateFlow()
 
     private val _events = Channel<PinEntryEvent>()
     val events = _events.receiveAsFlow()
 
     fun onAction(action: PinEntryAction) {
+        val currentState = _state.value
+        if (currentState !is PinEntryState.Entering) return
+
         when (action) {
             is PinEntryAction.OnPinChange -> {
                 if (action.pin.length <= 4) {
-                    _state.update { it.copy(pin = action.pin, error = null) }
+                    _state.value = currentState.copy(pin = action.pin, error = null)
                 }
             }
             PinEntryAction.OnSubmit -> {
-                if (_state.value.pin.length == 4) {
+                if (currentState.pin.length == 4) {
                     submitPin()
                 } else {
-                    _state.update { it.copy(error = "PIN must be 4 digits") }
+                    _state.value = currentState.copy(error = "PIN must be 4 digits")
                 }
             }
         }
     }
 
     private fun submitPin() {
+        val currentState = _state.value as? PinEntryState.Entering ?: return
+        val pin = currentState.pin
+
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            val pin = _state.value.pin
+            _state.value = PinEntryState.Verifying(pin)
+
             val result = if (isSetupMode) {
                 authRepository.setupPin(userId, pin)
             } else {
@@ -53,11 +59,10 @@ class PinEntryViewModel(
 
             result
                 .onSuccess {
-                    _state.update { it.copy(isLoading = false) }
                     _events.send(PinEntryEvent.PinVerified)
                 }
                 .onFailure { error ->
-                    _state.update { it.copy(isLoading = false, error = error.toString()) }
+                    _state.value = PinEntryState.Entering(pin = pin, error = error.toString())
                 }
         }
     }

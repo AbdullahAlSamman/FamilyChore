@@ -13,17 +13,6 @@ import org.aals.family.chore.core.presentation.ObserveAsEvents
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-@Preview
-fun CreateFamilyScreenPreview() {
-    MaterialTheme {
-        CreateFamilyScreen(
-            state = CreateFamilyState(),
-            onAction = {}
-        )
-    }
-}
-
-@Composable
 fun CreateFamilyRoot(
     onNavigateBack: () -> Unit,
     onFamilyCreated: (String, String) -> Unit,
@@ -97,3 +86,15 @@ fun CreateFamilyScreen(
         }
     }
 }
+
+@Composable
+@Preview
+fun CreateFamilyScreenPreview() {
+    MaterialTheme {
+        CreateFamilyScreen(
+            state = CreateFamilyState(),
+            onAction = {}
+        )
+    }
+}
+

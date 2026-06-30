@@ -17,17 +17,6 @@ import org.aals.family.chore.core.presentation.ObserveAsEvents
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-@Preview
-fun WelcomeScreenPreview() {
-    MaterialTheme {
-        WelcomeScreen(
-            state = WelcomeState(),
-            onAction = {}
-        )
-    }
-}
-
-@Composable
 fun WelcomeRoot(
     onNavigateToSetupFamily: () -> Unit,
     onNavigateToJoinFamily: () -> Unit,
@@ -100,3 +89,15 @@ fun WelcomeScreen(
         }
     }
 }
+
+@Composable
+@Preview
+fun WelcomeScreenPreview() {
+    MaterialTheme {
+        WelcomeScreen(
+            state = WelcomeState(),
+            onAction = {}
+        )
+    }
+}
+

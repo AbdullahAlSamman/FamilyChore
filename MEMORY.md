@@ -8,6 +8,8 @@
 - Don't add any file as placeholder unless you add to `TODO` inside it explain why! should be also document it `README.md` so you can pick it up from there next time.
 - Always keep the architecture as agreed on based on the skills available to you.
 - Each transaction with server side should be logged to logs to followup on issues.
+- Commit message starts with T* number of the ticket mentioned in branch name.
+- Don't commit until you have been asked to.
 
 This file tracks critical architectural decisions and domain rules for the FamilyChore project.
 ## Critical Engineering Decisions

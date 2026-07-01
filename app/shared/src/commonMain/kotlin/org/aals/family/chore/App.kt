@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
@@ -54,6 +55,8 @@ fun App(
         }
     }
 
+    val scope = rememberCoroutineScope()
+
     MaterialTheme {
         if (authStartDestination != null) {
             val navController = rememberNavController()
@@ -65,9 +68,18 @@ fun App(
                     navController = navController,
                     startDestination = authStartDestination!!,
                     onOnboardingComplete = {
-                        Logger.d { "Onboarding complete, navigating to Dashboard" }
-                        navController.navigate(MainDashboardRoute) {
-                            popUpTo(AuthGraph) { inclusive = true }
+                        scope.launch {
+                            val familyId = tokenStorage.getFamilyId()
+                            Logger.d { "Onboarding complete, returning to User Selection for family: $familyId" }
+                            if (familyId != null) {
+                                navController.navigate(UserSelectionRoute(familyId = familyId)) {
+                                    popUpTo(AuthGraph) { inclusive = true }
+                                }
+                            } else {
+                                navController.navigate(WelcomeRoute) {
+                                    popUpTo(AuthGraph) { inclusive = true }
+                                }
+                            }
                         }
                     }
                 )

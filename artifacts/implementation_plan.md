@@ -2,8 +2,8 @@
 
 This document outlines the complete roadmap for the **FamilyChore** application, including past achievements and upcoming phases.
 
-## Current Focus: Phase 6.5 - Smart Startup & Offline Support
-Implementing fast startup checks, connectivity status, and a startup profile picker to ensure a smooth user experience and shared-device support.
+## Current Focus: Phase 7 - The Points Economy
+Implementing the core token economy, transaction ledger, and role-based dashboards for parents and children.
 
 ---
 
@@ -18,13 +18,12 @@ Implementing fast startup checks, connectivity status, and a startup profile pic
 - **Phase 6**: QR Handshake, Family Creation, and PIN authentication.
 - **Phase 6.5 (Discovery)**: Automated mDNS/LAN scanning to find the Ktor server and cache its IP.
 
-### 3. Phase 6.5 - Smart Startup & Offline Support (ACTIVE)
-- **Fast Startup**: Perform health check on cached server URL.
-- **Smart Navigation**: Navigate directly to **User Selection (Profile Picker)** if healthy, ensuring a shared-device friendly startup.
-- **Connectivity Status**: Global `isServerReachable` monitor for real-time UI updates.
-- **Fallback**: Navigate to Server Discovery if the cached server is offline.
+### 3. Smart Startup & Persistence (Completed)
+- **Phase 6.5 (Smart Startup)**: Health-aware startup logic navigating to **User Selection** screen if server is healthy.
+- **Connectivity Status**: Global `isServerReachable` monitor (30s polling) for real-time UI updates.
+- **Phase 6.6 (Server Persistence)**: Migrated Ktor server from in-memory storage to **SQLite** using **Exposed**.
 
-### 4. Phase 7: The Points Economy (Next)
+### 4. Phase 7: The Points Economy (ACTIVE)
 - **Point Integrity**: Source of truth in Room with server-side validation.
 - **Offline Dashboard**: Load cached data and disable mutation actions when the server is unreachable (Deferred from 6.5).
 - **Transaction Domain**: `Transaction` and `TransactionType` models.

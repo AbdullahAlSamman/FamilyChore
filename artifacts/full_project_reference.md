@@ -90,13 +90,18 @@ graph TD
 - **Profile selection and PIN-based authentication**: Setup & Verify modes with 4-digit security.
 - **Full unit test coverage**: All Auth features verified.
 
-### Phase 6.5: Smart Startup & Offline Support (ACTIVE)
+### Phase 6.5: Smart Startup & Connectivity (COMPLETED)
 - **Health-Aware Startup**: Perform fast health check on cached server URL before navigating.
 - **Shared Device Readiness**: Startup always flows to **User Selection (Profile Picker)** if the server is healthy, ensuring a fresh user context.
 - **Real-time Connectivity**: Global `isServerReachable` monitor using **Kermit** for unified logging and state tracking.
 - **Graceful Fallback**: Re-entry to Server Discovery if the cached server is offline.
 
-### Phase 7: The Points Economy (Next)
+### Phase 6.6: Server-Side Persistence (COMPLETED)
+- **SQLite Database**: Migrated server from volatile in-memory storage to a persistent SQLite file using **Exposed** ORM.
+- **Auto-Schema**: Automatic table creation for Families, Users, and PINs on server startup.
+- **HikariCP**: Integrated connection pooling for robust server performance.
+
+### Phase 7: The Points Economy (ACTIVE)
 - **Goal**: Implement the core token economy.
 - **Scope**: `Transaction` models, `TransactionRepository`, and Parent/Child Dashboards showing point balances and history.
 - **Offline Dashboard**: First implementation of offline-ready dashboard with cached data (Deferred from 6.5).

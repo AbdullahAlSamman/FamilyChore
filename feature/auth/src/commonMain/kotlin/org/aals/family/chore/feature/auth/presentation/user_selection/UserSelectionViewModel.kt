@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
+import co.touchlab.kermit.Logger
 
 class UserSelectionViewModel(
     private val authRepository: AuthRepository,
@@ -31,6 +32,7 @@ class UserSelectionViewModel(
     fun onAction(action: UserSelectionAction) {
         when (action) {
             is UserSelectionAction.OnUserClick -> {
+                Logger.d { "User selected: ${action.user.nickname} (${action.user.id})" }
                 if (pairingToken != null) {
                     confirmPairing(action.user.id)
                 } else {
@@ -44,6 +46,7 @@ class UserSelectionViewModel(
     }
 
     private fun loadUsers() {
+        Logger.d { "Loading users for selection (token: ${pairingToken != null}, familyId: $familyId)" }
         viewModelScope.launch {
             _state.value = UserSelectionState.Loading
             val result = when {

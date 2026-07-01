@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.discovery.DiscoveredServer
 import org.aals.family.chore.core.domain.discovery.ServerDiscovery
 import org.aals.family.chore.core.domain.repository.TokenStorage
+import co.touchlab.kermit.Logger
 
 data class ServerDiscoveryState(
     val discoveredServers: List<DiscoveredServer> = emptyList(),
@@ -49,6 +50,7 @@ class ServerDiscoveryViewModel(
     }
 
     private fun startScanning() {
+        Logger.d { "Starting server discovery scan" }
         _state.update { it.copy(isScanning = true, discoveredServers = emptyList()) }
         serverDiscovery.startDiscovery()
             .onEach { server ->
@@ -66,6 +68,7 @@ class ServerDiscoveryViewModel(
     fun onAction(action: ServerDiscoveryAction) {
         when (action) {
             is ServerDiscoveryAction.OnServerSelected -> {
+                Logger.d { "Server selected: ${action.server.name} (${action.server.url})" }
                 viewModelScope.launch {
                     tokenStorage.saveServerUrl(action.server.url)
                     tokenStorage.saveServerName(action.server.name)
@@ -73,6 +76,7 @@ class ServerDiscoveryViewModel(
                 }
             }
             ServerDiscoveryAction.OnScanAgainClick -> {
+                Logger.d { "Rescanning for servers" }
                 serverDiscovery.stopDiscovery()
                 startScanning()
             }
@@ -80,6 +84,7 @@ class ServerDiscoveryViewModel(
                 _state.update { it.copy(manualUrl = action.url) }
             }
             ServerDiscoveryAction.OnConnectManualClick -> {
+                Logger.d { "Connecting manually to: ${state.value.manualUrl}" }
                 viewModelScope.launch {
                     tokenStorage.saveServerUrl(state.value.manualUrl)
                     tokenStorage.saveServerName("Manual Server")

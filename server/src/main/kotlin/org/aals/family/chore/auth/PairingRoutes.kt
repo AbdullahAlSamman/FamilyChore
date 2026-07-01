@@ -8,6 +8,7 @@ import io.ktor.server.routing.*
 import org.aals.family.chore.core.data.remote.dto.*
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.domain.repository.FamilyRepository
+import co.touchlab.kermit.Logger
 
 fun Route.pairingRoutes(
     familyRepository: FamilyRepository,
@@ -16,6 +17,7 @@ fun Route.pairingRoutes(
     route("/auth") {
         post("/family/create") {
             val request = call.receive<CreateFamilyRequest>()
+            Logger.d { "API: Creating family ${request.familyName}" }
             val family = familyRepository.createFamily(request.familyName)
             val parent = familyRepository.addUserToFamily(family.id, request.parentNickname, UserRole.PARENT)
             
@@ -48,6 +50,7 @@ fun Route.pairingRoutes(
 
         post("/pair/generate") {
             val request = call.receive<GeneratePairingTokenRequest>()
+            Logger.d { "API: Generating pairing token for ${request.familyId}" }
             // In a real app, we'd verify the requester is a parent in that family
             val token = pairingManager.generateToken(request.familyId)
             call.respond(GeneratePairingTokenResponse(token))
@@ -78,6 +81,7 @@ fun Route.pairingRoutes(
 
         post("/pair/confirm") {
             val request = call.receive<ConfirmPairingRequest>()
+            Logger.d { "API: Confirming pairing for user ${request.userId}" }
             val familyId = pairingManager.validateToken(request.pairingToken)
             
             if (familyId == null) {
@@ -104,12 +108,14 @@ fun Route.pairingRoutes(
 
         post("/pin/setup") {
             val request = call.receive<SetupPinRequest>()
+            Logger.d { "API: Setting up PIN for ${request.userId}" }
             familyRepository.setPin(request.userId, request.pin)
             call.respond(HttpStatusCode.OK)
         }
 
         post("/pin/verify") {
             val request = call.receive<VerifyPinRequest>()
+            Logger.d { "API: Verifying PIN for ${request.userId}" }
             val isValid = familyRepository.verifyPin(request.userId, request.pin)
             if (isValid) {
                 call.respond(HttpStatusCode.OK)

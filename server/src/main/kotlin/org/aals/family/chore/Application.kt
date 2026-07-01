@@ -12,11 +12,14 @@ import org.aals.family.chore.auth.pairingRoutes
 import org.aals.family.chore.core.data.local.entity.ChoreEntity
 import org.aals.family.chore.data.local.DatabaseFactory
 import org.aals.family.chore.data.repository.SqlFamilyRepository
+import co.touchlab.kermit.Logger
 
 fun main() {
     val port = 8080
     
     DatabaseFactory.init()
+    
+    Logger.i { "Starting FamilyChore Server on port $port" }
     
     val broadcaster = DiscoveryBroadcaster()
     broadcaster.start(port)

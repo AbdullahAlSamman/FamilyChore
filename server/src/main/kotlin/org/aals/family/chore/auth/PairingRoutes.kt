@@ -29,6 +29,23 @@ fun Route.pairingRoutes(
             )
         }
 
+        get("/family/{familyId}/users") {
+            val familyId = call.parameters["familyId"]
+            if (familyId == null) {
+                call.respond(HttpStatusCode.BadRequest, "Missing familyId")
+                return@get
+            }
+            val family = familyRepository.getFamily(familyId)
+            val users = familyRepository.getUsersInFamily(familyId)
+            
+            call.respond(
+                PairingUsersResponse(
+                    familyName = family?.name ?: "Unknown Family",
+                    users = users
+                )
+            )
+        }
+
         post("/pair/generate") {
             val request = call.receive<GeneratePairingTokenRequest>()
             // In a real app, we'd verify the requester is a parent in that family

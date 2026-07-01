@@ -40,6 +40,15 @@ class PairingDataSource(
         )
     }
 
+    suspend fun getFamilyUsers(
+        serverUrl: String,
+        familyId: String
+    ): Result<PairingUsersResponse, DataError.Network> {
+        return httpClient.get(
+            route = "$serverUrl/auth/family/$familyId/users"
+        )
+    }
+
     suspend fun confirmPairing(
         serverUrl: String,
         pairingToken: String,

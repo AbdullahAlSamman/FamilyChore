@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.isEqualTo
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -29,7 +30,7 @@ class ServerDiscoveryViewModelTest {
         Dispatchers.setMain(testDispatcher)
         serverDiscovery = FakeServerDiscovery()
         tokenStorage = FakeTokenStorage()
-        viewModel = ServerDiscoveryViewModel(serverDiscovery, tokenStorage)
+        viewModel = ServerDiscoveryViewModel(serverDiscovery, tokenStorage, SavedStateHandle())
     }
 
     @AfterTest

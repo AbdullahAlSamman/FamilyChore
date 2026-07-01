@@ -3,6 +3,7 @@ package org.aals.family.chore.core.domain.discovery
 import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -60,7 +61,7 @@ class AndroidServerDiscovery(
             try {
                 nsdManager.stopServiceDiscovery(it)
             } catch (e: Exception) {
-                e.printStackTrace()
+                Logger.e(e) { "Error stopping service discovery" }
             }
         }
         discoveryListener = null

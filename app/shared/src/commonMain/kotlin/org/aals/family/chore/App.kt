@@ -19,65 +19,52 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.serialization.Serializable
+import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
-import org.aals.family.chore.feature.auth.presentation.navigation.AuthGraph
-import org.aals.family.chore.feature.auth.presentation.navigation.ServerDiscoveryRoute
-import org.aals.family.chore.feature.auth.presentation.navigation.WelcomeRoute
-import org.aals.family.chore.feature.auth.presentation.navigation.authGraph
+import org.aals.family.chore.core.domain.util.Result
+import org.aals.family.chore.feature.auth.presentation.navigation.*
 import org.koin.compose.koinInject
-
-@Serializable object MainDashboardRoute
 
 @Composable
 @Preview
 fun App(
-    tokenStorage: TokenStorage = koinInject()
+    tokenStorage: TokenStorage = koinInject(),
+    connectivityRepository: ConnectivityRepository = koinInject()
 ) {
-    val navState by produceState<Pair<Any, Boolean>?>(initialValue = null) {
-        val token = tokenStorage.getToken()
-        val familyId = tokenStorage.getFamilyId()
+    val authStartDestination by produceState<Any?>(initialValue = null) {
         val serverUrl = tokenStorage.getServerUrl()
+        val familyId = tokenStorage.getFamilyId()
 
-        value = when {
-            token != null && familyId != null && serverUrl != null -> MainDashboardRoute to false
-            serverUrl != null -> AuthGraph to true
-            else -> AuthGraph to false
+        value = if (serverUrl != null) {
+            val result = connectivityRepository.checkHealth()
+            if (result is Result.Success) {
+                if (familyId != null) {
+                    UserSelectionRoute(familyId = familyId)
+                } else {
+                    WelcomeRoute
+                }
+            } else {
+                ServerDiscoveryRoute(isErrorMode = true)
+            }
+        } else {
+            ServerDiscoveryRoute()
         }
     }
 
     MaterialTheme {
-        if (navState != null) {
+        if (authStartDestination != null) {
             val navController = rememberNavController()
             NavHost(
                 navController = navController,
-                startDestination = navState!!.first
+                startDestination = AuthGraph
             ) {
                 authGraph(
                     navController = navController,
-                    startAtWelcome = navState!!.second,
+                    startDestination = authStartDestination!!,
                     onOnboardingComplete = {
-                        navController.navigate(MainDashboardRoute) {
-                            popUpTo(AuthGraph) { inclusive = true }
-                        }
+                        // TODO: Navigate to Dashboard in Phase 7
                     }
                 )
-
-                composable<MainDashboardRoute> {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text("Main Dashboard Placeholder")
-                        Button(onClick = {
-                            navController.navigate(AuthGraph) {
-                                popUpTo(MainDashboardRoute) { inclusive = true }
-                            }
-                        }) {
-                            Text("Go to Auth (Testing)")
-                        }
-                    }
-                }
             }
         }
     }

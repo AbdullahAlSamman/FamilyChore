@@ -15,7 +15,8 @@ class UserSelectionViewModel(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val pairingToken: String = checkNotNull(savedStateHandle["pairingToken"])
+    private val pairingToken: String? = savedStateHandle["pairingToken"]
+    private val familyId: String? = savedStateHandle["familyId"]
 
     private val _state = MutableStateFlow<UserSelectionState>(UserSelectionState.Loading)
     val state = _state.asStateFlow()
@@ -29,14 +30,32 @@ class UserSelectionViewModel(
 
     fun onAction(action: UserSelectionAction) {
         when (action) {
-            is UserSelectionAction.OnUserClick -> confirmPairing(action.user.id)
+            is UserSelectionAction.OnUserClick -> {
+                if (pairingToken != null) {
+                    confirmPairing(action.user.id)
+                } else {
+                    // If no pairing token, we probably just navigate to PIN entry for this user
+                    viewModelScope.launch {
+                        _events.send(UserSelectionEvent.PairingConfirmed(action.user.id))
+                    }
+                }
+            }
         }
     }
 
     private fun loadUsers() {
         viewModelScope.launch {
             _state.value = UserSelectionState.Loading
-            authRepository.getPairingUsers(pairingToken)
+            val result = when {
+                pairingToken != null -> authRepository.getPairingUsers(pairingToken)
+                familyId != null -> authRepository.getFamilyUsers(familyId)
+                else -> {
+                    _state.value = UserSelectionState.Error("Missing identification parameters")
+                    return@launch
+                }
+            }
+
+            result
                 .onSuccess { users ->
                     _state.value = UserSelectionState.Success(users = users)
                 }
@@ -47,11 +66,12 @@ class UserSelectionViewModel(
     }
 
     private fun confirmPairing(userId: String) {
+        val currentToken = pairingToken ?: return
         val currentSuccess = _state.value as? UserSelectionState.Success ?: return
 
         viewModelScope.launch {
             _state.value = currentSuccess.copy(isConfirming = true, error = null)
-            authRepository.confirmPairing(pairingToken, userId)
+            authRepository.confirmPairing(currentToken, userId)
                 .onSuccess { user ->
                     _state.value = currentSuccess.copy(isConfirming = false)
                     _events.send(UserSelectionEvent.PairingConfirmed(user.id))

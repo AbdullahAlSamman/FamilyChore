@@ -62,6 +62,16 @@ fun ServerDiscoveryScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            if (state.isErrorMode) {
+                Text(
+                    text = "Cached server is unreachable. Please scan again or connect manually.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
             Text(
                 text = "Looking for FamilyChore Servers...",
                 fontSize = 18.sp,

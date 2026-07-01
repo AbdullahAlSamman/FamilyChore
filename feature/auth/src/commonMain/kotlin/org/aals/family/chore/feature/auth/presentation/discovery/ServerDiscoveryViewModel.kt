@@ -1,5 +1,6 @@
 package org.aals.family.chore.feature.auth.presentation.discovery
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
@@ -12,7 +13,8 @@ import org.aals.family.chore.core.domain.repository.TokenStorage
 data class ServerDiscoveryState(
     val discoveredServers: List<DiscoveredServer> = emptyList(),
     val isScanning: Boolean = false,
-    val manualUrl: String = "http://10.0.2.2:8080"
+    val manualUrl: String = "http://10.0.2.2:8080",
+    val isErrorMode: Boolean = false
 )
 
 sealed interface ServerDiscoveryAction {
@@ -28,10 +30,15 @@ sealed interface ServerDiscoveryEvent {
 
 class ServerDiscoveryViewModel(
     private val serverDiscovery: ServerDiscovery,
-    private val tokenStorage: TokenStorage
+    private val tokenStorage: TokenStorage,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(ServerDiscoveryState())
+    private val _state = MutableStateFlow(
+        ServerDiscoveryState(
+            isErrorMode = savedStateHandle["isErrorMode"] ?: false
+        )
+    )
     val state = _state.asStateFlow()
 
     private val _events = Channel<ServerDiscoveryEvent>()

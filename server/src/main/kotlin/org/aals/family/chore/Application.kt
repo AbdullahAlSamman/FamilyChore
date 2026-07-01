@@ -10,10 +10,14 @@ import io.ktor.server.routing.*
 import org.aals.family.chore.auth.PairingManager
 import org.aals.family.chore.auth.pairingRoutes
 import org.aals.family.chore.core.data.local.entity.ChoreEntity
-import org.aals.family.chore.data.repository.InMemoryFamilyRepository
+import org.aals.family.chore.data.local.DatabaseFactory
+import org.aals.family.chore.data.repository.SqlFamilyRepository
 
 fun main() {
     val port = 8080
+    
+    DatabaseFactory.init()
+    
     val broadcaster = DiscoveryBroadcaster()
     broadcaster.start(port)
 
@@ -26,7 +30,7 @@ fun Application.module() {
         json()
     }
 
-    val familyRepository = InMemoryFamilyRepository()
+    val familyRepository = SqlFamilyRepository()
     val pairingManager = PairingManager()
 
     routing {

@@ -3,7 +3,7 @@
 This document outlines the complete roadmap for the **FamilyChore** application, including past achievements and upcoming phases.
 
 ## Current Focus: Phase 6.5 - Smart Startup & Offline Support
-Implementing fast startup checks, connectivity status, and offline-first dashboard behavior to ensure a smooth user experience even without an active connection.
+Implementing fast startup checks, connectivity status, and a startup profile picker to ensure a smooth user experience and shared-device support.
 
 ---
 
@@ -12,6 +12,7 @@ Implementing fast startup checks, connectivity status, and offline-first dashboa
 ### 1. Foundation & Infrastructure (Completed)
 - **Convention Plugins**: Establishing `:build-logic` for `android-feature`, `compose`, `room`, `ktor`, and `koin`.
 - **Foundation Layer**: `Result` wrappers, `SafeCall` helpers, and `UiText` resources in `:core`.
+- **Unified Logging**: Migrated to **Kermit** for structured multiplatform logging across all modules.
 
 ### 2. Onboarding & Discovery (Completed)
 - **Phase 6**: QR Handshake, Family Creation, and PIN authentication.
@@ -19,11 +20,13 @@ Implementing fast startup checks, connectivity status, and offline-first dashboa
 
 ### 3. Phase 6.5 - Smart Startup & Offline Support (ACTIVE)
 - **Fast Startup**: Perform health check on cached server URL.
-- **Smart Navigation**: Skip Discovery/Onboarding if `token`, `serverUrl`, and `familyId` are cached.
-- **Offline Dashboard**: Load cached data and disable mutation actions when the server is unreachable.
+- **Smart Navigation**: Navigate directly to **User Selection (Profile Picker)** if healthy, ensuring a shared-device friendly startup.
+- **Connectivity Status**: Global `isServerReachable` monitor for real-time UI updates.
+- **Fallback**: Navigate to Server Discovery if the cached server is offline.
 
 ### 4. Phase 7: The Points Economy (Next)
 - **Point Integrity**: Source of truth in Room with server-side validation.
+- **Offline Dashboard**: Load cached data and disable mutation actions when the server is unreachable (Deferred from 6.5).
 - **Transaction Domain**: `Transaction` and `TransactionType` models.
 - **Dashboard Refactor**: Role-based UI for Parents and Children.
 - **History**: Detailed ledger of all point movements.

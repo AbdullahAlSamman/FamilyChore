@@ -19,6 +19,12 @@ dependencies {
     implementation(libs.ktor.serverContentNegotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.jmdns)
+    implementation(libs.kermit)
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.dao)
+    implementation(libs.sqlite.jdbc)
+    implementation(libs.hikaricp)
     
     testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.kotlin.testJunit)

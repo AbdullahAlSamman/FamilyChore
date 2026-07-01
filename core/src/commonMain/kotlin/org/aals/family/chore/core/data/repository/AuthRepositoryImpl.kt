@@ -36,6 +36,12 @@ class AuthRepositoryImpl(
         return pairingDataSource.getPairingUsers(serverUrl, pairingToken).map { it.users }
     }
 
+    override suspend fun getFamilyUsers(familyId: String): Result<List<User>, DataError.Network> {
+        val serverUrl = tokenStorage.getServerUrl() ?: return Result.Error(DataError.Network.UNKNOWN)
+
+        return pairingDataSource.getFamilyUsers(serverUrl, familyId).map { it.users }
+    }
+
     override suspend fun confirmPairing(pairingToken: String, userId: String): Result<User, DataError.Network> {
         val serverUrl = tokenStorage.getServerUrl() ?: return Result.Error(DataError.Network.UNKNOWN)
         

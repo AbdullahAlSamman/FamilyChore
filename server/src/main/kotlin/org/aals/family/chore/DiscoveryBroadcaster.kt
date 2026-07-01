@@ -2,6 +2,7 @@ package org.aals.family.chore
 
 import javax.jmdns.JmDNS
 import javax.jmdns.ServiceInfo
+import co.touchlab.kermit.Logger
 import java.net.InetAddress
 import java.net.NetworkInterface
 
@@ -22,9 +23,9 @@ class DiscoveryBroadcaster {
             )
 
             jmdns?.registerService(serviceInfo)
-            println("Broadcasting FamilyChore server ($hostName) on $ipAddress:$port")
+            Logger.i { "Broadcasting FamilyChore server ($hostName) on $ipAddress:$port" }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.e(e) { "Error starting DiscoveryBroadcaster" }
         }
     }
 

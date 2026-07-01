@@ -10,6 +10,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.util.network.UnresolvedAddressException
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerializationException
 import org.aals.family.chore.core.domain.util.DataError
@@ -61,15 +62,14 @@ suspend inline fun <reified T> safeCall(
     val response = try {
         execute()
     } catch (e: UnresolvedAddressException) {
-        e.printStackTrace()
+        Logger.e(e) { "Unresolved Address Exception" }
         return Result.Error(DataError.Network.NO_INTERNET)
     } catch (e: SerializationException) {
-        e.printStackTrace()
+        Logger.e(e) { "Serialization Exception" }
         return Result.Error(DataError.Network.SERIALIZATION)
     } catch (e: Exception) {
         if (e is CancellationException) throw e
-        println("Network Error: ${e.message}")
-        e.printStackTrace()
+        Logger.e(e) { "Network Error" }
         return Result.Error(DataError.Network.UNKNOWN)
     }
 

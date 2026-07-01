@@ -22,6 +22,10 @@ class FakeAuthRepository : AuthRepository {
         return error?.let { Result.Error(it) } ?: Result.Success(users)
     }
 
+    override suspend fun getFamilyUsers(familyId: String): Result<List<User>, DataError.Network> {
+        return error?.let { Result.Error(it) } ?: Result.Success(users)
+    }
+
     override suspend fun confirmPairing(pairingToken: String, userId: String): Result<User, DataError.Network> {
         return error?.let { Result.Error(it) } ?: Result.Success(users.find { it.id == userId } ?: User(userId, "family1", "User", org.aals.family.chore.core.domain.model.UserRole.CHILD, 0))
     }

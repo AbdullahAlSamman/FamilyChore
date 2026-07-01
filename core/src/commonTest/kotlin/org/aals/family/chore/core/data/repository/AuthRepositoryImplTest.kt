@@ -19,6 +19,7 @@ import kotlinx.serialization.json.Json
 import org.aals.family.chore.core.data.remote.HttpClientFactory
 import org.aals.family.chore.core.data.remote.PairingDataSource
 import org.aals.family.chore.core.data.remote.dto.CreateFamilyResponse
+import org.aals.family.chore.core.data.remote.dto.PairingUsersResponse
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.util.Result
@@ -116,5 +117,25 @@ class AuthRepositoryImplTest {
         assertThat(result).isInstanceOf(Result.Success::class)
         assertThat(tokenStorage.getFamilyId()).isEqualTo("family123")
         assertThat(tokenStorage.getToken()).isEqualTo("token")
+    }
+
+    @Test
+    fun `getFamilyUsers returns users on success`() = runTest {
+        val users = listOf(User("1", "family123", "User", UserRole.CHILD, 0))
+        val response = PairingUsersResponse("The Smiths", users)
+        val engine = MockEngine { 
+            respond(
+                content = Json.encodeToString(response),
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            )
+        }
+        repository = createRepository(engine)
+        tokenStorage.saveServerUrl(serverUrl)
+
+        val result = repository.getFamilyUsers("family123")
+
+        assertThat(result).isInstanceOf(Result.Success::class)
+        assertThat((result as Result.Success).data).isEqualTo(users)
     }
 }

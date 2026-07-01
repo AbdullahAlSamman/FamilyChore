@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.repository.TokenStorage
+import co.touchlab.kermit.Logger
 
 class WelcomeViewModel(
     private val tokenStorage: TokenStorage
@@ -30,11 +31,13 @@ class WelcomeViewModel(
     fun onAction(action: WelcomeAction) {
         when (action) {
             WelcomeAction.OnSetupNewFamilyClick -> {
+                Logger.d { "User chose: Setup New Family" }
                 viewModelScope.launch {
                     _events.send(WelcomeEvent.NavigateToSetupFamily)
                 }
             }
             WelcomeAction.OnJoinFamilyClick -> {
+                Logger.d { "User chose: Join Existing Family" }
                 viewModelScope.launch {
                     _events.send(WelcomeEvent.NavigateToJoinFamily)
                 }

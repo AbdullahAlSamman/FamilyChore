@@ -12,6 +12,7 @@ import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
+import co.touchlab.kermit.Logger
 
 class CreateFamilyViewModel(
     private val authRepository: AuthRepository
@@ -43,6 +44,8 @@ class CreateFamilyViewModel(
     private fun createFamily() {
         val familyName = _state.value.familyName
         val parentNickname = _state.value.parentNickname
+
+        Logger.d { "Creating family: $familyName (Parent: $parentNickname)" }
 
         if (familyName.isBlank() || parentNickname.isBlank()) {
             _state.update { it.copy(error = "Please fill all fields") }

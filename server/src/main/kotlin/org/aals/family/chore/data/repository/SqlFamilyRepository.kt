@@ -6,6 +6,7 @@ import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.data.local.*
 import org.aals.family.chore.data.local.DatabaseFactory.dbQuery
 import org.aals.family.chore.domain.repository.FamilyRepository
+import co.touchlab.kermit.Logger
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import java.util.*
@@ -13,6 +14,7 @@ import java.util.*
 class SqlFamilyRepository : FamilyRepository {
 
     override suspend fun createFamily(name: String): Family = dbQuery {
+        Logger.d { "Creating family in DB: $name" }
         val familyId = UUID.randomUUID().toString()
         FamiliesTable.insert {
             it[id] = familyId
@@ -28,6 +30,7 @@ class SqlFamilyRepository : FamilyRepository {
     }
 
     override suspend fun addUserToFamily(familyId: String, nickname: String, role: UserRole): User = dbQuery {
+        Logger.d { "Adding user $nickname ($role) to family $familyId" }
         val userId = UUID.randomUUID().toString()
         UsersTable.insert {
             it[id] = userId
@@ -51,6 +54,7 @@ class SqlFamilyRepository : FamilyRepository {
     }
 
     override suspend fun setPin(userId: String, pin: String): Unit = dbQuery {
+        Logger.d { "Updating PIN for user: $userId" }
         val exists = PinsTable.selectAll().where { PinsTable.userId eq userId }.any()
         if (exists) {
             PinsTable.update({ PinsTable.userId eq userId }) {

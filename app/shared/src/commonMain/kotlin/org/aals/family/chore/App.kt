@@ -23,7 +23,10 @@ import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.feature.auth.presentation.navigation.*
+import co.touchlab.kermit.Logger
 import org.koin.compose.koinInject
+
+@Serializable object MainDashboardRoute
 
 @Composable
 @Preview
@@ -62,9 +65,29 @@ fun App(
                     navController = navController,
                     startDestination = authStartDestination!!,
                     onOnboardingComplete = {
-                        // TODO: Navigate to Dashboard in Phase 7
+                        Logger.d { "Onboarding complete, navigating to Dashboard" }
+                        navController.navigate(MainDashboardRoute) {
+                            popUpTo(AuthGraph) { inclusive = true }
+                        }
                     }
                 )
+
+                composable<MainDashboardRoute> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text("Main Dashboard Placeholder")
+                        Button(onClick = {
+                            navController.navigate(AuthGraph) {
+                                popUpTo(MainDashboardRoute) { inclusive = true }
+                            }
+                        }) {
+                            Text("Logout (Test)")
+                        }
+                    }
+                }
             }
         }
     }

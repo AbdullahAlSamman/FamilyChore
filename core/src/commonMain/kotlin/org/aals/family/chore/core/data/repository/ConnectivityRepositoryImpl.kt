@@ -40,7 +40,7 @@ class ConnectivityRepositoryImpl(
                 if (serverUrl != null) {
                     checkHealth()
                 }
-                delay(10000.milliseconds) // Poll every 10 seconds
+                delay(30000.milliseconds) // Poll every 30 seconds
             }
         }
     }

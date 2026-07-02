@@ -3,6 +3,7 @@ package org.aals.family.chore.core.data.repository
 import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import co.touchlab.kermit.Logger
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -48,7 +49,9 @@ class ConnectivityRepositoryImplTest {
     }
 }
 
-class FakeServerHealthDataSource : ServerHealthDataSource(HttpClientFactory.create(MockEngine { respond("") })) {
+class FakeServerHealthDataSource : ServerHealthDataSource(
+    HttpClientFactory.create(MockEngine { respond("") }, Logger.withTag("Test"))
+) {
     var result: Result<Unit, DataError.Network> = Result.Success(Unit)
     override suspend fun checkHealth(serverUrl: String): Result<Unit, DataError.Network> = result
 }

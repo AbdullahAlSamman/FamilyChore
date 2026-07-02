@@ -3,8 +3,11 @@ package org.aals.family.chore.feature.auth.presentation.pin_entry
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.util.onFailure
@@ -12,7 +15,8 @@ import org.aals.family.chore.core.domain.util.onSuccess
 
 class PinEntryViewModel(
     private val authRepository: AuthRepository,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val logger: Logger
 ) : ViewModel() {
 
     private val userId: String = checkNotNull(savedStateHandle["userId"])
@@ -49,6 +53,7 @@ class PinEntryViewModel(
         val pin = currentState.pin
 
         viewModelScope.launch {
+            logger.d { "Submitting PIN (isSetupMode=$isSetupMode)" }
             _state.value = PinEntryState.Verifying(pin)
 
             val result = if (isSetupMode) {
@@ -59,9 +64,11 @@ class PinEntryViewModel(
 
             result
                 .onSuccess {
+                    logger.d { "PIN operation successful" }
                     _events.send(PinEntryEvent.PinVerified)
                 }
                 .onFailure { error ->
+                    logger.e { "PIN operation failed: $error" }
                     _state.value = PinEntryState.Entering(pin = pin, error = error.toString())
                 }
         }

@@ -3,6 +3,7 @@ package org.aals.family.chore.feature.auth.presentation.qr_scanner
 import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -25,7 +26,7 @@ class QrScannerViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         tokenStorage = FakeTokenStorage()
-        viewModel = QrScannerViewModel(tokenStorage)
+        viewModel = QrScannerViewModel(tokenStorage, Logger.withTag("Test"))
     }
 
     @AfterTest

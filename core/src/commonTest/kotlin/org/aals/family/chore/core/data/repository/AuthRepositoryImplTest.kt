@@ -3,18 +3,14 @@ package org.aals.family.chore.core.data.repository
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
-import assertk.assertions.isNotNull
-import io.ktor.client.HttpClient
+import co.touchlab.kermit.Logger
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.aals.family.chore.core.data.remote.HttpClientFactory
 import org.aals.family.chore.core.data.remote.PairingDataSource
@@ -38,9 +34,9 @@ class AuthRepositoryImplTest {
     }
 
     private fun createRepository(engine: MockEngine): AuthRepositoryImpl {
-        val httpClient = HttpClientFactory.create(engine)
+        val httpClient = HttpClientFactory.create(engine, Logger.withTag("Test"))
         val dataSource = PairingDataSource(httpClient)
-        return AuthRepositoryImpl(dataSource, tokenStorage)
+        return AuthRepositoryImpl(dataSource, tokenStorage, Logger.withTag("Test"))
     }
 
     @Test

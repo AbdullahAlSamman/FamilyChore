@@ -3,6 +3,7 @@ package org.aals.family.chore.feature.auth.presentation.welcome
 import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -27,7 +28,7 @@ class WelcomeViewModelTest {
     }
 
     private fun createViewModel() {
-        viewModel = WelcomeViewModel(tokenStorage)
+        viewModel = WelcomeViewModel(tokenStorage, Logger.withTag("Test"))
     }
 
     @AfterTest

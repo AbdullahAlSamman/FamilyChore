@@ -1,5 +1,8 @@
 package org.aals.family.chore.core.di
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.aals.family.chore.core.data.remote.HttpClientFactory
 import org.aals.family.chore.core.data.remote.PairingDataSource
 import org.aals.family.chore.core.data.remote.ServerHealthDataSource
@@ -9,20 +12,20 @@ import org.aals.family.chore.core.data.repository.DataStoreTokenStorage
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import org.aals.family.chore.core.domain.util.LoggingInitializer
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.parameter.parametersOf
 import org.koin.dsl.module
 
 val coreModule = module {
     includes(platformModule)
     single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
-    single { HttpClientFactory.create(get()) }
+    single { HttpClientFactory.create(get(), get { parametersOf("HttpClient") }) }
+    factory { (tag: String) -> LoggingInitializer.createLogger(tag) }
     singleOf(::PairingDataSource)
     singleOf(::ServerHealthDataSource)
-    singleOf(::AuthRepositoryImpl) { bind<AuthRepository>() }
+    single<AuthRepository> { AuthRepositoryImpl(get(), get(), get { parametersOf("AuthRepository") }) }
     singleOf(::ConnectivityRepositoryImpl) { bind<ConnectivityRepository>() }
     singleOf(::DataStoreTokenStorage) { bind<TokenStorage>() }
 }

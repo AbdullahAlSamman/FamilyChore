@@ -6,14 +6,16 @@ import org.aals.family.chore.feature.auth.presentation.pin_entry.PinEntryViewMod
 import org.aals.family.chore.feature.auth.presentation.qr_scanner.QrScannerViewModel
 import org.aals.family.chore.feature.auth.presentation.user_selection.UserSelectionViewModel
 import org.aals.family.chore.feature.auth.presentation.welcome.WelcomeViewModel
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.parameter.parametersOf
 import org.koin.dsl.module
 
 val authModule = module {
-    viewModelOf(::WelcomeViewModel)
+    viewModel { WelcomeViewModel(get(), get { parametersOf("WelcomeViewModel") }) }
     viewModelOf(::QrScannerViewModel)
-    viewModelOf(::UserSelectionViewModel)
+    viewModel { UserSelectionViewModel(get(), get(), get { parametersOf("UserSelectionViewModel") }) }
     viewModelOf(::PinEntryViewModel)
-    viewModelOf(::CreateFamilyViewModel)
-    viewModelOf(::ServerDiscoveryViewModel)
+    viewModel { CreateFamilyViewModel(get(), get { parametersOf("CreateFamilyViewModel") }) }
+    viewModel { ServerDiscoveryViewModel(get(), get(), get(), get { parametersOf("ServerDiscoveryViewModel") }) }
 }

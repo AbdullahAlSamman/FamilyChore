@@ -9,14 +9,14 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
-import co.touchlab.kermit.Logger as KermitLogger
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import co.touchlab.kermit.Logger as KermitLogger
 
 object HttpClientFactory {
-    fun create(engine: HttpClientEngine): HttpClient {
+    fun create(engine: HttpClientEngine, kermitLogger: KermitLogger): HttpClient {
         return HttpClient(engine) {
             install(ContentNegotiation) {
                 json(
@@ -28,7 +28,7 @@ object HttpClientFactory {
             install(Logging) {
                 logger = object : Logger {
                     override fun log(message: String) {
-                        KermitLogger.d(tag = "HttpClient") { message }
+                        kermitLogger.d { message }
                     }
                 }
                 level = LogLevel.ALL

@@ -3,13 +3,18 @@ package org.aals.family.chore.feature.auth.presentation.discovery
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.discovery.DiscoveredServer
 import org.aals.family.chore.core.domain.discovery.ServerDiscovery
 import org.aals.family.chore.core.domain.repository.TokenStorage
-import co.touchlab.kermit.Logger
 
 data class ServerDiscoveryState(
     val discoveredServers: List<DiscoveredServer> = emptyList(),
@@ -32,7 +37,8 @@ sealed interface ServerDiscoveryEvent {
 class ServerDiscoveryViewModel(
     private val serverDiscovery: ServerDiscovery,
     private val tokenStorage: TokenStorage,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val logger: Logger
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
@@ -50,7 +56,7 @@ class ServerDiscoveryViewModel(
     }
 
     private fun startScanning() {
-        Logger.d { "Starting server discovery scan" }
+        logger.d { "Starting server discovery scan" }
         _state.update { it.copy(isScanning = true, discoveredServers = emptyList()) }
         serverDiscovery.startDiscovery()
             .onEach { server ->
@@ -68,7 +74,7 @@ class ServerDiscoveryViewModel(
     fun onAction(action: ServerDiscoveryAction) {
         when (action) {
             is ServerDiscoveryAction.OnServerSelected -> {
-                Logger.d { "Server selected: ${action.server.name} (${action.server.url})" }
+                logger.d { "Server selected: ${action.server.name} (${action.server.url})" }
                 viewModelScope.launch {
                     tokenStorage.saveServerUrl(action.server.url)
                     tokenStorage.saveServerName(action.server.name)
@@ -76,7 +82,7 @@ class ServerDiscoveryViewModel(
                 }
             }
             ServerDiscoveryAction.OnScanAgainClick -> {
-                Logger.d { "Rescanning for servers" }
+                logger.d { "Rescanning for servers" }
                 serverDiscovery.stopDiscovery()
                 startScanning()
             }
@@ -84,7 +90,7 @@ class ServerDiscoveryViewModel(
                 _state.update { it.copy(manualUrl = action.url) }
             }
             ServerDiscoveryAction.OnConnectManualClick -> {
-                Logger.d { "Connecting manually to: ${state.value.manualUrl}" }
+                logger.d { "Connecting manually to: ${state.value.manualUrl}" }
                 viewModelScope.launch {
                     tokenStorage.saveServerUrl(state.value.manualUrl)
                     tokenStorage.saveServerName("Manual Server")

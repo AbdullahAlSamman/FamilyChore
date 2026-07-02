@@ -3,17 +3,20 @@ package org.aals.family.chore.feature.auth.presentation.user_selection
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
-import co.touchlab.kermit.Logger
 
 class UserSelectionViewModel(
     private val authRepository: AuthRepository,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val logger: Logger
 ) : ViewModel() {
 
     private val pairingToken: String? = savedStateHandle["pairingToken"]
@@ -32,7 +35,7 @@ class UserSelectionViewModel(
     fun onAction(action: UserSelectionAction) {
         when (action) {
             is UserSelectionAction.OnUserClick -> {
-                Logger.d { "User selected: ${action.user.nickname} (${action.user.id})" }
+                logger.d { "User selected: ${action.user.nickname} (${action.user.id})" }
                 if (pairingToken != null) {
                     confirmPairing(action.user.id)
                 } else {
@@ -46,7 +49,7 @@ class UserSelectionViewModel(
     }
 
     private fun loadUsers() {
-        Logger.d { "Loading users for selection (token: ${pairingToken != null}, familyId: $familyId)" }
+        logger.d { "Loading users for selection (token: ${pairingToken != null}, familyId: $familyId)" }
         viewModelScope.launch {
             _state.value = UserSelectionState.Loading
             val result = when {

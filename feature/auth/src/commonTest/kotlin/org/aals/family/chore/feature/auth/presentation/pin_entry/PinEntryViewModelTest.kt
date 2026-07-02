@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -37,7 +38,8 @@ class PinEntryViewModelTest {
     fun `submitting 4 digit pin in setup mode calls setupPin`() = runTest {
         viewModel = PinEntryViewModel(
             authRepository,
-            SavedStateHandle(mapOf("userId" to userId, "isSetupMode" to true))
+            SavedStateHandle(mapOf("userId" to userId, "isSetupMode" to true)),
+            Logger.withTag("Test")
         )
 
         viewModel.events.test {
@@ -49,7 +51,11 @@ class PinEntryViewModelTest {
 
     @Test
     fun `submitting short pin sets error`() = runTest {
-        viewModel = PinEntryViewModel(authRepository, SavedStateHandle(mapOf("userId" to userId)))
+        viewModel = PinEntryViewModel(
+            authRepository,
+            SavedStateHandle(mapOf("userId" to userId)),
+            Logger.withTag("Test")
+        )
 
         viewModel.state.test {
             assertThat(awaitItem().pin).isEqualTo("")

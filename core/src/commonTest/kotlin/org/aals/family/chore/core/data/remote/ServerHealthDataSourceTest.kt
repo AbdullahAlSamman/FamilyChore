@@ -2,7 +2,7 @@ package org.aals.family.chore.core.data.remote
 
 import assertk.assertThat
 import assertk.assertions.isInstanceOf
-import io.ktor.client.HttpClient
+import co.touchlab.kermit.Logger
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpStatusCode
@@ -17,7 +17,7 @@ class ServerHealthDataSourceTest {
         val engine = MockEngine {
             respond("OK", HttpStatusCode.OK)
         }
-        val httpClient = HttpClientFactory.create(engine)
+        val httpClient = HttpClientFactory.create(engine, Logger.withTag("Test"))
         val dataSource = ServerHealthDataSource(httpClient)
 
         val result = dataSource.checkHealth("http://localhost:8080")
@@ -30,7 +30,7 @@ class ServerHealthDataSourceTest {
         val engine = MockEngine {
             respond("Error", HttpStatusCode.InternalServerError)
         }
-        val httpClient = HttpClientFactory.create(engine)
+        val httpClient = HttpClientFactory.create(engine, Logger.withTag("Test"))
         val dataSource = ServerHealthDataSource(httpClient)
 
         val result = dataSource.checkHealth("http://localhost:8080")

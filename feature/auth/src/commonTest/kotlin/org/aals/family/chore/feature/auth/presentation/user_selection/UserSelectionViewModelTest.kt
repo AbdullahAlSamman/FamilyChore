@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -41,7 +42,11 @@ class UserSelectionViewModelTest {
         val users = listOf(User("1", "f1", "Child 1", UserRole.CHILD, 0))
         authRepository.users.addAll(users)
         
-        viewModel = UserSelectionViewModel(authRepository, SavedStateHandle(mapOf("pairingToken" to pairingToken)))
+        viewModel = UserSelectionViewModel(
+            authRepository,
+            SavedStateHandle(mapOf("pairingToken" to pairingToken)),
+            Logger.withTag("Test")
+        )
 
         viewModel.state.test {
             // With UnconfinedTestDispatcher, the init block runs immediately.
@@ -54,7 +59,11 @@ class UserSelectionViewModelTest {
     fun `clicking user confirms pairing and sends event`() = runTest {
         val user = User("1", "f1", "Child 1", UserRole.CHILD, 0)
         authRepository.users.add(user)
-        viewModel = UserSelectionViewModel(authRepository, SavedStateHandle(mapOf("pairingToken" to pairingToken)))
+        viewModel = UserSelectionViewModel(
+            authRepository,
+            SavedStateHandle(mapOf("pairingToken" to pairingToken)),
+            Logger.withTag("Test")
+        )
 
         viewModel.events.test {
             viewModel.onAction(UserSelectionAction.OnUserClick(user))

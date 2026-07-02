@@ -7,7 +7,7 @@
 - No placeholders UI components in any screen, implement real feature with permission requesting in mind e.g camera for QR code scans, if clarification is required then stop implementation and ask
 - Don't add any file as placeholder unless you add to `TODO` inside it explain why! should be also document it `README.md` so you can pick it up from there next time.
 - Always keep the architecture as agreed on based on the skills available to you.
-- Each transaction with server side should be logged to logs to followup on issues.
+- Each transaction with server side should be logged to logs to followup on issues via kermit.
 - Commit message starts with T* number of the ticket mentioned in branch name.
 - Don't commit until you have been asked to.
 
@@ -25,9 +25,12 @@ This file tracks critical architectural decisions and domain rules for the Famil
 - **Server Discovery**: Onboarding includes an automated search for the local Ktor server (mDNS/Network scanning). Once found, the IP is cached in `TokenStorage` and reused for all subsequent requests.
 - **Pairing Flow**: Onboarding uses a real-time QR handshake (CameraX/ML Kit). QR content is a JSON `PairingToken` (ip, token). Joining a family involves scanning, fetching users via token, and picking a profile.
 - **PIN Authentication**: 4-digit PIN is verified against the server. During onboarding, the parent sets a PIN (setup mode), and subsequent joins or re-auths use verification mode.
+- **Points Economy**: Points are managed via a local transaction ledger (Room) as the Single Source of Truth. Each point movement (Chore, Bonus, Penalty, Redemption) is recorded as a `Transaction` entity.
+- **Role-Based Dashboard**: The main UI uses a docked toolbar with distinct tabs for Parent vs. Child roles. Navigation logic automatically routes users to their specific functional area (e.g., "Approvals" for Parents vs. "Today" for Children).
 
 ## Domain Rules
 - **Chore Verification**: Mandatory live photo (no gallery uploads).
 - **Points**: Points are never deducted without parent approval (default).
+- **Point SSOT**: The local Room `Transaction` ledger is the final authority on balances; server sync ensures multi-device consistency.
 - **Authentication**: Optional 4-digit PIN for child profiles.
 - **Secure Communication**: [FUTURE] Migrate from cleartext HTTP to HTTPS for all server communications (currently using `usesCleartextTraffic` for development).

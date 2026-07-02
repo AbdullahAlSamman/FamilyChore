@@ -2,6 +2,7 @@ package org.aals.family.chore.feature.auth.presentation.create_family
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -9,13 +10,12 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.repository.AuthRepository
-import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
-import co.touchlab.kermit.Logger
 
 class CreateFamilyViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val logger: Logger
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CreateFamilyState())
@@ -45,7 +45,7 @@ class CreateFamilyViewModel(
         val familyName = _state.value.familyName
         val parentNickname = _state.value.parentNickname
 
-        Logger.d { "Creating family: $familyName (Parent: $parentNickname)" }
+        logger.d { "Creating family: $familyName (Parent: $parentNickname)" }
 
         if (familyName.isBlank() || parentNickname.isBlank()) {
             _state.update { it.copy(error = "Please fill all fields") }

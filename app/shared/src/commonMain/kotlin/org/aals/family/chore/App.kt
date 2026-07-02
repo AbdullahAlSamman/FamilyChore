@@ -1,31 +1,34 @@
 package org.aals.family.chore
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import co.touchlab.kermit.Logger
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.Result
-import org.aals.family.chore.feature.auth.presentation.navigation.*
-import co.touchlab.kermit.Logger
+import org.aals.family.chore.feature.auth.presentation.navigation.AuthGraph
+import org.aals.family.chore.feature.auth.presentation.navigation.ServerDiscoveryRoute
+import org.aals.family.chore.feature.auth.presentation.navigation.UserSelectionRoute
+import org.aals.family.chore.feature.auth.presentation.navigation.WelcomeRoute
+import org.aals.family.chore.feature.auth.presentation.navigation.authGraph
 import org.koin.compose.koinInject
+import org.koin.core.parameter.parametersOf
 
 @Serializable object MainDashboardRoute
 
@@ -33,7 +36,8 @@ import org.koin.compose.koinInject
 @Preview
 fun App(
     tokenStorage: TokenStorage = koinInject(),
-    connectivityRepository: ConnectivityRepository = koinInject()
+    connectivityRepository: ConnectivityRepository = koinInject(),
+    logger: Logger = koinInject { parametersOf("App") }
 ) {
     val authStartDestination by produceState<Any?>(initialValue = null) {
         val serverUrl = tokenStorage.getServerUrl()
@@ -70,7 +74,7 @@ fun App(
                     onOnboardingComplete = {
                         scope.launch {
                             val familyId = tokenStorage.getFamilyId()
-                            Logger.d { "Onboarding complete, returning to User Selection for family: $familyId" }
+                            logger.d { "Onboarding complete, returning to User Selection for family: $familyId" }
                             if (familyId != null) {
                                 navController.navigate(UserSelectionRoute(familyId = familyId)) {
                                     popUpTo(AuthGraph) { inclusive = true }

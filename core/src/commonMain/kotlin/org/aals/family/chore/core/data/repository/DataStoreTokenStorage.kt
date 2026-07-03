@@ -1,7 +1,10 @@
 package org.aals.family.chore.core.data.repository
 
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.aals.family.chore.core.domain.repository.TokenStorage
@@ -16,6 +19,11 @@ class DataStoreTokenStorage(
         val KEY_SERVER_URL = stringPreferencesKey("server_url")
         val KEY_SERVER_NAME = stringPreferencesKey("server_name")
     }
+
+    override val token: Flow<String?> = dataStore.data.map { it[KEY_TOKEN] }
+    override val familyId: Flow<String?> = dataStore.data.map { it[KEY_FAMILY_ID] }
+    override val serverUrl: Flow<String?> = dataStore.data.map { it[KEY_SERVER_URL] }
+    override val serverName: Flow<String?> = dataStore.data.map { it[KEY_SERVER_NAME] }
 
     override suspend fun saveToken(token: String) {
         dataStore.edit { it[KEY_TOKEN] = token }

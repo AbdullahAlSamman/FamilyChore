@@ -12,6 +12,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import org.aals.family.chore.core.data.remote.BaseUrlProvider
 import org.aals.family.chore.core.data.remote.HttpClientFactory
 import org.aals.family.chore.core.data.remote.PairingDataSource
 import org.aals.family.chore.core.data.remote.dto.CreateFamilyResponse
@@ -27,6 +28,9 @@ class AuthRepositoryImplTest {
     private lateinit var repository: AuthRepositoryImpl
     private lateinit var tokenStorage: FakeTokenStorage
     private val serverUrl = "http://localhost:8080"
+    private val baseUrlProvider = object : BaseUrlProvider {
+        override suspend fun getBaseUrl(): String = serverUrl
+    }
 
     @BeforeTest
     fun setUp() {
@@ -34,7 +38,7 @@ class AuthRepositoryImplTest {
     }
 
     private fun createRepository(engine: MockEngine): AuthRepositoryImpl {
-        val httpClient = HttpClientFactory.create(engine, Logger.withTag("Test"))
+        val httpClient = HttpClientFactory.create(engine, baseUrlProvider, Logger.withTag("Test"))
         val dataSource = PairingDataSource(httpClient)
         return AuthRepositoryImpl(dataSource, tokenStorage, Logger.withTag("Test"))
     }
@@ -66,8 +70,13 @@ class AuthRepositoryImplTest {
     }
 
     @Test
-    fun `createFamily returns error if serverUrl is missing`() = runTest {
-        val engine = MockEngine { respond("") }
+    fun `createFamily returns error on server error`() = runTest {
+        val engine = MockEngine { 
+            respond(
+                content = "Internal Server Error",
+                status = HttpStatusCode.InternalServerError
+            )
+        }
         repository = createRepository(engine)
 
         val result = repository.createFamily("The Smith", "Dad")

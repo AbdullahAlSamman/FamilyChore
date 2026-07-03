@@ -11,12 +11,18 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import co.touchlab.kermit.Logger as KermitLogger
 
 object HttpClientFactory {
-    fun create(engine: HttpClientEngine, kermitLogger: KermitLogger): HttpClient {
+    fun create(
+        engine: HttpClientEngine,
+        baseUrlProvider: BaseUrlProvider,
+        kermitLogger: KermitLogger
+    ): HttpClient {
         return HttpClient(engine) {
             install(ContentNegotiation) {
                 json(
@@ -47,6 +53,19 @@ object HttpClientFactory {
             }
             defaultRequest {
                 contentType(ContentType.Application.Json)
+                
+                runBlocking {
+                    baseUrlProvider.getBaseUrl()?.let { baseUrlString ->
+                        if (url.host.isEmpty()) {
+                            // Prepend base URL for relative requests
+                            val originalPath = url.pathSegments.filter { it.isNotEmpty() }
+                            url.takeFrom(baseUrlString)
+                            if (originalPath.isNotEmpty()) {
+                                url.pathSegments = url.pathSegments.filter { it.isNotEmpty() } + originalPath
+                            }
+                        }
+                    }
+                }
             }
         }
     }

@@ -1,41 +1,48 @@
 package org.aals.family.chore.core.data.repository
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.aals.family.chore.core.domain.repository.TokenStorage
 
 class FakeTokenStorage : TokenStorage {
-    private var token: String? = null
-    private var familyId: String? = null
-    private var serverUrl: String? = null
-    private var serverName: String? = null
+    private val _token = MutableStateFlow<String?>(null)
+    private val _familyId = MutableStateFlow<String?>(null)
+    private val _serverUrl = MutableStateFlow<String?>(null)
+    private val _serverName = MutableStateFlow<String?>(null)
+
+    override val token: Flow<String?> = _token
+    override val familyId: Flow<String?> = _familyId
+    override val serverUrl: Flow<String?> = _serverUrl
+    override val serverName: Flow<String?> = _serverName
 
     override suspend fun saveToken(token: String) {
-        this.token = token
+        _token.value = token
     }
 
-    override suspend fun getToken(): String? = token
+    override suspend fun getToken(): String? = _token.value
 
     override suspend fun saveFamilyId(familyId: String) {
-        this.familyId = familyId
+        _familyId.value = familyId
     }
 
-    override suspend fun getFamilyId(): String? = familyId
+    override suspend fun getFamilyId(): String? = _familyId.value
 
     override suspend fun saveServerUrl(url: String) {
-        this.serverUrl = url
+        _serverUrl.value = url
     }
 
-    override suspend fun getServerUrl(): String? = serverUrl
+    override suspend fun getServerUrl(): String? = _serverUrl.value
 
     override suspend fun saveServerName(name: String) {
-        this.serverName = name
+        _serverName.value = name
     }
 
-    override suspend fun getServerName(): String? = serverName
+    override suspend fun getServerName(): String? = _serverName.value
 
     override suspend fun clear() {
-        token = null
-        familyId = null
-        serverUrl = null
-        serverName = null
+        _token.value = null
+        _familyId.value = null
+        _serverUrl.value = null
+        _serverName.value = null
     }
 }

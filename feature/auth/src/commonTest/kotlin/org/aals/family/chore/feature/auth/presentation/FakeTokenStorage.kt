@@ -7,11 +7,13 @@ import org.aals.family.chore.core.domain.repository.TokenStorage
 class FakeTokenStorage : TokenStorage {
     private val _token = MutableStateFlow<String?>(null)
     private val _familyId = MutableStateFlow<String?>(null)
+    private val _userId = MutableStateFlow<String?>(null)
     private val _serverUrl = MutableStateFlow<String?>(null)
     private val _serverName = MutableStateFlow<String?>(null)
 
     override val token: Flow<String?> = _token
     override val familyId: Flow<String?> = _familyId
+    override val userId: Flow<String?> = _userId
     override val serverUrl: Flow<String?> = _serverUrl
     override val serverName: Flow<String?> = _serverName
 
@@ -26,6 +28,12 @@ class FakeTokenStorage : TokenStorage {
     }
 
     override suspend fun getFamilyId(): String? = _familyId.value
+
+    override suspend fun saveUserId(userId: String) {
+        _userId.value = userId
+    }
+
+    override suspend fun getUserId(): String? = _userId.value
 
     override suspend fun saveServerUrl(url: String) {
         _serverUrl.value = url
@@ -42,6 +50,7 @@ class FakeTokenStorage : TokenStorage {
     override suspend fun clear() {
         _token.value = null
         _familyId.value = null
+        _userId.value = null
         _serverUrl.value = null
         _serverName.value = null
     }

@@ -11,6 +11,7 @@
 - Commit message starts with T* number of the ticket mentioned in branch name.
 - Don't commit until you have been asked to.
 - Use sealed interfaces/classes as state no data class
+- Develop the feature complete data, domain and ui.
 
 This file tracks critical architectural decisions and domain rules for the FamilyChore project.
 ## Critical Engineering Decisions
@@ -24,6 +25,7 @@ This file tracks critical architectural decisions and domain rules for the Famil
 - **Strict MVI & UI Split**: Every screen MUST be split into a **Root** (logical/DI) and **Screen** (dumb UI) composable. ViewModels MUST follow the `State`, `Action`, `Event` pattern.
 - **Test-Driven Execution**: Every implementation phase MUST conclude with comprehensive unit tests before proceeding to the next phase. Foundation testing (Result, SafeCall mapping, UiText) is complete.
 - **Server Discovery**: Onboarding includes an automated search for the local Ktor server (mDNS/Network scanning). Once found, the IP is cached in `TokenStorage` and reused for all subsequent requests.
+- **Session Persistence**: `TokenStorage` persists `token`, `familyId`, and `userId` to maintain user context across app restarts.
 - **Pairing Flow**: Onboarding uses a real-time QR handshake (CameraX/ML Kit). QR content is a JSON `PairingToken` (ip, token). Joining a family involves scanning, fetching users via token, and picking a profile.
 - **PIN Authentication**: 4-digit PIN is verified against the server. During onboarding, the parent sets a PIN (setup mode), and subsequent joins or re-auths use verification mode.
 - **Points Economy**: Points are managed via a local transaction ledger (Room) as the Single Source of Truth. Each point movement (Chore, Bonus, Penalty, Redemption) is recorded as a `Transaction` entity.

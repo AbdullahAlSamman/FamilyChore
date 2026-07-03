@@ -20,6 +20,7 @@ class AuthRepositoryImpl(
         return pairingDataSource.createFamily(familyName, parentNickname).map { response ->
             logger.d { "Family created successfully: ${response.familyId}" }
             tokenStorage.saveFamilyId(response.familyId)
+            tokenStorage.saveUserId(response.parentUser.id)
             tokenStorage.saveToken(response.token)
             response.parentUser
         }
@@ -45,6 +46,7 @@ class AuthRepositoryImpl(
         return pairingDataSource.confirmPairing(pairingToken, userId).map { response ->
             logger.d { "Pairing confirmed for family: ${response.familyId}" }
             tokenStorage.saveFamilyId(response.familyId)
+            tokenStorage.saveUserId(response.user.id)
             tokenStorage.saveToken(response.token)
             response.user
         }
@@ -58,5 +60,11 @@ class AuthRepositoryImpl(
     override suspend fun verifyPin(userId: String, pin: String): Result<Unit, DataError.Network> {
         logger.d { "Verifying PIN for user: $userId" }
         return pairingDataSource.verifyPin(userId, pin)
+    }
+
+    override suspend fun getCurrentUser(): Result<User, DataError.Network> {
+        val userId = tokenStorage.getUserId() ?: return Result.Error(DataError.Network.UNAUTHORIZED)
+        logger.d { "Fetching current user profile: $userId" }
+        return pairingDataSource.getUser(userId)
     }
 }

@@ -1,18 +1,24 @@
 package org.aals.family.chore
 
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import co.touchlab.kermit.Logger
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.route
+import io.ktor.server.routing.routing
 import org.aals.family.chore.auth.PairingManager
 import org.aals.family.chore.auth.pairingRoutes
 import org.aals.family.chore.core.data.local.entity.ChoreEntity
 import org.aals.family.chore.data.local.DatabaseFactory
 import org.aals.family.chore.data.repository.SqlFamilyRepository
-import co.touchlab.kermit.Logger
+import org.aals.family.chore.data.repository.SqlTransactionRepository
+import org.aals.family.chore.transaction.transactionRoutes
 
 fun main() {
     val port = 8080
@@ -34,6 +40,7 @@ fun Application.module() {
     }
 
     val familyRepository = SqlFamilyRepository()
+    val transactionRepository = SqlTransactionRepository()
     val pairingManager = PairingManager()
 
     routing {
@@ -42,6 +49,7 @@ fun Application.module() {
         }
 
         pairingRoutes(familyRepository, pairingManager)
+        transactionRoutes(transactionRepository)
 
         route("/{familyId}") {
             get("/chores") {

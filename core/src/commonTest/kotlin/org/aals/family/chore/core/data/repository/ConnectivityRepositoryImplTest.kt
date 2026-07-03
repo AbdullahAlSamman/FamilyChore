@@ -3,14 +3,9 @@ package org.aals.family.chore.core.data.repository
 import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import co.touchlab.kermit.Logger
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import org.aals.family.chore.core.data.remote.BaseUrlProvider
-import org.aals.family.chore.core.data.remote.HttpClientFactory
 import org.aals.family.chore.core.data.remote.ServerHealthDataSource
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
@@ -25,13 +20,9 @@ class ConnectivityRepositoryImplTest {
     private lateinit var tokenStorage: FakeTokenStorage
     private val testScope = TestScope()
 
-    private val baseUrlProvider = object : BaseUrlProvider {
-        override suspend fun getBaseUrl(): String = "http://localhost:8080"
-    }
-
     @BeforeTest
     fun setUp() {
-        healthDataSource = FakeServerHealthDataSource(baseUrlProvider)
+        healthDataSource = FakeServerHealthDataSource()
         tokenStorage = FakeTokenStorage()
         repository = ConnectivityRepositoryImpl(healthDataSource, tokenStorage, testScope)
     }
@@ -54,9 +45,7 @@ class ConnectivityRepositoryImplTest {
     }
 }
 
-class FakeServerHealthDataSource(baseUrlProvider: BaseUrlProvider) : ServerHealthDataSource(
-    HttpClientFactory.create(MockEngine { respond("") }, baseUrlProvider, Logger.withTag("Test"))
-) {
+class FakeServerHealthDataSource : ServerHealthDataSource {
     var result: Result<Unit, DataError.Network> = Result.Success(Unit)
     override suspend fun checkHealth(serverUrl: String?): Result<Unit, DataError.Network> = result
 }

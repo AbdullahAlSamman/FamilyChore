@@ -22,7 +22,7 @@ class ServerHealthDataSourceTest {
             respond("OK", HttpStatusCode.OK)
         }
         val httpClient = HttpClientFactory.create(engine, baseUrlProvider, Logger.withTag("Test"))
-        val dataSource = ServerHealthDataSource(httpClient)
+        val dataSource = KtorServerHealthDataSource(httpClient)
 
         val result = dataSource.checkHealth("http://localhost:8080")
 
@@ -35,7 +35,7 @@ class ServerHealthDataSourceTest {
             respond("Error", HttpStatusCode.InternalServerError)
         }
         val httpClient = HttpClientFactory.create(engine, baseUrlProvider, Logger.withTag("Test"))
-        val dataSource = ServerHealthDataSource(httpClient)
+        val dataSource = KtorServerHealthDataSource(httpClient)
 
         val result = dataSource.checkHealth("http://localhost:8080")
 

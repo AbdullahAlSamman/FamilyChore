@@ -16,6 +16,7 @@ import org.aals.family.chore.feature.auth.presentation.navigation.ServerDiscover
 import org.aals.family.chore.feature.auth.presentation.navigation.authGraph
 import org.aals.family.chore.feature.dashboard.presentation.navigation.DashboardGraph
 import org.aals.family.chore.feature.dashboard.presentation.navigation.dashboardGraph
+import org.aals.family.chore.presentation.MainState
 import org.aals.family.chore.presentation.MainViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -29,42 +30,47 @@ fun App(
     logger: Logger = koinInject { parametersOf("App") }
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val authStartDestination = state.startDestination
 
     val scope = rememberCoroutineScope()
 
     MaterialTheme {
-        if (!state.isLoading && authStartDestination != null) {
-            val navController = rememberNavController()
-            NavHost(
-                navController = navController,
-                startDestination = if (authStartDestination is DashboardGraph) DashboardGraph else AuthGraph
-            ) {
-                authGraph(
+        when (val currentState = state) {
+            MainState.Loading -> {
+                // You might want to show a splash screen or loader here
+            }
+            is MainState.Success -> {
+                val authStartDestination = currentState.startDestination
+                val navController = rememberNavController()
+                NavHost(
                     navController = navController,
-                    startDestination = if (authStartDestination is DashboardGraph) ServerDiscoveryRoute() else authStartDestination,
-                    onOnboardingComplete = {
-                        scope.launch {
-                            logger.d { "Onboarding complete, navigating to Dashboard" }
-                            navController.navigate(DashboardGraph) {
-                                popUpTo(AuthGraph) { inclusive = true }
+                    startDestination = if (authStartDestination is DashboardGraph) DashboardGraph else AuthGraph
+                ) {
+                    authGraph(
+                        navController = navController,
+                        startDestination = if (authStartDestination is DashboardGraph) ServerDiscoveryRoute() else authStartDestination,
+                        onOnboardingComplete = {
+                            scope.launch {
+                                logger.d { "Onboarding complete, navigating to Dashboard" }
+                                navController.navigate(DashboardGraph) {
+                                    popUpTo(AuthGraph) { inclusive = true }
+                                }
                             }
                         }
-                    }
-                )
+                    )
 
-                dashboardGraph(
-                    navController = navController,
-                    onLogout = {
-                        scope.launch {
-                            logger.d { "Logging out" }
-                            tokenStorage.clear()
-                            navController.navigate(AuthGraph) {
-                                popUpTo(DashboardGraph) { inclusive = true }
+                    dashboardGraph(
+                        navController = navController,
+                        onLogout = {
+                            scope.launch {
+                                logger.d { "Logging out" }
+                                tokenStorage.clear()
+                                navController.navigate(AuthGraph) {
+                                    popUpTo(DashboardGraph) { inclusive = true }
+                                }
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }

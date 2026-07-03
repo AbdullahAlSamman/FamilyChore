@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
@@ -19,7 +18,7 @@ class MainViewModel(
     private val connectivityRepository: ConnectivityRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(MainState())
+    private val _state = MutableStateFlow<MainState>(MainState.Loading)
     val state = _state.asStateFlow()
 
     init {
@@ -49,10 +48,7 @@ class MainViewModel(
                 ServerDiscoveryRoute()
             }
 
-            _state.update { it.copy(
-                isLoading = false,
-                startDestination = destination
-            ) }
+            _state.value = MainState.Success(destination)
         }
     }
 }

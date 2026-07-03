@@ -10,6 +10,7 @@
 - Each transaction with server side should be logged to logs to followup on issues via kermit.
 - Commit message starts with T* number of the ticket mentioned in branch name.
 - Don't commit until you have been asked to.
+- Use sealed interfaces/classes as state no data class
 
 This file tracks critical architectural decisions and domain rules for the FamilyChore project.
 ## Critical Engineering Decisions

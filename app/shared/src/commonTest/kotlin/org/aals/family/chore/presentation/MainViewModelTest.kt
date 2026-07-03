@@ -37,7 +37,7 @@ class MainViewModelTest {
     @Test
     fun `initial state is loading`() = runTest {
         createViewModel()
-        assertThat(viewModel.state.value.isLoading).isEqualTo(true)
+        assertThat(viewModel.state.value).isInstanceOf(MainState.Loading::class)
     }
 
     @Test
@@ -48,10 +48,10 @@ class MainViewModelTest {
 
         viewModel.state.test {
             val state = awaitItem()
-            val finalState = if (state.isLoading) awaitItem() else state
+            val finalState = if (state is MainState.Loading) awaitItem() else state
             
-            assertThat(finalState.isLoading).isEqualTo(false)
-            assertThat(finalState.startDestination as Any).isInstanceOf(ServerDiscoveryRoute::class)
+            assertThat(finalState).isInstanceOf(MainState.Success::class)
+            assertThat((finalState as MainState.Success).startDestination).isInstanceOf(ServerDiscoveryRoute::class)
         }
     }
 
@@ -63,9 +63,10 @@ class MainViewModelTest {
 
         viewModel.state.test {
             val state = awaitItem()
-            val finalState = if (state.isLoading) awaitItem() else state
+            val finalState = if (state is MainState.Loading) awaitItem() else state
             
-            assertThat(finalState.startDestination).isEqualTo(DashboardGraph)
+            assertThat(finalState).isInstanceOf(MainState.Success::class)
+            assertThat((finalState as MainState.Success).startDestination).isEqualTo(DashboardGraph)
         }
     }
 
@@ -79,9 +80,10 @@ class MainViewModelTest {
 
         viewModel.state.test {
             val state = awaitItem()
-            val finalState = if (state.isLoading) awaitItem() else state
+            val finalState = if (state is MainState.Loading) awaitItem() else state
             
-            assertThat(finalState.startDestination).isEqualTo(UserSelectionRoute(familyId = "family_123"))
+            assertThat(finalState).isInstanceOf(MainState.Success::class)
+            assertThat((finalState as MainState.Success).startDestination).isEqualTo(UserSelectionRoute(familyId = "family_123"))
         }
     }
 
@@ -94,9 +96,10 @@ class MainViewModelTest {
 
         viewModel.state.test {
             val state = awaitItem()
-            val finalState = if (state.isLoading) awaitItem() else state
+            val finalState = if (state is MainState.Loading) awaitItem() else state
             
-            assertThat(finalState.startDestination).isEqualTo(WelcomeRoute)
+            assertThat(finalState).isInstanceOf(MainState.Success::class)
+            assertThat((finalState as MainState.Success).startDestination).isEqualTo(WelcomeRoute)
         }
     }
 
@@ -109,9 +112,10 @@ class MainViewModelTest {
 
         viewModel.state.test {
             val state = awaitItem()
-            val finalState = if (state.isLoading) awaitItem() else state
+            val finalState = if (state is MainState.Loading) awaitItem() else state
             
-            assertThat(finalState.startDestination).isEqualTo(ServerDiscoveryRoute(isErrorMode = true))
+            assertThat(finalState).isInstanceOf(MainState.Success::class)
+            assertThat((finalState as MainState.Success).startDestination).isEqualTo(ServerDiscoveryRoute(isErrorMode = true))
         }
     }
 

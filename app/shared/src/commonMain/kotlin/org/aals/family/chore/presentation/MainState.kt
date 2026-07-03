@@ -1,6 +1,6 @@
 package org.aals.family.chore.presentation
 
-data class MainState(
-    val isLoading: Boolean = true,
-    val startDestination: Any? = null
-)
+sealed interface MainState {
+    data object Loading : MainState
+    data class Success(val startDestination: Any) : MainState
+}

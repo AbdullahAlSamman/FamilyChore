@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.aals.family.chore.core.data.remote.BaseUrlProvider
 import org.aals.family.chore.core.data.remote.HttpClientFactory
+import org.aals.family.chore.core.data.remote.KtorServerHealthDataSource
 import org.aals.family.chore.core.data.remote.PairingDataSource
 import org.aals.family.chore.core.data.remote.ServerHealthDataSource
 import org.aals.family.chore.core.data.remote.TokenStorageBaseUrlProvider
@@ -27,7 +28,7 @@ val coreModule = module {
     factory { (tag: String) -> LoggingInitializer.createLogger(tag) }
     singleOf(::TokenStorageBaseUrlProvider) { bind<BaseUrlProvider>() }
     singleOf(::PairingDataSource)
-    singleOf(::ServerHealthDataSource)
+    singleOf(::KtorServerHealthDataSource) { bind<ServerHealthDataSource>() }
     single<AuthRepository> { AuthRepositoryImpl(get(), get(), get { parametersOf("AuthRepository") }) }
     singleOf(::ConnectivityRepositoryImpl) { bind<ConnectivityRepository>() }
     singleOf(::DataStoreTokenStorage) { bind<TokenStorage>() }

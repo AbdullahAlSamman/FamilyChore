@@ -7,10 +7,14 @@ import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.core.domain.util.map
 
-open class ServerHealthDataSource(
+interface ServerHealthDataSource {
+    suspend fun checkHealth(serverUrl: String? = null): Result<Unit, DataError.Network>
+}
+
+class KtorServerHealthDataSource(
     private val httpClient: HttpClient
-) {
-    open suspend fun checkHealth(serverUrl: String? = null): Result<Unit, DataError.Network> {
+) : ServerHealthDataSource {
+    override suspend fun checkHealth(serverUrl: String?): Result<Unit, DataError.Network> {
         return safeCall<String> {
             httpClient.get {
                 if (serverUrl != null) {

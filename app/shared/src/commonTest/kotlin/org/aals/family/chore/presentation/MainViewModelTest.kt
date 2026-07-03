@@ -4,9 +4,15 @@ import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.DataError
@@ -15,19 +21,28 @@ import org.aals.family.chore.feature.auth.presentation.navigation.ServerDiscover
 import org.aals.family.chore.feature.auth.presentation.navigation.UserSelectionRoute
 import org.aals.family.chore.feature.auth.presentation.navigation.WelcomeRoute
 import org.aals.family.chore.feature.dashboard.presentation.navigation.DashboardGraph
+import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModelTest {
 
+    private val testDispatcher = StandardTestDispatcher()
     private lateinit var viewModel: MainViewModel
     private lateinit var tokenStorage: FakeTokenStorage
     private lateinit var connectivityRepository: FakeConnectivityRepository
 
     @BeforeTest
     fun setUp() {
+        Dispatchers.setMain(testDispatcher)
         tokenStorage = FakeTokenStorage()
         connectivityRepository = FakeConnectivityRepository()
+    }
+
+    @AfterTest
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     private fun createViewModel() {
@@ -45,13 +60,10 @@ class MainViewModelTest {
         tokenStorage.clear()
         
         createViewModel()
+        advanceUntilIdle()
 
         viewModel.state.test {
-            val state = awaitItem()
-            val finalState = if (state is MainState.Loading) awaitItem() else state
-            
-            assertThat(finalState).isInstanceOf(MainState.Success::class)
-            assertThat((finalState as MainState.Success).startDestination).isInstanceOf(ServerDiscoveryRoute::class)
+            assertThat(awaitItem()).isEqualTo(MainState.Success(ServerDiscoveryRoute(isErrorMode = false)))
         }
     }
 
@@ -60,13 +72,10 @@ class MainViewModelTest {
         tokenStorage.saveToken("valid_token")
         
         createViewModel()
+        advanceUntilIdle()
 
         viewModel.state.test {
-            val state = awaitItem()
-            val finalState = if (state is MainState.Loading) awaitItem() else state
-            
-            assertThat(finalState).isInstanceOf(MainState.Success::class)
-            assertThat((finalState as MainState.Success).startDestination).isEqualTo(DashboardGraph)
+            assertThat(awaitItem()).isEqualTo(MainState.Success(DashboardGraph))
         }
     }
 
@@ -77,13 +86,10 @@ class MainViewModelTest {
         connectivityRepository.healthResult = Result.Success(Unit)
         
         createViewModel()
+        advanceUntilIdle()
 
         viewModel.state.test {
-            val state = awaitItem()
-            val finalState = if (state is MainState.Loading) awaitItem() else state
-            
-            assertThat(finalState).isInstanceOf(MainState.Success::class)
-            assertThat((finalState as MainState.Success).startDestination).isEqualTo(UserSelectionRoute(familyId = "family_123"))
+            assertThat(awaitItem()).isEqualTo(MainState.Success(UserSelectionRoute(familyId = "family_123")))
         }
     }
 
@@ -93,13 +99,10 @@ class MainViewModelTest {
         connectivityRepository.healthResult = Result.Success(Unit)
         
         createViewModel()
+        advanceUntilIdle()
 
         viewModel.state.test {
-            val state = awaitItem()
-            val finalState = if (state is MainState.Loading) awaitItem() else state
-            
-            assertThat(finalState).isInstanceOf(MainState.Success::class)
-            assertThat((finalState as MainState.Success).startDestination).isEqualTo(WelcomeRoute)
+            assertThat(awaitItem()).isEqualTo(MainState.Success(WelcomeRoute))
         }
     }
 
@@ -109,13 +112,10 @@ class MainViewModelTest {
         connectivityRepository.healthResult = Result.Error(DataError.Network.SERVER_ERROR)
         
         createViewModel()
+        advanceUntilIdle()
 
         viewModel.state.test {
-            val state = awaitItem()
-            val finalState = if (state is MainState.Loading) awaitItem() else state
-            
-            assertThat(finalState).isInstanceOf(MainState.Success::class)
-            assertThat((finalState as MainState.Success).startDestination).isEqualTo(ServerDiscoveryRoute(isErrorMode = true))
+            assertThat(awaitItem()).isEqualTo(MainState.Success(ServerDiscoveryRoute(isErrorMode = true)))
         }
     }
 

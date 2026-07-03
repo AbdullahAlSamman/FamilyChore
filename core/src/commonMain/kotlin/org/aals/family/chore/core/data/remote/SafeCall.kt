@@ -1,5 +1,6 @@
 package org.aals.family.chore.core.data.remote
 
+import co.touchlab.kermit.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -10,7 +11,6 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.util.network.UnresolvedAddressException
-import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerializationException
 import org.aals.family.chore.core.domain.util.DataError
@@ -59,21 +59,20 @@ suspend inline fun <reified Response : Any> HttpClient.delete(
 suspend inline fun <reified T> safeCall(
     execute: () -> HttpResponse
 ): Result<T, DataError.Network> {
-    val response = try {
-        execute()
+    return try {
+        val response = execute()
+        responseToResult(response)
     } catch (e: UnresolvedAddressException) {
         Logger.e(e) { "Unresolved Address Exception" }
-        return Result.Error(DataError.Network.NO_INTERNET)
+        Result.Error(DataError.Network.NO_INTERNET)
     } catch (e: SerializationException) {
         Logger.e(e) { "Serialization Exception" }
-        return Result.Error(DataError.Network.SERIALIZATION)
+        Result.Error(DataError.Network.SERIALIZATION)
     } catch (e: Exception) {
         if (e is CancellationException) throw e
         Logger.e(e) { "Network Error" }
-        return Result.Error(DataError.Network.UNKNOWN)
+        Result.Error(DataError.Network.UNKNOWN)
     }
-
-    return responseToResult(response)
 }
 
 suspend inline fun <reified T> responseToResult(

@@ -9,6 +9,7 @@ import io.ktor.client.engine.mock.respond
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import org.aals.family.chore.core.data.remote.BaseUrlProvider
 import org.aals.family.chore.core.data.remote.HttpClientFactory
 import org.aals.family.chore.core.data.remote.ServerHealthDataSource
 import org.aals.family.chore.core.domain.util.DataError
@@ -24,9 +25,13 @@ class ConnectivityRepositoryImplTest {
     private lateinit var tokenStorage: FakeTokenStorage
     private val testScope = TestScope()
 
+    private val baseUrlProvider = object : BaseUrlProvider {
+        override suspend fun getBaseUrl(): String = "http://localhost:8080"
+    }
+
     @BeforeTest
     fun setUp() {
-        healthDataSource = FakeServerHealthDataSource()
+        healthDataSource = FakeServerHealthDataSource(baseUrlProvider)
         tokenStorage = FakeTokenStorage()
         repository = ConnectivityRepositoryImpl(healthDataSource, tokenStorage, testScope)
     }
@@ -49,9 +54,9 @@ class ConnectivityRepositoryImplTest {
     }
 }
 
-class FakeServerHealthDataSource : ServerHealthDataSource(
-    HttpClientFactory.create(MockEngine { respond("") }, Logger.withTag("Test"))
+class FakeServerHealthDataSource(baseUrlProvider: BaseUrlProvider) : ServerHealthDataSource(
+    HttpClientFactory.create(MockEngine { respond("") }, baseUrlProvider, Logger.withTag("Test"))
 ) {
     var result: Result<Unit, DataError.Network> = Result.Success(Unit)
-    override suspend fun checkHealth(serverUrl: String): Result<Unit, DataError.Network> = result
+    override suspend fun checkHealth(serverUrl: String?): Result<Unit, DataError.Network> = result
 }

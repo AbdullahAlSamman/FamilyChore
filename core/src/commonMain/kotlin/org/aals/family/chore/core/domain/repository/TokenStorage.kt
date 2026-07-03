@@ -1,6 +1,13 @@
 package org.aals.family.chore.core.domain.repository
 
+import kotlinx.coroutines.flow.Flow
+
 interface TokenStorage {
+    val token: Flow<String?>
+    val familyId: Flow<String?>
+    val serverUrl: Flow<String?>
+    val serverName: Flow<String?>
+
     suspend fun saveToken(token: String)
     suspend fun getToken(): String?
     suspend fun saveFamilyId(familyId: String)

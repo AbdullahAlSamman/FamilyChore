@@ -12,12 +12,16 @@ import kotlin.test.Test
 
 class ServerHealthDataSourceTest {
 
+    private val baseUrlProvider = object : BaseUrlProvider {
+        override suspend fun getBaseUrl(): String = "http://localhost:8080"
+    }
+
     @Test
     fun `checkHealth returns success when server responds 200`() = runTest {
         val engine = MockEngine {
             respond("OK", HttpStatusCode.OK)
         }
-        val httpClient = HttpClientFactory.create(engine, Logger.withTag("Test"))
+        val httpClient = HttpClientFactory.create(engine, baseUrlProvider, Logger.withTag("Test"))
         val dataSource = ServerHealthDataSource(httpClient)
 
         val result = dataSource.checkHealth("http://localhost:8080")
@@ -30,7 +34,7 @@ class ServerHealthDataSourceTest {
         val engine = MockEngine {
             respond("Error", HttpStatusCode.InternalServerError)
         }
-        val httpClient = HttpClientFactory.create(engine, Logger.withTag("Test"))
+        val httpClient = HttpClientFactory.create(engine, baseUrlProvider, Logger.withTag("Test"))
         val dataSource = ServerHealthDataSource(httpClient)
 
         val result = dataSource.checkHealth("http://localhost:8080")

@@ -10,10 +10,14 @@ import org.aals.family.chore.core.domain.util.map
 open class ServerHealthDataSource(
     private val httpClient: HttpClient
 ) {
-    open suspend fun checkHealth(serverUrl: String): Result<Unit, DataError.Network> {
+    open suspend fun checkHealth(serverUrl: String? = null): Result<Unit, DataError.Network> {
         return safeCall<String> {
             httpClient.get {
-                url(serverUrl)
+                if (serverUrl != null) {
+                    url(serverUrl)
+                } else {
+                    url("")
+                }
             }
         }.map { Unit }
     }

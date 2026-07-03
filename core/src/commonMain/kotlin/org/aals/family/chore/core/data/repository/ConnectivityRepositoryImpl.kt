@@ -2,15 +2,17 @@ package org.aals.family.chore.core.data.repository
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.aals.family.chore.core.data.remote.ServerHealthDataSource
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
-import org.aals.family.chore.core.domain.util.onSuccess
 import org.aals.family.chore.core.domain.util.onFailure
+import org.aals.family.chore.core.domain.util.onSuccess
 import kotlin.time.Duration.Companion.milliseconds
 
 class ConnectivityRepositoryImpl(
@@ -27,8 +29,7 @@ class ConnectivityRepositoryImpl(
     }
 
     override suspend fun checkHealth(): Result<Unit, DataError.Network> {
-        val serverUrl = tokenStorage.getServerUrl() ?: return Result.Error(DataError.Network.UNKNOWN)
-        return healthDataSource.checkHealth(serverUrl)
+        return healthDataSource.checkHealth()
             .onSuccess { _isServerReachable.value = true }
             .onFailure { _isServerReachable.value = false }
     }

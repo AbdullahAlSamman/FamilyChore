@@ -16,12 +16,14 @@ class DataStoreTokenStorage(
     private companion object {
         val KEY_TOKEN = stringPreferencesKey("token")
         val KEY_FAMILY_ID = stringPreferencesKey("family_id")
+        val KEY_USER_ID = stringPreferencesKey("user_id")
         val KEY_SERVER_URL = stringPreferencesKey("server_url")
         val KEY_SERVER_NAME = stringPreferencesKey("server_name")
     }
 
     override val token: Flow<String?> = dataStore.data.map { it[KEY_TOKEN] }
     override val familyId: Flow<String?> = dataStore.data.map { it[KEY_FAMILY_ID] }
+    override val userId: Flow<String?> = dataStore.data.map { it[KEY_USER_ID] }
     override val serverUrl: Flow<String?> = dataStore.data.map { it[KEY_SERVER_URL] }
     override val serverName: Flow<String?> = dataStore.data.map { it[KEY_SERVER_NAME] }
 
@@ -39,6 +41,14 @@ class DataStoreTokenStorage(
 
     override suspend fun getFamilyId(): String? {
         return dataStore.data.map { it[KEY_FAMILY_ID] }.first()
+    }
+
+    override suspend fun saveUserId(userId: String) {
+        dataStore.edit { it[KEY_USER_ID] = userId }
+    }
+
+    override suspend fun getUserId(): String? {
+        return dataStore.data.map { it[KEY_USER_ID] }.first()
     }
 
     override suspend fun saveServerUrl(url: String) {

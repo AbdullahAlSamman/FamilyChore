@@ -1,7 +1,10 @@
 package org.aals.family.chore.core.di
 
+import androidx.room.Room
 import io.ktor.client.engine.okhttp.OkHttp
 import org.aals.family.chore.core.data.local.DataStoreFactory
+import org.aals.family.chore.core.data.local.DatabaseFactory
+import org.aals.family.chore.core.data.local.FamilyDatabase
 import org.aals.family.chore.core.domain.discovery.AndroidServerDiscovery
 import org.aals.family.chore.core.domain.discovery.ServerDiscovery
 import org.koin.android.ext.koin.androidContext
@@ -21,4 +24,15 @@ actual val platformModule: Module = module {
             }
         )
     }
+    single {
+        val dbFile = androidContext().getDatabasePath("familychore.db")
+        val builder = Room.databaseBuilder<FamilyDatabase>(
+            context = androidContext(),
+            name = dbFile.absolutePath
+        )
+        DatabaseFactory.create(builder)
+    }
+    single { get<FamilyDatabase>().userDao() }
+    single { get<FamilyDatabase>().choreDao() }
+    single { get<FamilyDatabase>().transactionDao() }
 }

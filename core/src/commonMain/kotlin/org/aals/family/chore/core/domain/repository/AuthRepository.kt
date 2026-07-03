@@ -1,7 +1,6 @@
 package org.aals.family.chore.core.domain.repository
 
 import org.aals.family.chore.core.domain.model.User
-import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
 
@@ -13,4 +12,5 @@ interface AuthRepository {
     suspend fun confirmPairing(pairingToken: String, userId: String): Result<User, DataError.Network>
     suspend fun setupPin(userId: String, pin: String): Result<Unit, DataError.Network>
     suspend fun verifyPin(userId: String, pin: String): Result<Unit, DataError.Network>
+    suspend fun getCurrentUser(): Result<User, DataError.Network>
 }

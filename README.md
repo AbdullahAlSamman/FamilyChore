@@ -9,6 +9,7 @@ A Kotlin Multiplatform project for managing family chores, targeting Android, iO
 * **[:app:shared](./app/shared)**: Shared UI and navigation orchestration for all client platforms.
 * **[:core](./core)**: Shared domain models, infrastructure, and common utilities used by both client and server.
 * **[:feature:auth](./feature/auth)**: Authentication and onboarding feature module (QR pairing, PIN entry).
+* **[:feature:dashboard](./feature/dashboard)**: Post-auth role-based dashboard for parents and children.
 * **[:server](./server)**: Ktor-based backend serving as the local family hub.
 * **[:build-logic](./build-logic)**: Gradle Convention Plugins for centralized build configuration.
 

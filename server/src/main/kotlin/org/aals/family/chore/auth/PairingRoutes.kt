@@ -1,14 +1,24 @@
 package org.aals.family.chore.auth
 
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import org.aals.family.chore.core.data.remote.dto.*
+import co.touchlab.kermit.Logger
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
+import org.aals.family.chore.core.data.remote.dto.ConfirmPairingRequest
+import org.aals.family.chore.core.data.remote.dto.ConfirmPairingResponse
+import org.aals.family.chore.core.data.remote.dto.CreateFamilyRequest
+import org.aals.family.chore.core.data.remote.dto.CreateFamilyResponse
+import org.aals.family.chore.core.data.remote.dto.GeneratePairingTokenRequest
+import org.aals.family.chore.core.data.remote.dto.GeneratePairingTokenResponse
+import org.aals.family.chore.core.data.remote.dto.PairingUsersResponse
+import org.aals.family.chore.core.data.remote.dto.SetupPinRequest
+import org.aals.family.chore.core.data.remote.dto.VerifyPinRequest
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.domain.repository.FamilyRepository
-import co.touchlab.kermit.Logger
 
 fun Route.pairingRoutes(
     familyRepository: FamilyRepository,
@@ -121,6 +131,16 @@ fun Route.pairingRoutes(
                 call.respond(HttpStatusCode.OK)
             } else {
                 call.respond(HttpStatusCode.Unauthorized, "Invalid PIN")
+            }
+        }
+
+        get("/user/{userId}") {
+            val userId = call.parameters["userId"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+            val user = familyRepository.getUser(userId)
+            if (user != null) {
+                call.respond(user)
+            } else {
+                call.respond(HttpStatusCode.NotFound)
             }
         }
     }

@@ -7,8 +7,8 @@ The `:core` module provides shared infrastructure, domain models, and utilities 
 - **Domain Utilities**: `Result` wrapper for idiomatic error handling and `DataError` definitions.
 - **Presentation Utilities**: `UiText` for multiplatform-safe string resource handling.
 - **Data Utilities**: `HttpClientFactory` for Ktor client configuration and `SafeCall` helpers for consistent network error mapping.
-- **Local Persistence**: `FamilyDatabase` (Room KMP) definition and entities (`UserEntity`, `ChoreEntity`) with multi-tenant scoping.
-- **Domain Models**: Core models like `User`, `Family`, `Transaction`, and `PairingToken` used across the project.
+- **Local Persistence**: `FamilyDatabase` (Room KMP) definition and entities (`UserEntity`, `ChoreEntity`, `TransactionEntity`) with multi-tenant scoping.
+- **Domain Models**: Core models like `User`, `Family`, `Transaction`, `Reward`, and `PairingToken` used across the project.
 
 ## Dependencies
 - **Kotlin Multiplatform**: Core platform.

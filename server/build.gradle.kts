@@ -12,7 +12,9 @@ application {
 }
 
 dependencies {
-    api(projects.core)
+    api(projects.core) {
+        exclude(group = "androidx.sqlite", module = "sqlite-android")
+    }
     implementation(libs.logback)
     implementation(libs.ktor.serverCore)
     implementation(libs.ktor.serverNetty)

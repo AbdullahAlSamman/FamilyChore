@@ -3,7 +3,9 @@ package org.aals.family.chore.data.local
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
@@ -28,7 +30,7 @@ object DatabaseFactory {
         Database.connect(dataSource)
 
         transaction {
-            SchemaUtils.create(FamiliesTable, UsersTable, PinsTable)
+            SchemaUtils.create(FamiliesTable, UsersTable, PinsTable, TransactionsTable, RewardsTable)
         }
     }
 
@@ -58,4 +60,27 @@ object PinsTable : Table("pins") {
     val pin = varchar("pin", 4)
 
     override val primaryKey = PrimaryKey(userId)
+}
+
+object TransactionsTable : Table("transactions") {
+    val id = varchar("id", 50)
+    val familyId = varchar("family_id", 50) references FamiliesTable.id
+    val userId = varchar("user_id", 50) references UsersTable.id
+    val adminId = varchar("admin_id", 50).nullable()
+    val amount = integer("amount")
+    val type = varchar("type", 20)
+    val timestamp = long("timestamp")
+    val note = varchar("note", 255).nullable()
+
+    override val primaryKey = PrimaryKey(id)
+}
+
+object RewardsTable : Table("rewards") {
+    val id = varchar("id", 50)
+    val familyId = varchar("family_id", 50) references FamiliesTable.id
+    val title = varchar("title", 100)
+    val description = varchar("description", 255)
+    val pointCost = integer("point_cost")
+
+    override val primaryKey = PrimaryKey(id)
 }

@@ -17,6 +17,7 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.components.resources)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.kotlinx.datetime)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)

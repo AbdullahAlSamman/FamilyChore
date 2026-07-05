@@ -4,18 +4,21 @@
 The `:feature:dashboard` module provides the main user interface after successful authentication. It implements a role-based experience tailored for Parents (Admins) and Children.
 
 ## Key Features
-- **Role-Based UI Branching**:
-    - **Parent Dashboard**: Family overview, awaiting approvals, behavior management (Do/Don'ts), and reward catalog management.
-    - **Child Dashboard**: Unified "Today" view with points balance and assigned tasks, history ledger, and reward store browsing.
+- **Role-Based Navigation**:
+    - **Parents**: 5-tab system (Overview, Tasks, Behavior, Rewards, Family).
+    - **Children**: 3-tab system (Today, History, Store).
+- **Points Economy Interaction**:
+    - **Behavior Management**: Parents can award/deduct points using a grid of predefined behaviors (Do/Don'ts).
+    - **Transaction History**: Real-time ledger showing point movements with visual indicators.
 - **Connectivity Monitoring**: Real-time server health tracking with a persistent connectivity banner for offline feedback.
-- **Offline Resilience**: Immediate display of cached data from the local database while the server is unreachable.
-- **Unified Navigation**: Docked top bar for role-consistent navigation and logout actions.
+- **Offline Resilience**: Immediate local persistence of transactions and display of cached data.
 
 ## Architecture
 Follows the **MVI** pattern:
-- **State**: `DashboardState` (Loading, Success, Error).
-- **Action**: `DashboardAction` (Refresh, Logout).
-- **ViewModel**: `DashboardViewModel` orchestrates data from `AuthRepository`, `TransactionRepository`, and `ConnectivityRepository`.
+- **State**: `DashboardState` includes role-based data, current tab, and selected child.
+- **Action**: `DashboardAction` covers navigation, refreshing, and awarding points.
+- **ViewModel**: `DashboardViewModel` manages complex role-based transitions and data loading.
+- **Navigation**: Type-safe routing using Kotlin Serialization sub-routes within the Dashboard.
 
 ## Dependencies
 - `:core`: Domain models, repositories, and UI utilities.

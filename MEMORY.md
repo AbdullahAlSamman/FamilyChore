@@ -28,8 +28,11 @@ This file tracks critical architectural decisions and domain rules for the Famil
 - **Session Persistence**: `TokenStorage` persists `token`, `familyId`, and `userId` to maintain user context across app restarts.
 - **Pairing Flow**: Onboarding uses a real-time QR handshake (CameraX/ML Kit). QR content is a JSON `PairingToken` (ip, token). Joining a family involves scanning, fetching users via token, and picking a profile.
 - **PIN Authentication**: 4-digit PIN is verified against the server. During onboarding, the parent sets a PIN (setup mode), and subsequent joins or re-auths use verification mode.
-- **Points Economy**: Points are managed via a local transaction ledger (Room) as the Single Source of Truth. Each point movement (Chore, Bonus, Penalty, Redemption) is recorded as a `Transaction` entity.
-- **Role-Based Dashboard**: The main UI uses a docked toolbar with distinct tabs for Parent vs. Child roles. Navigation logic automatically routes users to their specific functional area (e.g., "Approvals" for Parents vs. "Today" for Children).
+- **Points Economy**: Points are managed via a local transaction ledger (Room) as the Single Source of Truth. Each point movement (Chore, Bonus, Penalty, Redemption) is recorded as a `Transaction` entity. Parents can award points directly via a dedicated **Behavior** management tab.
+- **Role-Based Dashboard**: The main UI uses a role-sensitive navigation system (Bottom Navigation Bar).
+    - **Parents**: 5-tab system (Overview, Tasks, Behavior, Rewards, Family).
+    - **Children**: 3-tab system (Today, History, Store).
+- **Navigation logic** automatically routes users to their specific functional area and uses type-safe sub-routes within the Dashboard.
 
 ## Domain Rules
 - **Chore Verification**: Mandatory live photo (no gallery uploads).

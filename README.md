@@ -20,6 +20,10 @@ The project maximizes code sharing across all targets:
 - **UI**: Shared using Compose Multiplatform in `:app:shared` and features.
 - **Platform Specifics**: Handled via `expect`/`actual` (e.g., QR scanning in `:feature:auth`).
 
+### Documentation
+- [Data Layer Strategy](DATA_LAYER.md)
+- [Presentation Layer Strategy](PRESENTATION.md)
+
 ### Running the apps
 
 Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:

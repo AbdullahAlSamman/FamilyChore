@@ -9,9 +9,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
+import org.aals.family.chore.core.domain.util.onFailure
+import org.aals.family.chore.core.domain.util.onSuccess
 
 class WelcomeViewModel(
+    private val authRepository: AuthRepository,
     private val tokenStorage: TokenStorage,
     private val logger: Logger
 ) : ViewModel() {
@@ -27,6 +31,7 @@ class WelcomeViewModel(
             val name = tokenStorage.getServerName()
             _state.update { it.copy(serverName = name) }
         }
+        loadFamilies()
     }
 
     fun onAction(action: WelcomeAction) {
@@ -43,6 +48,26 @@ class WelcomeViewModel(
                     _events.send(WelcomeEvent.NavigateToJoinFamily)
                 }
             }
+            is WelcomeAction.OnFamilyClick -> {
+                logger.d { "User clicked family: ${action.family.name}" }
+                viewModelScope.launch {
+                    tokenStorage.saveFamilyId(action.family.id)
+                    _events.send(WelcomeEvent.NavigateToUserSelection(action.family.id))
+                }
+            }
+        }
+    }
+
+    private fun loadFamilies() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            authRepository.getFamilies()
+                .onSuccess { families ->
+                    _state.update { it.copy(families = families, isLoading = false) }
+                }
+                .onFailure { error ->
+                    _state.update { it.copy(isLoading = false, error = error.toString()) }
+                }
         }
     }
 }

@@ -2,12 +2,14 @@ package org.aals.family.chore.core.data.repository
 
 import co.touchlab.kermit.Logger
 import org.aals.family.chore.core.data.remote.PairingDataSource
+import org.aals.family.chore.core.domain.model.Family
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.core.domain.util.map
+import org.aals.family.chore.core.domain.util.onSuccess
 
 class AuthRepositoryImpl(
     private val pairingDataSource: PairingDataSource,
@@ -24,6 +26,11 @@ class AuthRepositoryImpl(
             tokenStorage.saveToken(response.token)
             response.parentUser
         }
+    }
+
+    override suspend fun getFamilies(): Result<List<Family>, DataError.Network> {
+        logger.d { "Fetching all families" }
+        return pairingDataSource.getFamilies()
     }
 
     override suspend fun generatePairingToken(familyId: String): Result<String, DataError.Network> {
@@ -59,7 +66,9 @@ class AuthRepositoryImpl(
 
     override suspend fun verifyPin(userId: String, pin: String): Result<Unit, DataError.Network> {
         logger.d { "Verifying PIN for user: $userId" }
-        return pairingDataSource.verifyPin(userId, pin)
+        return pairingDataSource.verifyPin(userId, pin).onSuccess {
+            tokenStorage.saveUserId(userId)
+        }
     }
 
     override suspend fun getCurrentUser(): Result<User, DataError.Network> {

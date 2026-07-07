@@ -1,15 +1,20 @@
 package org.aals.family.chore.data.repository
 
+import co.touchlab.kermit.Logger
 import org.aals.family.chore.core.domain.model.Family
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
-import org.aals.family.chore.data.local.*
 import org.aals.family.chore.data.local.DatabaseFactory.dbQuery
+import org.aals.family.chore.data.local.FamiliesTable
+import org.aals.family.chore.data.local.PinsTable
+import org.aals.family.chore.data.local.UsersTable
 import org.aals.family.chore.domain.repository.FamilyRepository
-import co.touchlab.kermit.Logger
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import java.util.*
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.update
+import java.util.UUID
 
 class SqlFamilyRepository : FamilyRepository {
 
@@ -45,6 +50,10 @@ class SqlFamilyRepository : FamilyRepository {
     override suspend fun getUsersInFamily(familyId: String): List<User> = dbQuery {
         UsersTable.selectAll().where { UsersTable.familyId eq familyId }
             .map { it.toUser() }
+    }
+
+    override suspend fun getAllFamilies(): List<Family> = dbQuery {
+        FamiliesTable.selectAll().map { it.toFamily() }
     }
 
     override suspend fun getUser(id: String): User? = dbQuery {

@@ -2,6 +2,7 @@ package org.aals.family.chore.feature.dashboard.presentation
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.aals.family.chore.core.domain.model.Family
 import org.aals.family.chore.core.domain.model.Transaction
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.repository.AuthRepository
@@ -13,6 +14,7 @@ import org.aals.family.chore.core.domain.util.Result
 class FakeAuthRepository : AuthRepository {
     var currentUser: User? = null
     override suspend fun createFamily(familyName: String, parentNickname: String): Result<User, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
+    override suspend fun getFamilies(): Result<List<Family>, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
     override suspend fun generatePairingToken(familyId: String): Result<String, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
     override suspend fun getPairingUsers(pairingToken: String): Result<List<User>, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
     override suspend fun getFamilyUsers(familyId: String): Result<List<User>, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)

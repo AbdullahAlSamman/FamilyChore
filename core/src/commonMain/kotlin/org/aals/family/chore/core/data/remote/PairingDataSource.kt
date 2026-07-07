@@ -10,6 +10,7 @@ import org.aals.family.chore.core.data.remote.dto.GeneratePairingTokenResponse
 import org.aals.family.chore.core.data.remote.dto.PairingUsersResponse
 import org.aals.family.chore.core.data.remote.dto.SetupPinRequest
 import org.aals.family.chore.core.data.remote.dto.VerifyPinRequest
+import org.aals.family.chore.core.domain.model.Family
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
@@ -24,6 +25,12 @@ class PairingDataSource(
         return httpClient.post(
             route = "auth/family/create",
             body = CreateFamilyRequest(familyName, parentNickname)
+        )
+    }
+
+    suspend fun getFamilies(): Result<List<Family>, DataError.Network> {
+        return httpClient.get(
+            route = "auth/families"
         )
     }
 

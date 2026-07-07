@@ -41,6 +41,12 @@ fun Route.pairingRoutes(
             )
         }
 
+        get("/families") {
+            Logger.d { "API: Fetching all families" }
+            val families = familyRepository.getAllFamilies()
+            call.respond(families)
+        }
+
         get("/family/{familyId}/users") {
             val familyId = call.parameters["familyId"]
             if (familyId == null) {

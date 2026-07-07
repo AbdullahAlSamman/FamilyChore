@@ -11,7 +11,7 @@ import org.koin.core.parameter.parametersOf
 import org.koin.dsl.module
 
 val authModule = module {
-    viewModel { WelcomeViewModel(get(), get { parametersOf("WelcomeViewModel") }) }
+    viewModel { WelcomeViewModel(get(), get(), get { parametersOf("WelcomeViewModel") }) }
     viewModel { QrScannerViewModel(get(), get { parametersOf("QrScannerViewModel") }) }
     viewModel { UserSelectionViewModel(get(), get(), get { parametersOf("UserSelectionViewModel") }) }
     viewModel { PinEntryViewModel(get(), get(), get { parametersOf("PinEntryViewModel") }) }

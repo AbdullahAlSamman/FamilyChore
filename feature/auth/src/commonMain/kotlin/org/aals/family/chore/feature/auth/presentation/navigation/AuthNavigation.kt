@@ -53,6 +53,9 @@ fun NavGraphBuilder.authGraph(
                 },
                 onNavigateToJoinFamily = {
                     navController.navigate(QrScannerRoute)
+                },
+                onNavigateToUserSelection = { familyId ->
+                    navController.navigate(UserSelectionRoute(familyId = familyId))
                 }
             )
         }

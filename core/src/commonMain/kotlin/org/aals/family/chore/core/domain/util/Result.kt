@@ -69,3 +69,12 @@ inline fun <T, E : Error> Result<T, E>.onFailure(
 fun <T, E : Error> Result<T, E>.asEmptyResult(): EmptyResult<E> {
     return map { }
 }
+
+inline fun <T, E : Error> Result<T, E>.getOrElse(
+    defaultValue: (E) -> T
+): T {
+    return when (this) {
+        is Result.Error -> defaultValue(error)
+        is Result.Success -> data
+    }
+}

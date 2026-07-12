@@ -43,9 +43,9 @@ class AuthRepositoryImpl(
         return pairingDataSource.getPairingUsers(pairingToken).map { it.users }
     }
 
-    override suspend fun getFamilyUsers(familyId: String): Result<List<User>, DataError.Network> {
-        logger.d { "Fetching users for family: $familyId" }
-        return pairingDataSource.getFamilyUsers(familyId).map { it.users }
+    override suspend fun getFamilyMembers(familyId: String): Result<List<User>, DataError.Network> {
+        logger.d { "Fetching members for family: $familyId" }
+        return pairingDataSource.getFamilyMembers(familyId).map { it.users }
     }
 
     override suspend fun confirmPairing(pairingToken: String, userId: String): Result<User, DataError.Network> {

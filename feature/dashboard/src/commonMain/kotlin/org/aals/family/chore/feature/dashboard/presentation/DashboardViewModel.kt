@@ -9,13 +9,17 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.model.BehaviorItem
+import org.aals.family.chore.core.domain.model.Chore
+import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.model.Transaction
 import org.aals.family.chore.core.domain.model.TransactionType
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
+import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TransactionRepository
+import org.aals.family.chore.core.domain.util.getOrElse
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
 import org.aals.family.chore.feature.dashboard.presentation.navigation.ChildTodayRoute
@@ -24,6 +28,7 @@ import org.aals.family.chore.feature.dashboard.presentation.navigation.ParentOve
 class DashboardViewModel(
     private val authRepository: AuthRepository,
     private val transactionRepository: TransactionRepository,
+    private val choreRepository: ChoreRepository,
     private val connectivityRepository: ConnectivityRepository,
     private val logger: Logger,
 ) : ViewModel() {
@@ -67,14 +72,37 @@ class DashboardViewModel(
                 }
             }
             is DashboardAction.AwardPoints -> awardPoints(action.targetUserId, action.item)
+            is DashboardAction.CreateChore -> createChore(action)
+        }
+    }
+
+    private fun createChore(action: DashboardAction.CreateChore) {
+        val currentState = _state.value as? DashboardState.Success ?: return
+        viewModelScope.launch {
+            val now = 0L // TODO: Fix Clock.System
+            val chore = Chore(
+                id = "chore_${action.assignedTo}_$now",
+                familyId = currentState.user.familyId,
+                name = action.name,
+                description = action.description,
+                points = action.points,
+                status = ChoreStatus.PENDING,
+                assignedTo = action.assignedTo,
+                createdBy = currentState.user.id,
+                createdAt = now,
+                updatedAt = now
+            )
+            choreRepository.createChore(chore)
+                .onFailure { error ->
+                    logger.e { "Failed to create chore: $error" }
+                }
         }
     }
 
     private fun awardPoints(targetUserId: String, item: BehaviorItem) {
         val currentState = _state.value as? DashboardState.Success ?: return
         viewModelScope.launch {
-            // TODO: kotlinx.datetime.Clock.System is currently unresolved due to a typealias clash with kotlin.time.Clock
-            // in Kotlin 2.x/kotlinx-datetime 0.6.1+. Using 0L as a temporary fallback to allow the build to pass.
+            // TODO: Clock.System is unresolved in current KMP setup with kotlinx-datetime 0.8.0
             val now = 0L 
             val transaction = Transaction(
                 id = "tr_${targetUserId}_${item.id}_$now",
@@ -97,36 +125,39 @@ class DashboardViewModel(
     private fun loadDashboardData(isRefreshing: Boolean = false) {
         viewModelScope.launch {
             if (isRefreshing) {
-                val currentState = _state.value
-                if (currentState is DashboardState.Success) {
-                    _state.value = currentState.copy(isRefreshing = true)
-                }
+                updateSuccessState { it.copy(isRefreshing = true) }
             } else {
                 _state.value = DashboardState.Loading
             }
 
             authRepository.getCurrentUser()
                 .onSuccess { user ->
-                    // For now, we load transactions from the local database
+                    // Load family members
+                    val membersResult = authRepository.getFamilyMembers(user.familyId)
+                    val familyMembers = membersResult.getOrElse { emptyList<User>() }
+
+                    // Initial state setup
+                    _state.value = DashboardState.Success(
+                        user = user,
+                        familyMembers = familyMembers,
+                        selectedChildId = familyMembers.firstOrNull { it.role == UserRole.CHILD }?.id,
+                        transactions = emptyList(),
+                        chores = emptyList(),
+                        behaviorItems = if (user.role == UserRole.PARENT) defaultBehaviorItems else emptyList(),
+                        currentTab = if (user.role == UserRole.PARENT) ParentOverviewRoute else ChildTodayRoute,
+                        isRefreshing = false
+                    )
+
+                    // Observe transactions and chores
                     transactionRepository.getTransactionsForUser(user.id)
                         .onEach { transactions ->
-                            val currentState = _state.value
-                            if (currentState is DashboardState.Success) {
-                                _state.value = currentState.copy(
-                                    user = user,
-                                    transactions = transactions,
-                                    isRefreshing = false
-                                )
-                            } else {
-                                _state.value = DashboardState.Success(
-                                    user = user,
-                                    familyMembers = if (user.role == UserRole.PARENT) mockChildren + user else emptyList<User>(),
-                                    selectedChildId = if (user.role == UserRole.PARENT) mockChildren.firstOrNull()?.id else null,
-                                    transactions = transactions,
-                                    behaviorItems = if (user.role == UserRole.PARENT) defaultBehaviorItems else emptyList<BehaviorItem>(),
-                                    currentTab = if (user.role == UserRole.PARENT) ParentOverviewRoute else ChildTodayRoute
-                                )
-                            }
+                            updateSuccessState { it.copy(transactions = transactions) }
+                        }
+                        .launchIn(viewModelScope)
+
+                    choreRepository.getChoresForUser(user.id)
+                        .onEach { chores ->
+                            updateSuccessState { it.copy(chores = chores) }
                         }
                         .launchIn(viewModelScope)
                 }
@@ -134,6 +165,13 @@ class DashboardViewModel(
                     logger.e { "Failed to load dashboard data: $error" }
                     _state.value = DashboardState.Error("Failed to load profile. Please login again.")
                 }
+        }
+    }
+
+    private fun updateSuccessState(update: (DashboardState.Success) -> DashboardState.Success) {
+        val currentState = _state.value
+        if (currentState is DashboardState.Success) {
+            _state.value = update(currentState)
         }
     }
 

@@ -125,7 +125,7 @@ class AuthRepositoryImplTest {
     }
 
     @Test
-    fun `getFamilyUsers returns users on success`() = runTest {
+    fun `getFamilyMembers returns users on success`() = runTest {
         val users = listOf(User("1", "family123", "User", UserRole.CHILD, 0))
         val response = PairingUsersResponse("The Smiths", users)
         val engine = MockEngine { 
@@ -138,7 +138,7 @@ class AuthRepositoryImplTest {
         repository = createRepository(engine)
         tokenStorage.saveServerUrl(serverUrl)
 
-        val result = repository.getFamilyUsers("family123")
+        val result = repository.getFamilyMembers("family123")
 
         assertThat(result).isInstanceOf(Result.Success::class)
         assertThat((result as Result.Success).data).isEqualTo(users)

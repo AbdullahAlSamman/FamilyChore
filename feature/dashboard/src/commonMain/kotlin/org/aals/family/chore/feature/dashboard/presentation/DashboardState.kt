@@ -1,6 +1,7 @@
 package org.aals.family.chore.feature.dashboard.presentation
 
 import org.aals.family.chore.core.domain.model.BehaviorItem
+import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.Transaction
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.feature.dashboard.presentation.navigation.DashboardTabRoute
@@ -12,6 +13,7 @@ sealed interface DashboardState {
         val familyMembers: List<User> = emptyList(),
         val selectedChildId: String? = null,
         val transactions: List<Transaction> = emptyList(),
+        val chores: List<Chore> = emptyList(),
         val behaviorItems: List<BehaviorItem> = emptyList(),
         val currentTab: DashboardTabRoute,
         val isServerReachable: Boolean = true,

@@ -10,6 +10,12 @@ import org.aals.family.chore.core.data.local.entity.ChoreEntity
 interface ChoreDao {
     @Query("SELECT * FROM ChoreEntity WHERE familyId = :familyId")
     fun getChores(familyId: String): Flow<List<ChoreEntity>>
+
+    @Query("SELECT * FROM ChoreEntity WHERE assignedTo = :userId")
+    fun getChoresForUser(userId: String): Flow<List<ChoreEntity>>
+
+    @Query("SELECT * FROM ChoreEntity WHERE id = :choreId AND familyId = :familyId")
+    suspend fun getChoreById(choreId: String, familyId: String): ChoreEntity?
     
     @Upsert
     suspend fun upsertChore(chore: ChoreEntity)

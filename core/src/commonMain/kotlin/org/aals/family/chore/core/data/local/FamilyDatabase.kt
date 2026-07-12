@@ -13,7 +13,7 @@ import org.aals.family.chore.core.data.local.entity.UserEntity
 
 @Database(
     entities = [ChoreEntity::class, UserEntity::class, TransactionEntity::class],
-    version = 1
+    version = 2
 )
 @ConstructedBy(FamilyDatabaseConstructor::class)
 abstract class FamilyDatabase : RoomDatabase() {

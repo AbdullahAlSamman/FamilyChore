@@ -8,6 +8,7 @@ import kotlinx.coroutines.IO
 object DatabaseFactory {
     fun create(builder: RoomDatabase.Builder<FamilyDatabase>): FamilyDatabase {
         return builder
+            .fallbackToDestructiveMigration(true)
             .setDriver(BundledSQLiteDriver())
             .setQueryCoroutineContext(Dispatchers.IO)
             .build()

@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Today
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,12 +41,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -184,15 +189,158 @@ fun DashboardContent(
     AnimatedContent(targetState = state.currentTab) { tab ->
         when (tab) {
             ParentOverviewRoute -> ParentOverviewContent(state, onAction)
-            ParentTasksRoute -> Text("Parent Tasks", modifier = Modifier.fillMaxSize())
+            ParentTasksRoute -> ParentTasksContent(state, onAction)
             BehaviorRoute -> BehaviorTabContent(state, onAction)
-            ParentRewardsRoute -> Text("Parent Rewards", modifier = Modifier.fillMaxSize())
-            FamilyManagementRoute -> Text("Family Management", modifier = Modifier.fillMaxSize())
+            ParentRewardsRoute -> Text("Rewards Store", modifier = Modifier.fillMaxSize())
+            FamilyManagementRoute -> FamilyManagementContent(state, onAction)
             
             ChildTodayRoute -> ChildTodayContent(state, onAction)
             HistoryRoute -> HistoryTabContent(state, onAction)
             ChildRewardsRoute -> Text("Reward Store", modifier = Modifier.fillMaxSize())
             else -> Text("Unknown Tab")
+        }
+    }
+}
+
+@Composable
+fun FamilyManagementContent(
+    state: DashboardState.Success,
+    onAction: (DashboardAction) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            Text("Family Members", style = MaterialTheme.typography.headlineSmall)
+        }
+        items(state.familyMembers) { member ->
+            FamilyMemberCard(member)
+        }
+    }
+}
+
+@Composable
+fun FamilyMemberCard(member: User) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(member.nickname, style = MaterialTheme.typography.titleMedium)
+                Text(member.role.name, style = MaterialTheme.typography.bodySmall)
+            }
+            if (member.role == UserRole.CHILD) {
+                Text(
+                    text = "${member.points} pts",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ParentTasksContent(
+    state: DashboardState.Success,
+    onAction: (DashboardAction) -> Unit
+) {
+    var showCreateForm by remember { mutableStateOf(false) }
+    var choreName by remember { mutableStateOf("") }
+    var chorePoints by remember { mutableStateOf("10") }
+    
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Task Management", style = MaterialTheme.typography.headlineSmall)
+            Button(onClick = { showCreateForm = !showCreateForm }) {
+                Text(if (showCreateForm) "Cancel" else "Add Chore")
+            }
+        }
+
+        if (showCreateForm) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = choreName,
+                        onValueChange = { choreName = it },
+                        label = { Text("Chore Name") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = chorePoints,
+                        onValueChange = { chorePoints = it },
+                        label = { Text("Points") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    
+                    Text("Assign to:", style = MaterialTheme.typography.labelMedium)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        state.familyMembers.filter { it.role == UserRole.CHILD }.forEach { child ->
+                            FilterChip(
+                                selected = state.selectedChildId == child.id,
+                                onClick = { onAction(DashboardAction.SelectChild(child.id)) },
+                                label = { Text(child.nickname) }
+                            )
+                        }
+                    }
+
+                    Button(
+                        onClick = {
+                            state.selectedChildId?.let { childId ->
+                                onAction(DashboardAction.CreateChore(
+                                    name = choreName,
+                                    points = chorePoints.toIntOrNull() ?: 10,
+                                    description = null,
+                                    assignedTo = childId
+                                ))
+                                showCreateForm = false
+                                choreName = ""
+                            }
+                        },
+                        modifier = Modifier.align(Alignment.End),
+                        enabled = choreName.isNotBlank() && state.selectedChildId != null
+                    ) {
+                        Text("Save Chore")
+                    }
+                }
+            }
+        }
+        
+        if (state.chores.isEmpty()) {
+            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Text("No chores created yet.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
+                items(state.chores) { chore ->
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Column {
+                                Text(chore.name, style = MaterialTheme.typography.titleMedium)
+                                Text("Status: ${chore.status}", style = MaterialTheme.typography.bodySmall)
+                            }
+                            Text("${chore.points} pts", color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -366,15 +514,28 @@ fun ChildTodayContent(
             textAlign = TextAlign.Start
         )
         
-        Box(
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                "No tasks assigned for today yet!",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        if (state.chores.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "No tasks assigned for today yet!",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(state.chores) { chore ->
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Text(chore.name, modifier = Modifier.padding(16.dp))
+                    }
+                }
+            }
         }
     }
 }

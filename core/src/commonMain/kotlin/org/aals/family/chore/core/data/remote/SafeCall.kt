@@ -6,6 +6,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.client.request.patch
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -36,6 +37,18 @@ suspend inline fun <reified Request, reified Response : Any> HttpClient.post(
 ): Result<Response, DataError.Network> {
     return safeCall {
         post {
+            url(route)
+            setBody(body)
+        }
+    }
+}
+
+suspend inline fun <reified Request, reified Response : Any> HttpClient.patch(
+    route: String,
+    body: Request
+): Result<Response, DataError.Network> {
+    return safeCall {
+        patch {
             url(route)
             setBody(body)
         }

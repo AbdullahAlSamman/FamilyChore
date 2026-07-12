@@ -28,7 +28,7 @@ class FakeAuthRepository : AuthRepository {
         return error?.let { Result.Error(it) } ?: Result.Success(users)
     }
 
-    override suspend fun getFamilyUsers(familyId: String): Result<List<User>, DataError.Network> {
+    override suspend fun getFamilyMembers(familyId: String): Result<List<User>, DataError.Network> {
         return error?.let { Result.Error(it) } ?: Result.Success(users)
     }
 

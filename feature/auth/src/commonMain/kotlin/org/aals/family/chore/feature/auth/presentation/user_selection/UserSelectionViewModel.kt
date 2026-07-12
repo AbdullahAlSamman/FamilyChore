@@ -54,7 +54,7 @@ class UserSelectionViewModel(
             _state.value = UserSelectionState.Loading
             val result = when {
                 pairingToken != null -> authRepository.getPairingUsers(pairingToken)
-                familyId != null -> authRepository.getFamilyUsers(familyId)
+                familyId != null -> authRepository.getFamilyMembers(familyId)
                 else -> {
                     _state.value = UserSelectionState.Error("Missing identification parameters")
                     return@launch

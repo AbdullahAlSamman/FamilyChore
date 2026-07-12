@@ -52,7 +52,7 @@ class PairingDataSource(
         )
     }
 
-    suspend fun getFamilyUsers(
+    suspend fun getFamilyMembers(
         familyId: String
     ): Result<PairingUsersResponse, DataError.Network> {
         return httpClient.get(

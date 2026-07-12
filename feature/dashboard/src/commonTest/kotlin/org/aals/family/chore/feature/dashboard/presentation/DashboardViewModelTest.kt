@@ -24,6 +24,7 @@ class DashboardViewModelTest {
     private lateinit var viewModel: DashboardViewModel
     private lateinit var authRepository: FakeAuthRepository
     private lateinit var transactionRepository: FakeTransactionRepository
+    private lateinit var choreRepository: FakeChoreRepository
     private lateinit var connectivityRepository: FakeConnectivityRepository
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -32,14 +33,20 @@ class DashboardViewModelTest {
         Dispatchers.setMain(testDispatcher)
         authRepository = FakeAuthRepository()
         transactionRepository = FakeTransactionRepository()
+        choreRepository = FakeChoreRepository()
         connectivityRepository = FakeConnectivityRepository()
         
         // Default mock setup
         authRepository.currentUser = User("parent1", "family1", "Parent", UserRole.PARENT)
+        authRepository.familyMembers = mutableListOf(
+            User("child1", "family1", "Alice", UserRole.CHILD, 100),
+            User("child2", "family1", "Bob", UserRole.CHILD, 50)
+        )
         
         viewModel = DashboardViewModel(
             authRepository = authRepository,
             transactionRepository = transactionRepository,
+            choreRepository = choreRepository,
             connectivityRepository = connectivityRepository,
             logger = Logger.withTag("DashboardViewModelTest"),
         )
@@ -63,6 +70,17 @@ class DashboardViewModelTest {
     }
 
     @Test
+    fun `initial state loads family members`() = runTest {
+        viewModel.state.test {
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.familyMembers.size).isEqualTo(2)
+            assertThat(state.familyMembers[0].nickname).isEqualTo("Alice")
+            assertThat(state.selectedChildId).isEqualTo("child1")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `ChangeTab action updates state`() = runTest {
         viewModel.state.test {
             awaitItem() // Skip initial state
@@ -81,5 +99,44 @@ class DashboardViewModelTest {
         assertThat(transactionRepository.addedTransactions.size).isEqualTo(1)
         assertThat(transactionRepository.addedTransactions[0].userId).isEqualTo("child1")
         assertThat(transactionRepository.addedTransactions[0].amount).isEqualTo(behaviorItem.points)
+    }
+
+    @Test
+    fun `CreateChore action adds chore to repository`() = runTest {
+        viewModel.state.test {
+            awaitItem() // Initial state
+            val action = DashboardAction.CreateChore(
+                name = "Wash Dishes",
+                points = 20,
+                description = null,
+                assignedTo = "child1"
+            )
+            viewModel.onAction(action)
+            
+            assertThat(choreRepository.createdChores.size).isEqualTo(1)
+            assertThat(choreRepository.createdChores[0].name).isEqualTo("Wash Dishes")
+            assertThat(choreRepository.createdChores[0].assignedTo).isEqualTo("child1")
+            
+            val successState = awaitItem() as DashboardState.Success
+            assertThat(successState.chores.any { it.name == "Wash Dishes" }).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `Error state when current user fails`() = runTest {
+        authRepository.currentUser = null
+        val newViewModel = DashboardViewModel(
+            authRepository = authRepository,
+            transactionRepository = transactionRepository,
+            choreRepository = choreRepository,
+            connectivityRepository = connectivityRepository,
+            logger = Logger.withTag("DashboardViewModelTest"),
+        )
+        newViewModel.state.test {
+            val state = awaitItem()
+            assertThat(state is DashboardState.Error).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }

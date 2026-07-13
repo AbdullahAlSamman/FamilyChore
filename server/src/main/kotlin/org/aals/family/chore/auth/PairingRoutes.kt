@@ -12,12 +12,15 @@ import org.aals.family.chore.core.data.remote.dto.ConfirmPairingRequest
 import org.aals.family.chore.core.data.remote.dto.ConfirmPairingResponse
 import org.aals.family.chore.core.data.remote.dto.CreateFamilyRequest
 import org.aals.family.chore.core.data.remote.dto.CreateFamilyResponse
+import org.aals.family.chore.core.data.remote.dto.ErrorResponse
 import org.aals.family.chore.core.data.remote.dto.GeneratePairingTokenRequest
 import org.aals.family.chore.core.data.remote.dto.GeneratePairingTokenResponse
 import org.aals.family.chore.core.data.remote.dto.PairingUsersResponse
 import org.aals.family.chore.core.data.remote.dto.SetupPinRequest
+import org.aals.family.chore.core.data.remote.dto.ValidationErrorDto
 import org.aals.family.chore.core.data.remote.dto.VerifyPinRequest
 import org.aals.family.chore.core.domain.model.UserRole
+import org.aals.family.chore.core.domain.validation.AuthValidator
 import org.aals.family.chore.domain.repository.FamilyRepository
 
 fun Route.pairingRoutes(
@@ -27,6 +30,21 @@ fun Route.pairingRoutes(
     route("/auth") {
         post("/family/create") {
             val request = call.receive<CreateFamilyRequest>()
+            
+            val familyNameError = AuthValidator.validateFamilyName(request.familyName)
+            val nicknameError = AuthValidator.validateNickname(request.parentNickname)
+            
+            if (familyNameError != null || nicknameError != null) {
+                val validationErrors = mutableListOf<ValidationErrorDto>()
+                familyNameError?.let { validationErrors.add(ValidationErrorDto("familyName", it.name, "Invalid family name")) }
+                nicknameError?.let { validationErrors.add(ValidationErrorDto("parentNickname", it.name, "Invalid nickname")) }
+                
+                return@post call.respond(
+                    HttpStatusCode.BadRequest,
+                    ErrorResponse("Validation failed", validationErrors = validationErrors)
+                )
+            }
+
             Logger.d { "API: Creating family ${request.familyName}" }
             val family = familyRepository.createFamily(request.familyName)
             val parent = familyRepository.addUserToFamily(family.id, request.parentNickname, UserRole.PARENT)
@@ -50,7 +68,7 @@ fun Route.pairingRoutes(
         get("/family/{familyId}/users") {
             val familyId = call.parameters["familyId"]
             if (familyId == null) {
-                call.respond(HttpStatusCode.BadRequest, "Missing familyId")
+                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing familyId"))
                 return@get
             }
             val family = familyRepository.getFamily(familyId)
@@ -75,12 +93,12 @@ fun Route.pairingRoutes(
         get("/pair/users") {
             val token = call.request.queryParameters["token"]
             if (token == null) {
-                call.respond(HttpStatusCode.BadRequest, "Missing token")
+                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing token"))
                 return@get
             }
             val familyId = pairingManager.validateToken(token)
             if (familyId == null) {
-                call.respond(HttpStatusCode.BadRequest, "Invalid or expired token")
+                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid or expired token"))
                 return@get
             }
 
@@ -101,13 +119,13 @@ fun Route.pairingRoutes(
             val familyId = pairingManager.validateToken(request.pairingToken)
             
             if (familyId == null) {
-                call.respond(HttpStatusCode.BadRequest, "Invalid or expired pairing token")
+                call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid or expired pairing token"))
                 return@post
             }
 
             val user = familyRepository.getUser(request.userId)
             if (user == null || user.familyId != familyId) {
-                call.respond(HttpStatusCode.BadRequest, "User not found in this family")
+                call.respond(HttpStatusCode.BadRequest, ErrorResponse("User not found in this family"))
                 return@post
             }
 
@@ -124,6 +142,15 @@ fun Route.pairingRoutes(
 
         post("/pin/setup") {
             val request = call.receive<SetupPinRequest>()
+            
+            val pinError = AuthValidator.validatePin(request.pin)
+            if (pinError != null) {
+                return@post call.respond(
+                    HttpStatusCode.BadRequest,
+                    ErrorResponse("Invalid PIN", validationErrors = listOf(ValidationErrorDto("pin", pinError.name, "Invalid PIN")))
+                )
+            }
+
             Logger.d { "API: Setting up PIN for ${request.userId}" }
             familyRepository.setPin(request.userId, request.pin)
             call.respond(HttpStatusCode.OK)
@@ -131,12 +158,21 @@ fun Route.pairingRoutes(
 
         post("/pin/verify") {
             val request = call.receive<VerifyPinRequest>()
+            
+            val pinError = AuthValidator.validatePin(request.pin)
+            if (pinError != null) {
+                return@post call.respond(
+                    HttpStatusCode.BadRequest,
+                    ErrorResponse("Invalid PIN", validationErrors = listOf(ValidationErrorDto("pin", pinError.name, "Invalid PIN")))
+                )
+            }
+
             Logger.d { "API: Verifying PIN for ${request.userId}" }
             val isValid = familyRepository.verifyPin(request.userId, request.pin)
             if (isValid) {
                 call.respond(HttpStatusCode.OK)
             } else {
-                call.respond(HttpStatusCode.Unauthorized, "Invalid PIN")
+                call.respond(HttpStatusCode.Unauthorized, ErrorResponse("Invalid PIN"))
             }
         }
 

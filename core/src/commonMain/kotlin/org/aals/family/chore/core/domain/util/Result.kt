@@ -21,6 +21,7 @@ sealed interface DataError : Error {
         SERVER_ERROR,
         SERVICE_UNAVAILABLE,
         SERIALIZATION,
+        VALIDATION_ERROR,
         UNKNOWN
     }
 

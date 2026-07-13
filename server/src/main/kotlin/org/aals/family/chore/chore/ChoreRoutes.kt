@@ -11,9 +11,12 @@ import io.ktor.server.routing.route
 import org.aals.family.chore.core.data.remote.dto.ChoreDto
 import org.aals.family.chore.core.data.remote.dto.ChoresResponse
 import org.aals.family.chore.core.data.remote.dto.CreateChoreRequest
+import org.aals.family.chore.core.data.remote.dto.ErrorResponse
 import org.aals.family.chore.core.data.remote.dto.UpdateChoreStatusRequest
+import org.aals.family.chore.core.data.remote.dto.ValidationErrorDto
 import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.ChoreStatus
+import org.aals.family.chore.core.domain.validation.ChoreValidator
 import org.aals.family.chore.domain.repository.ChoreRepository
 import java.util.UUID
 
@@ -34,6 +37,23 @@ fun Route.choreRoutes(choreRepository: ChoreRepository) {
         
         post {
             val request = call.receive<CreateChoreRequest>()
+            
+            val nameError = ChoreValidator.validateName(request.name)
+            val pointsError = ChoreValidator.validatePoints(request.points)
+            val assigneeError = ChoreValidator.validateAssignee(request.assignedTo)
+            
+            if (nameError != null || pointsError != null || assigneeError != null) {
+                val validationErrors = mutableListOf<ValidationErrorDto>()
+                nameError?.let { validationErrors.add(ValidationErrorDto("name", it.name, "Invalid name")) }
+                pointsError?.let { validationErrors.add(ValidationErrorDto("points", it.name, "Invalid points")) }
+                assigneeError?.let { validationErrors.add(ValidationErrorDto("assignedTo", it.name, "Invalid assignee")) }
+                
+                return@post call.respond(
+                    HttpStatusCode.BadRequest, 
+                    ErrorResponse("Validation failed", validationErrors = validationErrors)
+                )
+            }
+
             val now = System.currentTimeMillis()
             val chore = Chore(
                 id = UUID.randomUUID().toString(),

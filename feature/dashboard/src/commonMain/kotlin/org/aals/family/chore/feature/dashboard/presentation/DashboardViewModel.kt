@@ -23,6 +23,8 @@ import org.aals.family.chore.core.domain.util.TimeProvider
 import org.aals.family.chore.core.domain.util.getOrElse
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
+import org.aals.family.chore.core.domain.validation.ChoreValidator
+import org.aals.family.chore.core.presentation.toUiText
 import org.aals.family.chore.feature.dashboard.presentation.navigation.ChildTodayRoute
 import org.aals.family.chore.feature.dashboard.presentation.navigation.ParentOverviewRoute
 
@@ -75,18 +77,43 @@ class DashboardViewModel(
             }
             is DashboardAction.AwardPoints -> awardPoints(action.targetUserId, action.item)
             is DashboardAction.CreateChore -> createChore(action)
+            is DashboardAction.OnChoreNameChange -> {
+                val currentState = _state.value
+                if (currentState is DashboardState.Success) {
+                    _state.value = currentState.copy(choreNameError = null)
+                }
+            }
+            is DashboardAction.OnChorePointsChange -> {
+                val currentState = _state.value
+                if (currentState is DashboardState.Success) {
+                    _state.value = currentState.copy(chorePointsError = null)
+                }
+            }
         }
     }
 
     private fun createChore(action: DashboardAction.CreateChore) {
         val currentState = _state.value as? DashboardState.Success ?: return
+        
+        val nameError = ChoreValidator.validateName(action.name)
+        val pointsError = ChoreValidator.validatePoints(action.points)
+        val assigneeError = ChoreValidator.validateAssignee(action.assignedTo)
+        
+        if (nameError != null || pointsError != null || assigneeError != null) {
+            _state.value = currentState.copy(
+                choreNameError = nameError?.toUiText(),
+                chorePointsError = pointsError?.toUiText()
+            )
+            return
+        }
+
         viewModelScope.launch {
             val now = timeProvider.now()
             val chore = Chore(
                 id = "chore_${action.assignedTo}_$now",
                 familyId = currentState.user.familyId,
-                name = action.name,
-                description = action.description,
+                name = action.name.trim(),
+                description = action.description?.trim(),
                 points = action.points,
                 status = ChoreStatus.PENDING,
                 assignedTo = action.assignedTo,
@@ -94,6 +121,9 @@ class DashboardViewModel(
                 createdAt = now,
                 updatedAt = now
             )
+            // Clear errors before attempting to save
+            _state.value = currentState.copy(choreNameError = null, chorePointsError = null)
+            
             choreRepository.createChore(chore)
                 .onFailure { error ->
                     logger.e { "Failed to create chore: $error" }

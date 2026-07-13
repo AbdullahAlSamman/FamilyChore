@@ -59,3 +59,8 @@ yarn-error.log*
 # KMP Specific
 shared/build/
 composeApp/build/
+
+# Local Data & Test Artifacts
+*.preferences_pb
+data/
+server/data/

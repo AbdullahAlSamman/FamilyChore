@@ -12,6 +12,15 @@
 - Don't commit until you have been asked to.
 - Use sealed interfaces/classes as state no data class
 - Develop the feature complete data, domain and ui.
+- **Any field or data entry should be validated before submission.**
+
+## Data Entry & Validation
+- **Domain-Level SSOT**: All validation logic MUST reside in the `core:domain` layer (e.g., `ChoreValidator`).
+- **Standardized Error Types**: Validators MUST return domain-specific error types inheriting from `core.domain.util.Error`.
+- **Presentation Mapping**: Domain errors MUST be mapped to `UiText` in the presentation layer via `ValidationMappers.kt`.
+- **UI Pattern**: Screens MUST support real-time feedback (on field change) and final "On-Submit" validation.
+- **Server Parity**: Server-side routes MUST implement mirror validation logic. If validation fails, the server MUST respond with `HttpStatusCode.BadRequest` (400) and a structured `ErrorResponse` detailing the validation errors.
+- **Client-Side Handling**: The client `SafeCall` mechanism MUST be able to parse server-side validation errors and map them to `DataError.Network.VALIDATION_ERROR`.
 
 This file tracks critical architectural decisions and domain rules for the FamilyChore project.
 ## Critical Engineering Decisions

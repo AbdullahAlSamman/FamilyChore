@@ -24,6 +24,7 @@ kotlin {
             implementation(libs.compose.components.resources)
             implementation(libs.compose.material.icons.extended)
             implementation(libs.compose.uiToolingPreview)
+            implementation(libs.qrose)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kermit)
         }

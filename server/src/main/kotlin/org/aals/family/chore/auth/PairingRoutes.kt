@@ -6,8 +6,10 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import org.aals.family.chore.core.data.remote.dto.AddUserRequest
 import org.aals.family.chore.core.data.remote.dto.ConfirmPairingRequest
 import org.aals.family.chore.core.data.remote.dto.ConfirmPairingResponse
 import org.aals.family.chore.core.data.remote.dto.CreateFamilyRequest
@@ -17,6 +19,7 @@ import org.aals.family.chore.core.data.remote.dto.GeneratePairingTokenRequest
 import org.aals.family.chore.core.data.remote.dto.GeneratePairingTokenResponse
 import org.aals.family.chore.core.data.remote.dto.PairingUsersResponse
 import org.aals.family.chore.core.data.remote.dto.SetupPinRequest
+import org.aals.family.chore.core.data.remote.dto.UpdateUserSettingsRequest
 import org.aals.family.chore.core.data.remote.dto.ValidationErrorDto
 import org.aals.family.chore.core.data.remote.dto.VerifyPinRequest
 import org.aals.family.chore.core.domain.model.UserRole
@@ -82,12 +85,44 @@ fun Route.pairingRoutes(
             )
         }
 
+        post("/family/{familyId}/user") {
+            val familyId = call.parameters["familyId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+            val request = call.receive<AddUserRequest>()
+            
+            val nicknameError = AuthValidator.validateNickname(request.nickname)
+            if (nicknameError != null) {
+                return@post call.respond(
+                    HttpStatusCode.BadRequest,
+                    ErrorResponse("Validation failed", validationErrors = listOf(ValidationErrorDto("nickname", nicknameError.name, "Invalid nickname")))
+                )
+            }
+
+            val user = familyRepository.addUserToFamily(familyId, request.nickname, request.role, request.requiresPin)
+            call.respond(user)
+        }
+
+        patch("/user/{userId}/settings") {
+            val userId = call.parameters["userId"] ?: return@patch call.respond(HttpStatusCode.BadRequest)
+            val request = call.receive<UpdateUserSettingsRequest>()
+            
+            familyRepository.updateUserPinRequirement(userId, request.requiresPin)
+            call.respond(HttpStatusCode.OK)
+        }
+
         post("/pair/generate") {
             val request = call.receive<GeneratePairingTokenRequest>()
             Logger.d { "API: Generating pairing token for ${request.familyId}" }
             // In a real app, we'd verify the requester is a parent in that family
+            val family = familyRepository.getFamily(request.familyId)
             val token = pairingManager.generateToken(request.familyId)
-            call.respond(GeneratePairingTokenResponse(token))
+            call.respond(
+                GeneratePairingTokenResponse(token).let { 
+                    // We can't easily change GeneratePairingTokenResponse without affecting client, 
+                    // but we might want to include familyName in the QR data constructed on client.
+                    // Wait, the client constructs the QR. So server just gives token.
+                    it
+                }
+            )
         }
 
         get("/pair/users") {
@@ -106,9 +141,9 @@ fun Route.pairingRoutes(
             val users = familyRepository.getUsersInFamily(familyId)
             
             call.respond(
-                mapOf(
-                    "familyName" to family?.name,
-                    "users" to users
+                PairingUsersResponse(
+                    familyName = family?.name,
+                    users = users
                 )
             )
         }

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="app_name">FamilyChore</string>
+    <string name="cancel">إلغاء</string>
+    <string name="save">حفظ</string>
+    <string name="ok">تم</string>
+    <string name="submit">إرسال</string>
+    <string name="skip">تخطي</string>
+    <string name="connect">اتصال</string>
+    <string name="error_unknown">حدث خطأ غير معروف</string>
+    <string name="settings">الإعدادات</string>
+    <string name="pts_suffix">%1$d نقطة</string>
+
+    <!-- Server Discovery -->
+    <string name="discovery_title">اكتشاف الخادم</string>
+    <string name="discovery_error_unreachable">الخادم المخزن غير متاح. يرجى المسح مرة أخرى أو الاتصال يدوياً.</string>
+    <string name="discovery_looking">البحث عن خوادم FamilyChore...</string>
+    <string name="discovery_no_servers">لم يتم العور على خوادم في شبكتك المحلية.</string>
+    <string name="discovery_instruction">تأكد من أن الخادم الخاص بك يعمل وموجود على نفس شبكة Wi-Fi.</string>
+    <string name="discovery_manual_title">الاتصال يدوياً</string>
+    <string name="discovery_url_label">عنوان الخادم</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title_to">مرحباً بك في %1$s</string>
+    <string name="welcome_title_generic">مرحباً بك في FamilyChore</string>
+    <string name="welcome_subtitle">ابدأ بإعداد مركز عائلتك أو الانضمام إلى عائلة موجودة.</string>
+    <string name="welcome_login_existing">تسجيل الدخول إلى عائلة موجودة:</string>
+    <string name="welcome_or">أو</string>
+    <string name="welcome_setup_family">إعداد عائلة جديدة</string>
+    <string name="welcome_join_family">الانضمام إلى عائلة موجودة</string>
+
+    <!-- Create Family -->
+    <string name="create_family_title">أنشئ عائلتك</string>
+    <string name="create_family_name_label">اسم العائلة</string>
+    <string name="create_family_nickname_label">لقبك (ولي الأمر)</string>
+    <string name="create_family_action">إنشاء عائلة</string>
+
+    <!-- QR Scanner -->
+    <string name="qr_scan_title">مسح رمز QR</string>
+    <string name="qr_scan_instructions">وجه الكاميرا نحو رمز QR على جهاز ولي الأمر.</string>
+    <string name="qr_error_permission">مطلوب إذن الكاميرا</string>
+    <string name="qr_error_invalid">رمز QR غير صالح</string>
+
+    <!-- User Selection -->
+    <string name="user_selection_title">اختر الملف الشخصي</string>
+
+    <!-- PIN Entry -->
+    <string name="pin_title">أدخل رمز PIN</string>
+    <string name="pin_instructions">أدخل رمز PIN المكون من 4 أرقام للمتابعة.</string>
+    <string name="pin_label">رمز PIN</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">لوحة التحكم</string>
+    <string name="dashboard_logout">تسجيل الخروج</string>
+    <string name="dashboard_offline_banner">الخادم غير متاح - وضع عدم الاتصال</string>
+
+    <!-- Dashboard Tabs -->
+    <string name="dashboard_tab_overview">نظرة عامة</string>
+    <string name="dashboard_tab_tasks">المهام</string>
+    <string name="dashboard_tab_behavior">السلوك</string>
+    <string name="dashboard_tab_rewards">المكافآت</string>
+    <string name="dashboard_tab_family">العائلة</string>
+    <string name="dashboard_tab_today">اليوم</string>
+    <string name="dashboard_tab_history">السجل</string>
+    <string name="dashboard_tab_store">المتجر</string>
+
+    <!-- Family Management -->
+    <string name="family_management_title">أفراد العائلة</string>
+    <string name="family_management_add_child">إضافة طفل</string>
+    <string name="family_management_nickname_label">اللقب</string>
+    <string name="family_management_require_pin">تطلب رمز PIN</string>
+    <string name="family_management_invite_member">دعوة عضو</string>
+    <string name="family_management_quick_join">انضمام سريع</string>
+    <string name="family_management_token_expiry">تنتهي صلاحية الرمز خلال 10 دقائق</string>
+
+    <!-- Task Management -->
+    <string name="task_management_title">إدارة المهام</string>
+    <string name="task_management_add_chore">إضافة مهمة</string>
+    <string name="task_management_name_label">اسم المهمة</string>
+    <string name="task_management_points_label">النقاط</string>
+    <string name="task_management_save_action">حفظ المهمة</string>
+    <string name="task_management_assign_to">تعيين لـ:</string>
+    <string name="task_management_empty">لم يتم إنشاء مهام بعد.</string>
+    <string name="task_today_title">مهام اليوم</string>
+    <string name="task_today_empty">لا توجد مهام معينة لليوم بعد!</string>
+    <string name="task_summary_review_count">المهام التي تنتظر المراجعة: %1$d</string>
+    <string name="task_status_prefix">الحالة: %1$s</string>
+
+    <!-- Behavior -->
+    <string name="behavior_title">إدارة السلوك</string>
+    <string name="behavior_award_to">منح لـ:</string>
+
+    <!-- History & Transactions -->
+    <string name="dashboard_points_label">نقاطك</string>
+    <string name="transaction_default_note">تحديث النقاط</string>
+    <string name="transaction_id_prefix">المعرف: %1$s</string>
+</resources>

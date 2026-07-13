@@ -21,7 +21,13 @@ sealed interface DashboardState {
         val isRefreshing: Boolean = false,
         // Validation states for Add Chore form
         val choreNameError: UiText? = null,
-        val chorePointsError: UiText? = null
+        val chorePointsError: UiText? = null,
+        // Family Management
+        val newChildNickname: String = "",
+        val childNicknameError: UiText? = null,
+        val requiresPinForNewChild: Boolean = true,
+        val isAddingChild: Boolean = false,
+        val inviteQrContent: String? = null
     ) : DashboardState
     data class Error(val message: String) : DashboardState
 }

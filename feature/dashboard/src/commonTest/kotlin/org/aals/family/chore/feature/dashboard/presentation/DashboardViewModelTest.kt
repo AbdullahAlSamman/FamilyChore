@@ -26,6 +26,7 @@ class DashboardViewModelTest {
     private lateinit var transactionRepository: FakeTransactionRepository
     private lateinit var choreRepository: FakeChoreRepository
     private lateinit var connectivityRepository: FakeConnectivityRepository
+    private lateinit var tokenStorage: FakeTokenStorage
     private lateinit var timeProvider: FakeTimeProvider
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -36,6 +37,7 @@ class DashboardViewModelTest {
         transactionRepository = FakeTransactionRepository()
         choreRepository = FakeChoreRepository()
         connectivityRepository = FakeConnectivityRepository()
+        tokenStorage = FakeTokenStorage()
         timeProvider = FakeTimeProvider()
         
         // Default mock setup
@@ -50,6 +52,7 @@ class DashboardViewModelTest {
             transactionRepository = transactionRepository,
             choreRepository = choreRepository,
             connectivityRepository = connectivityRepository,
+            tokenStorage = tokenStorage,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider
         )
@@ -189,6 +192,7 @@ class DashboardViewModelTest {
             transactionRepository = transactionRepository,
             choreRepository = choreRepository,
             connectivityRepository = connectivityRepository,
+            tokenStorage = tokenStorage,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider
         )

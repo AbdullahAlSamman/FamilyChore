@@ -44,6 +44,28 @@ class FakeAuthRepository : AuthRepository {
         return error?.let { Result.Error(it) } ?: Result.Success(Unit)
     }
 
+    override suspend fun addChildUser(
+        familyId: String,
+        nickname: String,
+        requiresPin: Boolean
+    ): Result<User, DataError.Network> {
+        val user = User("new", familyId, nickname, org.aals.family.chore.core.domain.model.UserRole.CHILD, 0, requiresPin)
+        users.add(user)
+        return error?.let { Result.Error(it) } ?: Result.Success(user)
+    }
+
+    override suspend fun updateUserPinRequirement(
+        userId: String,
+        requiresPin: Boolean
+    ): Result<Unit, DataError.Network> {
+        return error?.let { Result.Error(it) } ?: Result.Success(Unit)
+    }
+
+    override suspend fun getUser(userId: String): Result<User, DataError.Network> {
+        val user = users.find { it.id == userId } ?: User(userId, "family1", "User", org.aals.family.chore.core.domain.model.UserRole.CHILD, 0)
+        return error?.let { Result.Error(it) } ?: Result.Success(user)
+    }
+
     override suspend fun getCurrentUser(): Result<User, DataError.Network> {
         return error?.let { Result.Error(it) } ?: Result.Success(users.firstOrNull() ?: User("1", "family1", "User", org.aals.family.chore.core.domain.model.UserRole.PARENT, 0))
     }

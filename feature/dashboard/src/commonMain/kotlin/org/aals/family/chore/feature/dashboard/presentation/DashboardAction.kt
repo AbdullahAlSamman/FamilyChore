@@ -17,4 +17,12 @@ sealed interface DashboardAction {
     ) : DashboardAction
     data class OnChoreNameChange(val name: String) : DashboardAction
     data class OnChorePointsChange(val points: String) : DashboardAction
+
+    // Family Management
+    data class OnChildNicknameChange(val nickname: String) : DashboardAction
+    data object TogglePinRequirement : DashboardAction
+    data class AddChild(val nickname: String, val requiresPin: Boolean) : DashboardAction
+    data class UpdateUserPinRequirement(val userId: String, val requiresPin: Boolean) : DashboardAction
+    data class ShowInviteQr(val userId: String? = null) : DashboardAction
+    data object DismissInviteQr : DashboardAction
 }

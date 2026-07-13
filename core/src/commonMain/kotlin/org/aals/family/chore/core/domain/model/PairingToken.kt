@@ -7,5 +7,6 @@ data class PairingToken(
     val token: String,
     val serverIp: String,
     val familyId: String? = null,
-    val userId: String? = null
+    val userId: String? = null,
+    val familyName: String? = null
 )

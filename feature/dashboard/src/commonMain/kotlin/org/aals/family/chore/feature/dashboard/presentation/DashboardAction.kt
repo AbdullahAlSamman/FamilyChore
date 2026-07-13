@@ -8,7 +8,7 @@ sealed interface DashboardAction {
     data object Logout : DashboardAction
     data class ChangeTab(val tab: DashboardTabRoute) : DashboardAction
     data class AwardPoints(val targetUserId: String, val item: BehaviorItem) : DashboardAction
-    data class SelectChild(val userId: String) : DashboardAction
+    data class SelectAssignee(val userId: String) : DashboardAction
     data class CreateChore(
         val name: String,
         val points: Int,

@@ -67,10 +67,10 @@ class DashboardViewModel(
                     _state.value = currentState.copy(currentTab = action.tab)
                 }
             }
-            is DashboardAction.SelectChild -> {
+            is DashboardAction.SelectAssignee -> {
                 val currentState = _state.value
                 if (currentState is DashboardState.Success) {
-                    _state.value = currentState.copy(selectedChildId = action.userId)
+                    _state.value = currentState.copy(selectedAssigneeId = action.userId)
                 }
             }
             is DashboardAction.AwardPoints -> awardPoints(action.targetUserId, action.item)
@@ -141,7 +141,8 @@ class DashboardViewModel(
                     _state.value = DashboardState.Success(
                         user = user,
                         familyMembers = familyMembers,
-                        selectedChildId = familyMembers.firstOrNull { it.role == UserRole.CHILD }?.id,
+                        selectedAssigneeId = familyMembers.firstOrNull { it.role == UserRole.CHILD }?.id 
+                            ?: familyMembers.firstOrNull()?.id,
                         transactions = emptyList(),
                         chores = emptyList(),
                         behaviorItems = if (user.role == UserRole.PARENT) defaultBehaviorItems else emptyList(),

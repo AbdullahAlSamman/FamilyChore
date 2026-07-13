@@ -78,7 +78,7 @@ class DashboardViewModelTest {
             val state = awaitItem() as DashboardState.Success
             assertThat(state.familyMembers.size).isEqualTo(2)
             assertThat(state.familyMembers[0].nickname).isEqualTo("Alice")
-            assertThat(state.selectedChildId).isEqualTo("child1")
+            assertThat(state.selectedAssigneeId).isEqualTo("child1")
             cancelAndIgnoreRemainingEvents()
         }
     }

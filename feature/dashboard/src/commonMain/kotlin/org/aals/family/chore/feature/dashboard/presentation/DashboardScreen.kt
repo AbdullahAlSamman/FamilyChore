@@ -292,30 +292,30 @@ fun ParentTasksContent(
                     
                     Text("Assign to:", style = MaterialTheme.typography.labelMedium)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        state.familyMembers.filter { it.role == UserRole.CHILD }.forEach { child ->
+                        state.familyMembers.forEach { member ->
                             FilterChip(
-                                selected = state.selectedChildId == child.id,
-                                onClick = { onAction(DashboardAction.SelectChild(child.id)) },
-                                label = { Text(child.nickname) }
+                                selected = state.selectedAssigneeId == member.id,
+                                onClick = { onAction(DashboardAction.SelectAssignee(member.id)) },
+                                label = { Text(member.nickname) }
                             )
                         }
                     }
 
                     Button(
                         onClick = {
-                            state.selectedChildId?.let { childId ->
+                            state.selectedAssigneeId?.let { assigneeId ->
                                 onAction(DashboardAction.CreateChore(
                                     name = choreName,
                                     points = chorePoints.toIntOrNull() ?: 10,
                                     description = null,
-                                    assignedTo = childId
+                                    assignedTo = assigneeId
                                 ))
                                 showCreateForm = false
                                 choreName = ""
                             }
                         },
                         modifier = Modifier.align(Alignment.End),
-                        enabled = choreName.isNotBlank() && state.selectedChildId != null
+                        enabled = choreName.isNotBlank() && state.selectedAssigneeId != null
                     ) {
                         Text("Save Chore")
                     }
@@ -583,8 +583,8 @@ fun BehaviorTabContent(
             Text("Award to:", style = MaterialTheme.typography.labelLarge)
             state.familyMembers.filter { it.role == UserRole.CHILD }.forEach { child ->
                 FilterChip(
-                    selected = state.selectedChildId == child.id,
-                    onClick = { onAction(DashboardAction.SelectChild(child.id)) },
+                    selected = state.selectedAssigneeId == child.id,
+                    onClick = { onAction(DashboardAction.SelectAssignee(child.id)) },
                     label = { Text(child.nickname) }
                 )
             }
@@ -600,8 +600,8 @@ fun BehaviorTabContent(
                 BehaviorCard(
                     item = item,
                     onClick = {
-                        state.selectedChildId?.let { childId ->
-                            onAction(DashboardAction.AwardPoints(childId, item))
+                        state.selectedAssigneeId?.let { assigneeId ->
+                            onAction(DashboardAction.AwardPoints(assigneeId, item))
                         }
                     }
                 )

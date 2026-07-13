@@ -11,7 +11,7 @@ sealed interface DashboardState {
     data class Success(
         val user: User,
         val familyMembers: List<User> = emptyList(),
-        val selectedChildId: String? = null,
+        val selectedAssigneeId: String? = null,
         val transactions: List<Transaction> = emptyList(),
         val chores: List<Chore> = emptyList(),
         val behaviorItems: List<BehaviorItem> = emptyList(),

@@ -13,6 +13,11 @@ import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TransactionRepository
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
+import org.aals.family.chore.core.domain.util.TimeProvider
+
+class FakeTimeProvider(var staticTime: Long = 0L) : TimeProvider {
+    override fun now(): Long = staticTime
+}
 
 class FakeAuthRepository : AuthRepository {
     var currentUser: User? = null
@@ -57,7 +62,7 @@ class FakeChoreRepository : ChoreRepository {
         chores.value = chores.value + chore
         return Result.Success(Unit)
     }
-    override suspend fun updateChoreStatus(choreId: String, newStatus: ChoreStatus, adminId: String?): Result<Unit, DataError> = Result.Success(Unit)
+    override suspend fun updateChoreStatus(familyId: String, choreId: String, newStatus: ChoreStatus, adminId: String?): Result<Unit, DataError> = Result.Success(Unit)
     override suspend fun syncChores(familyId: String): Result<Unit, DataError> = Result.Success(Unit)
 }
 

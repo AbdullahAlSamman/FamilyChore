@@ -19,6 +19,7 @@ import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TransactionRepository
+import org.aals.family.chore.core.domain.util.TimeProvider
 import org.aals.family.chore.core.domain.util.getOrElse
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
@@ -31,6 +32,7 @@ class DashboardViewModel(
     private val choreRepository: ChoreRepository,
     private val connectivityRepository: ConnectivityRepository,
     private val logger: Logger,
+    private val timeProvider: TimeProvider,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<DashboardState>(DashboardState.Loading)
@@ -79,7 +81,7 @@ class DashboardViewModel(
     private fun createChore(action: DashboardAction.CreateChore) {
         val currentState = _state.value as? DashboardState.Success ?: return
         viewModelScope.launch {
-            val now = 0L // TODO: Fix Clock.System
+            val now = timeProvider.now()
             val chore = Chore(
                 id = "chore_${action.assignedTo}_$now",
                 familyId = currentState.user.familyId,
@@ -102,8 +104,7 @@ class DashboardViewModel(
     private fun awardPoints(targetUserId: String, item: BehaviorItem) {
         val currentState = _state.value as? DashboardState.Success ?: return
         viewModelScope.launch {
-            // TODO: Clock.System is unresolved in current KMP setup with kotlinx-datetime 0.8.0
-            val now = 0L 
+            val now = timeProvider.now()
             val transaction = Transaction(
                 id = "tr_${targetUserId}_${item.id}_$now",
                 familyId = currentState.user.familyId,

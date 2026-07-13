@@ -16,12 +16,14 @@ import org.aals.family.chore.core.data.repository.ChoreRepositoryImpl
 import org.aals.family.chore.core.data.repository.ConnectivityRepositoryImpl
 import org.aals.family.chore.core.data.repository.DataStoreTokenStorage
 import org.aals.family.chore.core.data.repository.TransactionRepositoryImpl
+import org.aals.family.chore.core.data.util.DefaultTimeProvider
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.repository.TransactionRepository
 import org.aals.family.chore.core.domain.util.LoggingInitializer
+import org.aals.family.chore.core.domain.util.TimeProvider
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.parameter.parametersOf
@@ -30,6 +32,7 @@ import org.koin.dsl.module
 val coreModule = module {
     includes(platformModule)
     single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
+    singleOf(::DefaultTimeProvider) { bind<TimeProvider>() }
     single { HttpClientFactory.create(get(), get(), get { parametersOf("HttpClient") }) }
     factory { params -> LoggingInitializer.createLogger(params.getOrNull<String>() ?: "General") }
     singleOf(::TokenStorageBaseUrlProvider) { bind<BaseUrlProvider>() }

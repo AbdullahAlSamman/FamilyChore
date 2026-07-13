@@ -8,9 +8,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import org.aals.family.chore.core.domain.model.BehaviorItem
 import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.ChoreStatus
+import org.aals.family.chore.core.domain.model.PairingToken
 import org.aals.family.chore.core.domain.model.Transaction
 import org.aals.family.chore.core.domain.model.TransactionType
 import org.aals.family.chore.core.domain.model.User
@@ -18,11 +20,13 @@ import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
+import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.repository.TransactionRepository
 import org.aals.family.chore.core.domain.util.TimeProvider
 import org.aals.family.chore.core.domain.util.getOrElse
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
+import org.aals.family.chore.core.domain.validation.AuthValidator
 import org.aals.family.chore.core.domain.validation.ChoreValidator
 import org.aals.family.chore.core.presentation.toUiText
 import org.aals.family.chore.feature.dashboard.presentation.navigation.ChildTodayRoute
@@ -33,6 +37,7 @@ class DashboardViewModel(
     private val transactionRepository: TransactionRepository,
     private val choreRepository: ChoreRepository,
     private val connectivityRepository: ConnectivityRepository,
+    private val tokenStorage: TokenStorage,
     private val logger: Logger,
     private val timeProvider: TimeProvider,
 ) : ViewModel() {
@@ -89,6 +94,75 @@ class DashboardViewModel(
                     _state.value = currentState.copy(chorePointsError = null)
                 }
             }
+            is DashboardAction.OnChildNicknameChange -> {
+                updateSuccessState { it.copy(newChildNickname = action.nickname, childNicknameError = null) }
+            }
+            DashboardAction.TogglePinRequirement -> {
+                updateSuccessState { it.copy(requiresPinForNewChild = !it.requiresPinForNewChild) }
+            }
+            is DashboardAction.AddChild -> addChild(action.nickname, action.requiresPin)
+            is DashboardAction.UpdateUserPinRequirement -> updateUserPinRequirement(action.userId, action.requiresPin)
+            is DashboardAction.ShowInviteQr -> showInviteQr(action.userId)
+            DashboardAction.DismissInviteQr -> updateSuccessState { it.copy(inviteQrContent = null) }
+        }
+    }
+
+    private fun addChild(nickname: String, requiresPin: Boolean) {
+        val currentState = _state.value as? DashboardState.Success ?: return
+        if (!currentState.isServerReachable) return
+
+        val error = AuthValidator.validateNickname(nickname)
+        if (error != null) {
+            updateSuccessState { it.copy(childNicknameError = error.toUiText()) }
+            return
+        }
+
+        viewModelScope.launch {
+            updateSuccessState { it.copy(isAddingChild = true) }
+            authRepository.addChildUser(currentState.user.familyId, nickname, requiresPin)
+                .onSuccess { newUser ->
+                    updateSuccessState { it.copy(isAddingChild = false, newChildNickname = "") }
+                    loadDashboardData(isRefreshing = true) // Refresh members
+                    showInviteQr(newUser.id)
+                }
+                .onFailure { e ->
+                    logger.e { "Failed to add child: $e" }
+                    updateSuccessState { it.copy(isAddingChild = false) }
+                }
+        }
+    }
+
+    private fun updateUserPinRequirement(userId: String, requiresPin: Boolean) {
+        viewModelScope.launch {
+            authRepository.updateUserPinRequirement(userId, requiresPin)
+                .onSuccess {
+                    loadDashboardData(isRefreshing = true)
+                }
+                .onFailure { e ->
+                    logger.e { "Failed to update PIN requirement: $e" }
+                }
+        }
+    }
+
+    private fun showInviteQr(userId: String?) {
+        val currentState = _state.value as? DashboardState.Success ?: return
+        viewModelScope.launch {
+            authRepository.generatePairingToken(currentState.user.familyId)
+                .onSuccess { token ->
+                    val serverUrl = tokenStorage.getServerUrl() ?: ""
+                    val pairingToken = PairingToken(
+                        token = token,
+                        serverIp = serverUrl,
+                        familyId = currentState.user.familyId,
+                        userId = userId,
+                        familyName = "Family" // Ideally fetch real family name
+                    )
+                    val json = Json.encodeToString(pairingToken)
+                    updateSuccessState { it.copy(inviteQrContent = json) }
+                }
+                .onFailure { e ->
+                    logger.e { "Failed to generate pairing token: $e" }
+                }
         }
     }
 

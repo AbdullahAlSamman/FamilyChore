@@ -8,7 +8,8 @@ data class User(
     val familyId: String,
     val nickname: String,
     val role: UserRole,
-    val points: Int = 0
+    val points: Int = 0,
+    val requiresPin: Boolean = true
 )
 
 @Serializable

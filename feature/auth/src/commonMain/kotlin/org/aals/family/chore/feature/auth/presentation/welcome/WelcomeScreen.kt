@@ -32,8 +32,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.welcome_join_family
+import familychore.core.generated.resources.welcome_login_existing
+import familychore.core.generated.resources.welcome_or
+import familychore.core.generated.resources.welcome_setup_family
+import familychore.core.generated.resources.welcome_subtitle
+import familychore.core.generated.resources.welcome_title_generic
+import familychore.core.generated.resources.welcome_title_to
 import org.aals.family.chore.core.domain.model.Family
 import org.aals.family.chore.core.presentation.ObserveAsEvents
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -78,9 +87,9 @@ fun WelcomeScreen(
             
             Text(
                 text = if (state.serverName != null) {
-                    "Welcome to ${state.serverName}"
+                    stringResource(Res.string.welcome_title_to, state.serverName)
                 } else {
-                    "Welcome to FamilyChore"
+                    stringResource(Res.string.welcome_title_generic)
                 },
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
@@ -92,7 +101,7 @@ fun WelcomeScreen(
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = "Get started by setting up your family hub or joining an existing one.",
+                text = stringResource(Res.string.welcome_subtitle),
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(horizontal = 8.dp),
@@ -108,7 +117,7 @@ fun WelcomeScreen(
 
             if (state.families.isNotEmpty()) {
                 Text(
-                    text = "Log in to existing family:",
+                    text = stringResource(Res.string.welcome_login_existing),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.secondary
                 )
@@ -151,7 +160,7 @@ fun WelcomeScreen(
                 ) {
                     HorizontalDivider(modifier = Modifier.weight(1f))
                     Text(
-                        text = "OR",
+                        text = stringResource(Res.string.welcome_or),
                         modifier = Modifier.padding(horizontal = 16.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.outline
@@ -166,7 +175,7 @@ fun WelcomeScreen(
                 onClick = { onAction(WelcomeAction.OnSetupNewFamilyClick) },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Setup New Family")
+                Text(stringResource(Res.string.welcome_setup_family))
             }
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -175,7 +184,7 @@ fun WelcomeScreen(
                 onClick = { onAction(WelcomeAction.OnJoinFamilyClick) },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Join Existing Family")
+                Text(stringResource(Res.string.welcome_join_family))
             }
             
             Spacer(modifier = Modifier.weight(1f))

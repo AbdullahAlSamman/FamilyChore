@@ -6,6 +6,10 @@ plugins {
     id("familychore.koin")
 }
 
+compose.resources {
+    publicResClass = true
+}
+
 kotlin {
     android {
         namespace = "org.aals.family.chore.core"
@@ -15,7 +19,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.compose.runtime)
-            implementation(libs.compose.components.resources)
+            api(libs.compose.components.resources)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             api(libs.kotlinx.datetime)
             implementation(libs.ktor.client.core)

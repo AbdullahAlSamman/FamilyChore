@@ -28,6 +28,27 @@ class PinEntryViewModel(
     private val _events = Channel<PinEntryEvent>()
     val events = _events.receiveAsFlow()
 
+    init {
+        checkPinRequirement()
+    }
+
+    private fun checkPinRequirement() {
+        if (isSetupMode) return
+
+        viewModelScope.launch {
+            authRepository.getUser(userId)
+                .onSuccess { user ->
+                    if (!user.requiresPin) {
+                        logger.d { "PIN not required for user, bypassing" }
+                        _events.send(PinEntryEvent.PinVerified)
+                    }
+                }
+                .onFailure { e ->
+                    logger.e { "Failed to fetch user profile: $e" }
+                }
+        }
+    }
+
     fun onAction(action: PinEntryAction) {
         val currentState = _state.value
         if (currentState !is PinEntryState.Entering) return
@@ -43,6 +64,11 @@ class PinEntryViewModel(
                     submitPin()
                 } else {
                     _state.value = currentState.copy(error = "PIN must be 4 digits")
+                }
+            }
+            PinEntryAction.OnSkip -> {
+                viewModelScope.launch {
+                    _events.send(PinEntryEvent.PinVerified)
                 }
             }
         }

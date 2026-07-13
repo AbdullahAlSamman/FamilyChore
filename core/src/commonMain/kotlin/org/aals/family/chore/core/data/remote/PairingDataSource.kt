@@ -1,6 +1,7 @@
 package org.aals.family.chore.core.data.remote
 
 import io.ktor.client.HttpClient
+import org.aals.family.chore.core.data.remote.dto.AddUserRequest
 import org.aals.family.chore.core.data.remote.dto.ConfirmPairingRequest
 import org.aals.family.chore.core.data.remote.dto.ConfirmPairingResponse
 import org.aals.family.chore.core.data.remote.dto.CreateFamilyRequest
@@ -9,9 +10,11 @@ import org.aals.family.chore.core.data.remote.dto.GeneratePairingTokenRequest
 import org.aals.family.chore.core.data.remote.dto.GeneratePairingTokenResponse
 import org.aals.family.chore.core.data.remote.dto.PairingUsersResponse
 import org.aals.family.chore.core.data.remote.dto.SetupPinRequest
+import org.aals.family.chore.core.data.remote.dto.UpdateUserSettingsRequest
 import org.aals.family.chore.core.data.remote.dto.VerifyPinRequest
 import org.aals.family.chore.core.domain.model.Family
 import org.aals.family.chore.core.domain.model.User
+import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
 
@@ -57,6 +60,27 @@ class PairingDataSource(
     ): Result<PairingUsersResponse, DataError.Network> {
         return httpClient.get(
             route = "auth/family/$familyId/users"
+        )
+    }
+
+    suspend fun addChildUser(
+        familyId: String,
+        nickname: String,
+        requiresPin: Boolean
+    ): Result<User, DataError.Network> {
+        return httpClient.post(
+            route = "auth/family/$familyId/user",
+            body = AddUserRequest(nickname, UserRole.CHILD, requiresPin)
+        )
+    }
+
+    suspend fun updateUserPinRequirement(
+        userId: String,
+        requiresPin: Boolean
+    ): Result<Unit, DataError.Network> {
+        return httpClient.patch(
+            route = "auth/user/$userId/settings",
+            body = UpdateUserSettingsRequest(requiresPin)
         )
     }
 

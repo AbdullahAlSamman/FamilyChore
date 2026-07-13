@@ -1,8 +1,24 @@
 package org.aals.family.chore.feature.auth.presentation.pin_entry
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -11,7 +27,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.pin_instructions
+import familychore.core.generated.resources.pin_label
+import familychore.core.generated.resources.pin_title
+import familychore.core.generated.resources.skip
+import familychore.core.generated.resources.submit
 import org.aals.family.chore.core.presentation.ObserveAsEvents
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -44,7 +67,7 @@ fun PinEntryScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Enter PIN") })
+            TopAppBar(title = { Text(stringResource(Res.string.pin_title)) })
         }
     ) { padding ->
         Column(
@@ -55,14 +78,14 @@ fun PinEntryScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("Enter your 4-digit PIN to continue.")
+            Text(stringResource(Res.string.pin_instructions))
 
             Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedTextField(
                 value = state.pin,
                 onValueChange = { onAction(PinEntryAction.OnPinChange(it)) },
-                label = { Text("PIN") },
+                label = { Text(stringResource(Res.string.pin_label)) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 modifier = Modifier.width(150.dp),
@@ -85,8 +108,18 @@ fun PinEntryScreen(
                 if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Submit")
+                    Text(stringResource(Res.string.submit))
                 }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(
+                onClick = { onAction(PinEntryAction.OnSkip) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
+            ) {
+                Text(stringResource(Res.string.skip))
             }
         }
     }

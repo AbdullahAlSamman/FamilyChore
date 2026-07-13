@@ -20,7 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.create_family_action
+import familychore.core.generated.resources.create_family_name_label
+import familychore.core.generated.resources.create_family_nickname_label
+import familychore.core.generated.resources.create_family_title
 import org.aals.family.chore.core.presentation.ObserveAsEvents
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -59,14 +65,14 @@ fun CreateFamilyScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Create Your Family",
+                text = stringResource(Res.string.create_family_title),
                 style = MaterialTheme.typography.headlineMedium
             )
             Spacer(modifier = Modifier.height(32.dp))
             OutlinedTextField(
                 value = state.familyName,
                 onValueChange = { onAction(CreateFamilyAction.OnFamilyNameChange(it)) },
-                label = { Text("Family Name") },
+                label = { Text(stringResource(Res.string.create_family_name_label)) },
                 modifier = Modifier.fillMaxWidth(),
                 isError = state.familyNameError != null,
                 supportingText = state.familyNameError?.let { { Text(it.asString()) } }
@@ -75,7 +81,7 @@ fun CreateFamilyScreen(
             OutlinedTextField(
                 value = state.parentNickname,
                 onValueChange = { onAction(CreateFamilyAction.OnParentNicknameChange(it)) },
-                label = { Text("Your Nickname (Parent)") },
+                label = { Text(stringResource(Res.string.create_family_nickname_label)) },
                 modifier = Modifier.fillMaxWidth(),
                 isError = state.nicknameError != null,
                 supportingText = state.nicknameError?.let { { Text(it.asString()) } }
@@ -88,7 +94,7 @@ fun CreateFamilyScreen(
                     onClick = { onAction(CreateFamilyAction.OnCreateClick) },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Create Family")
+                    Text(stringResource(Res.string.create_family_action))
                 }
             }
             if (state.error != null) {

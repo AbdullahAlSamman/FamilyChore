@@ -33,6 +33,27 @@ class FakeAuthRepository : AuthRepository {
     override suspend fun confirmPairing(pairingToken: String, userId: String): Result<User, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
     override suspend fun setupPin(userId: String, pin: String): Result<Unit, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
     override suspend fun verifyPin(userId: String, pin: String): Result<Unit, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
+
+    override suspend fun addChildUser(
+        familyId: String,
+        nickname: String,
+        requiresPin: Boolean
+    ): Result<User, DataError.Network> {
+        val user = User("new", familyId, nickname, org.aals.family.chore.core.domain.model.UserRole.CHILD, 0, requiresPin)
+        familyMembers.add(user)
+        return Result.Success(user)
+    }
+
+    override suspend fun updateUserPinRequirement(
+        userId: String,
+        requiresPin: Boolean
+    ): Result<Unit, DataError.Network> = Result.Success(Unit)
+
+    override suspend fun getUser(userId: String): Result<User, DataError.Network> {
+        val user = familyMembers.find { it.id == userId } ?: User(userId, "family1", "User", org.aals.family.chore.core.domain.model.UserRole.CHILD, 0)
+        return Result.Success(user)
+    }
+
     override suspend fun getCurrentUser(): Result<User, DataError.Network> {
         return currentUser?.let { Result.Success(it) } ?: Result.Error(DataError.Network.UNKNOWN)
     }
@@ -69,4 +90,34 @@ class FakeChoreRepository : ChoreRepository {
 class FakeConnectivityRepository : ConnectivityRepository {
     override val isServerReachable = MutableStateFlow(true)
     override suspend fun checkHealth(): Result<Unit, DataError.Network> = Result.Success(Unit)
+}
+
+class FakeTokenStorage : org.aals.family.chore.core.domain.repository.TokenStorage {
+    override val token = MutableStateFlow<String?>(null)
+    override val familyId = MutableStateFlow<String?>(null)
+    override val userId = MutableStateFlow<String?>(null)
+    override val serverUrl = MutableStateFlow<String?>(null)
+    override val serverName = MutableStateFlow<String?>(null)
+
+    override suspend fun saveToken(token: String) { this.token.value = token }
+    override suspend fun getToken(): String? = token.value
+    override suspend fun saveFamilyId(familyId: String) { this.familyId.value = familyId }
+    override suspend fun getFamilyId(): String? = familyId.value
+    override suspend fun saveUserId(userId: String) { this.userId.value = userId }
+    override suspend fun getUserId(): String? = userId.value
+    override suspend fun saveServerUrl(url: String) { this.serverUrl.value = url }
+    override suspend fun getServerUrl(): String? = serverUrl.value
+    override suspend fun saveServerName(name: String) { this.serverName.value = name }
+    override suspend fun getServerName(): String? = serverName.value
+    override suspend fun clear() {
+        token.value = null
+        familyId.value = null
+        userId.value = null
+        serverUrl.value = null
+        serverName.value = null
+    }
+    override suspend fun clearAuth() {
+        token.value = null
+        userId.value = null
+    }
 }

@@ -51,6 +51,7 @@ object UsersTable : Table("users") {
     val nickname = varchar("nickname", 100)
     val role = varchar("role", 20)
     val points = integer("points").default(0)
+    val requiresPin = bool("requires_pin").default(true)
 
     override val primaryKey = PrimaryKey(id)
 }

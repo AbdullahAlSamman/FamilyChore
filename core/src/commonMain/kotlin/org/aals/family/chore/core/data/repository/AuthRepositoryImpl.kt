@@ -48,6 +48,28 @@ class AuthRepositoryImpl(
         return pairingDataSource.getFamilyMembers(familyId).map { it.users }
     }
 
+    override suspend fun addChildUser(
+        familyId: String,
+        nickname: String,
+        requiresPin: Boolean
+    ): Result<User, DataError.Network> {
+        logger.d { "Adding child user: $nickname to family: $familyId" }
+        return pairingDataSource.addChildUser(familyId, nickname, requiresPin)
+    }
+
+    override suspend fun updateUserPinRequirement(
+        userId: String,
+        requiresPin: Boolean
+    ): Result<Unit, DataError.Network> {
+        logger.d { "Updating pin requirement for user: $userId to $requiresPin" }
+        return pairingDataSource.updateUserPinRequirement(userId, requiresPin)
+    }
+
+    override suspend fun getUser(userId: String): Result<User, DataError.Network> {
+        logger.d { "Fetching user profile: $userId" }
+        return pairingDataSource.getUser(userId)
+    }
+
     override suspend fun confirmPairing(pairingToken: String, userId: String): Result<User, DataError.Network> {
         logger.d { "Confirming pairing for user: $userId" }
         return pairingDataSource.confirmPairing(pairingToken, userId).map { response ->

@@ -57,3 +57,15 @@ data class VerifyPinRequest(
     val userId: String,
     val pin: String
 )
+
+@Serializable
+data class AddUserRequest(
+    val nickname: String,
+    val role: UserRole,
+    val requiresPin: Boolean = true
+)
+
+@Serializable
+data class UpdateUserSettingsRequest(
+    val requiresPin: Boolean
+)

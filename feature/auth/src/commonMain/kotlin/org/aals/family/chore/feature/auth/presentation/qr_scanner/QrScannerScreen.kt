@@ -26,7 +26,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.cancel
+import familychore.core.generated.resources.qr_error_permission
+import familychore.core.generated.resources.qr_scan_instructions
+import familychore.core.generated.resources.qr_scan_title
+import familychore.core.generated.resources.submit
 import org.aals.family.chore.core.presentation.ObserveAsEvents
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -75,10 +82,10 @@ fun QrScannerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Scan QR Code") },
+                title = { Text(stringResource(Res.string.qr_scan_title)) },
                 navigationIcon = {
                     IconButton(onClick = { onAction(QrScannerAction.OnBackClick) }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(Res.string.cancel))
                     }
                 }
             )
@@ -110,10 +117,10 @@ fun QrScannerScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Camera permission required", color = Color.White)
+                            Text(stringResource(Res.string.qr_error_permission), color = Color.White)
                             Spacer(modifier = Modifier.height(8.dp))
                             IconButton(onClick = { onAction(QrScannerAction.OnRetryPermissionClick) }) {
-                                Icon(Icons.Default.Refresh, contentDescription = "Retry", tint = Color.White)
+                                Icon(Icons.Default.Refresh, contentDescription = stringResource(Res.string.submit), tint = Color.White)
                             }
                         }
                     }
@@ -122,7 +129,7 @@ fun QrScannerScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Point your camera at the QR code on the parent device.")
+            Text(stringResource(Res.string.qr_scan_instructions))
 
             val error = (state as? QrScannerState.Scanning)?.error
             error?.let {

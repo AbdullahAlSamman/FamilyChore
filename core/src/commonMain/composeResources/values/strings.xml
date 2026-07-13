@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="app_name">FamilyChore</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="ok">OK</string>
+    <string name="submit">Submit</string>
+    <string name="skip">Skip</string>
+    <string name="connect">Connect</string>
+    <string name="error_unknown">Unknown error occurred</string>
+    <string name="settings">Settings</string>
+    <string name="pts_suffix">%1$d pts</string>
+
+    <!-- Server Discovery -->
+    <string name="discovery_title">Server Discovery</string>
+    <string name="discovery_error_unreachable">Cached server is unreachable. Please scan again or connect manually.</string>
+    <string name="discovery_looking">Looking for FamilyChore Servers...</string>
+    <string name="discovery_no_servers">No servers found on your local network.</string>
+    <string name="discovery_instruction">Ensure your server is running and on the same Wi-Fi network.</string>
+    <string name="discovery_manual_title">Connect Manually</string>
+    <string name="discovery_url_label">Server URL</string>
+
+    <!-- Welcome -->
+    <string name="welcome_title_to">Welcome to %1$s</string>
+    <string name="welcome_title_generic">Welcome to FamilyChore</string>
+    <string name="welcome_subtitle">Get started by setting up your family hub or joining an existing one.</string>
+    <string name="welcome_login_existing">Log in to existing family:</string>
+    <string name="welcome_or">OR</string>
+    <string name="welcome_setup_family">Setup New Family</string>
+    <string name="welcome_join_family">Join Existing Family</string>
+
+    <!-- Create Family -->
+    <string name="create_family_title">Create Your Family</string>
+    <string name="create_family_name_label">Family Name</string>
+    <string name="create_family_nickname_label">Your Nickname (Parent)</string>
+    <string name="create_family_action">Create Family</string>
+
+    <!-- QR Scanner -->
+    <string name="qr_scan_title">Scan QR Code</string>
+    <string name="qr_scan_instructions">Point your camera at the QR code on the parent device.</string>
+    <string name="qr_error_permission">Camera permission required</string>
+    <string name="qr_error_invalid">Invalid QR code</string>
+
+    <!-- User Selection -->
+    <string name="user_selection_title">Select Profile</string>
+
+    <!-- PIN Entry -->
+    <string name="pin_title">Enter PIN</string>
+    <string name="pin_instructions">Enter your 4-digit PIN to continue.</string>
+    <string name="pin_label">PIN</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">Dashboard</string>
+    <string name="dashboard_logout">Logout</string>
+    <string name="dashboard_offline_banner">Server Unreachable - Offline Mode</string>
+
+    <!-- Dashboard Tabs -->
+    <string name="dashboard_tab_overview">Overview</string>
+    <string name="dashboard_tab_tasks">Tasks</string>
+    <string name="dashboard_tab_behavior">Behavior</string>
+    <string name="dashboard_tab_rewards">Rewards</string>
+    <string name="dashboard_tab_family">Family</string>
+    <string name="dashboard_tab_today">Today</string>
+    <string name="dashboard_tab_history">History</string>
+    <string name="dashboard_tab_store">Store</string>
+
+    <!-- Family Management -->
+    <string name="family_management_title">Family Members</string>
+    <string name="family_management_add_child">Add Child</string>
+    <string name="family_management_nickname_label">Nickname</string>
+    <string name="family_management_require_pin">Require PIN</string>
+    <string name="family_management_invite_member">Invite Member</string>
+    <string name="family_management_quick_join">Quick Join</string>
+    <string name="family_management_token_expiry">Token expires in 10 minutes</string>
+
+    <!-- Task Management -->
+    <string name="task_management_title">Task Management</string>
+    <string name="task_management_add_chore">Add Chore</string>
+    <string name="task_management_name_label">Chore Name</string>
+    <string name="task_management_points_label">Points</string>
+    <string name="task_management_save_action">Save Chore</string>
+    <string name="task_management_assign_to">Assign to:</string>
+    <string name="task_management_empty">No chores created yet.</string>
+    <string name="task_today_title">Today\'s Tasks</string>
+    <string name="task_today_empty">No tasks assigned for today yet!</string>
+    <string name="task_summary_review_count">Tasks to review: %1$d</string>
+    <string name="task_status_prefix">Status: %1$s</string>
+
+    <!-- Behavior -->
+    <string name="behavior_title">Behavior Management</string>
+    <string name="behavior_award_to">Award to:</string>
+
+    <!-- History & Transactions -->
+    <string name="dashboard_points_label">Your Points</string>
+    <string name="transaction_default_note">Points Update</string>
+    <string name="transaction_id_prefix">ID: %1$s</string>
+</resources>

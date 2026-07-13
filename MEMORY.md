@@ -35,8 +35,14 @@ This file tracks critical architectural decisions and domain rules for the Famil
 - **Test-Driven Execution**: Every implementation phase MUST conclude with comprehensive unit tests before proceeding to the next phase. Foundation testing (Result, SafeCall mapping, UiText) is complete.
 - **Server Discovery**: Onboarding includes an automated search for the local Ktor server (mDNS/Network scanning). Once found, the IP is cached in `TokenStorage` and reused for all subsequent requests.
 - **Session Persistence**: `TokenStorage` persists `token`, `familyId`, and `userId` to maintain user context across app restarts.
-- **Pairing Flow**: Onboarding uses a real-time QR handshake (CameraX/ML Kit). QR content is a JSON `PairingToken` (ip, token). Joining a family involves scanning, fetching users via token, and picking a profile.
-- **PIN Authentication**: 4-digit PIN is verified against the server. During onboarding, the parent sets a PIN (setup mode), and subsequent joins or re-auths use verification mode.
+- **STRICT LOCALIZATION & NAMING CONVENTION**: All user-facing strings MUST be defined in `composeResources/values/strings.xml`. Arabic support (`values-ar/strings.xml`) is mandatory. 
+    - **Naming Convention**: `[feature/screen]_[description]` (e.g., `welcome_title`, `discovery_no_servers`).
+    - **Element Type (Optional)**: `[feature/screen]_[type]_[description]` (e.g., `login_btn_submit`, `home_lbl_points`).
+    - **Shared Strings**: Generic strings like `ok`, `cancel`, `save` use their base name without a prefix.
+    - **Case**: Always use `snake_case`.
+    - **State**: Use `UiText` in ViewModels to handle localized resources.
+- **Pairing Flow**: Onboarding uses a real-time QR handshake (CameraX/ML Kit). QR content is a JSON `PairingToken` (ip, token, familyName, userId). Joining a family involves scanning, fetching users via token, and picking a profile.
+- **PIN Authentication**: 4-digit PIN is verified against the server. Child PINs are optional (managed via `requiresPin` flag). During onboarding, the parent sets a PIN (setup mode), and subsequent joins or re-auths use verification mode unless disabled.
 - **Points Economy**: Points are managed via a local transaction ledger (Room) as the Single Source of Truth. Each point movement (Chore, Bonus, Penalty, Redemption) is recorded as a `Transaction` entity. Parents can award points directly via a dedicated **Behavior** management tab.
 - **Role-Based Dashboard**: The main UI uses a role-sensitive navigation system (Bottom Navigation Bar).
     - **Parents**: 5-tab system (Overview, Tasks, Behavior, Rewards, Family).

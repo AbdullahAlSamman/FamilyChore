@@ -34,8 +34,8 @@ class SqlFamilyRepository : FamilyRepository {
             .singleOrNull()
     }
 
-    override suspend fun addUserToFamily(familyId: String, nickname: String, role: UserRole): User = dbQuery {
-        Logger.d { "Adding user $nickname ($role) to family $familyId" }
+    override suspend fun addUserToFamily(familyId: String, nickname: String, role: UserRole, requiresPin: Boolean): User = dbQuery {
+        Logger.d { "Adding user $nickname ($role, requiresPin=$requiresPin) to family $familyId" }
         val userId = UUID.randomUUID().toString()
         UsersTable.insert {
             it[id] = userId
@@ -43,8 +43,16 @@ class SqlFamilyRepository : FamilyRepository {
             it[UsersTable.nickname] = nickname
             it[UsersTable.role] = role.name
             it[points] = 0
+            it[UsersTable.requiresPin] = requiresPin
         }
-        User(userId, familyId, nickname, role, 0)
+        User(userId, familyId, nickname, role, 0, requiresPin)
+    }
+
+    override suspend fun updateUserPinRequirement(userId: String, requiresPin: Boolean): Unit = dbQuery {
+        Logger.d { "Updating pin requirement for $userId: $requiresPin" }
+        UsersTable.update({ UsersTable.id eq userId }) {
+            it[UsersTable.requiresPin] = requiresPin
+        }
     }
 
     override suspend fun getUsersInFamily(familyId: String): List<User> = dbQuery {
@@ -92,6 +100,7 @@ class SqlFamilyRepository : FamilyRepository {
         familyId = this[UsersTable.familyId],
         nickname = this[UsersTable.nickname],
         role = UserRole.valueOf(this[UsersTable.role]),
-        points = this[UsersTable.points]
+        points = this[UsersTable.points],
+        requiresPin = this[UsersTable.requiresPin]
     )
 }

@@ -22,10 +22,14 @@ class FakeTimeProvider(var staticTime: Long = 0L) : TimeProvider {
 class FakeAuthRepository : AuthRepository {
     var currentUser: User? = null
     var familyMembers = mutableListOf<User>()
+    var nextError: DataError.Network? = null
+    var nextPairingToken: String = "token123"
     
     override suspend fun createFamily(familyName: String, parentNickname: String): Result<User, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
     override suspend fun getFamilies(): Result<List<Family>, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
-    override suspend fun generatePairingToken(familyId: String): Result<String, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
+    override suspend fun generatePairingToken(familyId: String): Result<String, DataError.Network> {
+        return nextError?.let { Result.Error(it) } ?: Result.Success(nextPairingToken)
+    }
     override suspend fun getPairingUsers(pairingToken: String): Result<List<User>, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
     override suspend fun getFamilyMembers(familyId: String): Result<List<User>, DataError.Network> {
         return Result.Success(familyMembers)
@@ -39,9 +43,11 @@ class FakeAuthRepository : AuthRepository {
         nickname: String,
         requiresPin: Boolean
     ): Result<User, DataError.Network> {
-        val user = User("new", familyId, nickname, org.aals.family.chore.core.domain.model.UserRole.CHILD, 0, requiresPin)
-        familyMembers.add(user)
-        return Result.Success(user)
+        return nextError?.let { Result.Error(it) } ?: run {
+            val user = User("new", familyId, nickname, org.aals.family.chore.core.domain.model.UserRole.CHILD, 0, requiresPin)
+            familyMembers.add(user)
+            Result.Success(user)
+        }
     }
 
     override suspend fun updateUserPinRequirement(

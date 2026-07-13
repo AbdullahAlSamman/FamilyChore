@@ -5,6 +5,7 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.get
 import kotlinx.coroutines.test.runTest
+import org.aals.family.chore.core.data.repository.FakeTokenStorage
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -22,7 +23,7 @@ class HttpClientFactoryTest {
             override suspend fun getBaseUrl(): String = "http://localhost:8080/api/"
         }
 
-        val client = HttpClientFactory.create(engine, baseUrlProvider, Logger.withTag("Test"))
+        val client = HttpClientFactory.create(engine, baseUrlProvider, FakeTokenStorage(), Logger.withTag("Test"))
 
         client.get("auth/login")
     }
@@ -38,7 +39,7 @@ class HttpClientFactoryTest {
             override suspend fun getBaseUrl(): String = "http://localhost:8080/api/"
         }
 
-        val client = HttpClientFactory.create(engine, baseUrlProvider, Logger.withTag("Test"))
+        val client = HttpClientFactory.create(engine, baseUrlProvider, FakeTokenStorage(), Logger.withTag("Test"))
 
         client.get("https://other-server.com/test")
     }

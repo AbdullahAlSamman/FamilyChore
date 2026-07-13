@@ -38,7 +38,7 @@ class AuthRepositoryImplTest {
     }
 
     private fun createRepository(engine: MockEngine): AuthRepositoryImpl {
-        val httpClient = HttpClientFactory.create(engine, baseUrlProvider, Logger.withTag("Test"))
+        val httpClient = HttpClientFactory.create(engine, baseUrlProvider, tokenStorage, Logger.withTag("Test"))
         val dataSource = PairingDataSource(httpClient)
         return AuthRepositoryImpl(dataSource, tokenStorage, Logger.withTag("Test"))
     }

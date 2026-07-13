@@ -7,6 +7,7 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.test.runTest
+import org.aals.family.chore.core.data.repository.FakeTokenStorage
 import org.aals.family.chore.core.domain.util.Result
 import kotlin.test.Test
 
@@ -21,7 +22,7 @@ class ServerHealthDataSourceTest {
         val engine = MockEngine {
             respond("OK", HttpStatusCode.OK)
         }
-        val httpClient = HttpClientFactory.create(engine, baseUrlProvider, Logger.withTag("Test"))
+        val httpClient = HttpClientFactory.create(engine, baseUrlProvider, FakeTokenStorage(), Logger.withTag("Test"))
         val dataSource = KtorServerHealthDataSource(httpClient)
 
         val result = dataSource.checkHealth("http://localhost:8080")
@@ -34,7 +35,7 @@ class ServerHealthDataSourceTest {
         val engine = MockEngine {
             respond("Error", HttpStatusCode.InternalServerError)
         }
-        val httpClient = HttpClientFactory.create(engine, baseUrlProvider, Logger.withTag("Test"))
+        val httpClient = HttpClientFactory.create(engine, baseUrlProvider, FakeTokenStorage(), Logger.withTag("Test"))
         val dataSource = KtorServerHealthDataSource(httpClient)
 
         val result = dataSource.checkHealth("http://localhost:8080")

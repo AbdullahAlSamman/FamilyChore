@@ -33,7 +33,7 @@ val coreModule = module {
     includes(platformModule)
     single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     singleOf(::DefaultTimeProvider) { bind<TimeProvider>() }
-    single { HttpClientFactory.create(get(), get(), get { parametersOf("HttpClient") }) }
+    single { HttpClientFactory.create(get(), get(), get(), get { parametersOf("HttpClient") }) }
     factory { params -> LoggingInitializer.createLogger(params.getOrNull<String>() ?: "General") }
     singleOf(::TokenStorageBaseUrlProvider) { bind<BaseUrlProvider>() }
     singleOf(::PairingDataSource)

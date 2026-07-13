@@ -12,6 +12,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
+import org.aals.family.chore.feature.dashboard.domain.model.BehaviorDefaults
 import org.aals.family.chore.feature.dashboard.presentation.navigation.BehaviorRoute
 import org.aals.family.chore.feature.dashboard.presentation.navigation.ParentOverviewRoute
 import kotlin.test.AfterTest
@@ -99,7 +100,7 @@ class DashboardViewModelTest {
 
     @Test
     fun `AwardPoints action adds transaction`() = runTest {
-        val behaviorItem = viewModel.defaultBehaviorItems.first()
+        val behaviorItem = BehaviorDefaults.defaultItems.first()
         viewModel.onAction(DashboardAction.AwardPoints("child1", behaviorItem))
         
         assertThat(transactionRepository.addedTransactions.size).isEqualTo(1)
@@ -180,6 +181,69 @@ class DashboardViewModelTest {
             viewModel.onAction(DashboardAction.OnChoreNameChange("A"))
             val state = awaitItem() as DashboardState.Success
             assertThat(state.choreNameError).isEqualTo(null)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `Logout action sends Logout event`() = runTest {
+        viewModel.events.test {
+            viewModel.onAction(DashboardAction.Logout)
+            val event = awaitItem()
+            assertThat(event is DashboardEvent.Logout).isEqualTo(true)
+            val logoutEvent = event as DashboardEvent.Logout
+            assertThat(logoutEvent.familyId).isEqualTo("family1")
+            assertThat(logoutEvent.isServerOnline).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun `AddChild success adds user and shows QR`() = runTest {
+        viewModel.state.test {
+            awaitItem() // Initial Success
+            viewModel.onAction(DashboardAction.AddChild("Charlie", true))
+            
+            // Should show loading state/flag if implemented, but here it's fast
+            val stateAfterAdd = awaitItem() as DashboardState.Success
+            assertThat(stateAfterAdd.inviteQrContent != null).isEqualTo(true)
+            assertThat(authRepository.familyMembers.any { it.nickname == "Charlie" }).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `ShowInviteQr generates QR content`() = runTest {
+        viewModel.state.test {
+            awaitItem()
+            viewModel.onAction(DashboardAction.ShowInviteQr("child1"))
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.inviteQrContent != null).isEqualTo(true)
+            assertThat(state.inviteQrContent!!.contains("child1")).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `DismissInviteQr clears QR content`() = runTest {
+        viewModel.state.test {
+            awaitItem()
+            viewModel.onAction(DashboardAction.ShowInviteQr("child1"))
+            awaitItem()
+            
+            viewModel.onAction(DashboardAction.DismissInviteQr)
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.inviteQrContent).isEqualTo(null)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `Connectivity changes update state`() = runTest {
+        viewModel.state.test {
+            awaitItem()
+            connectivityRepository.isServerReachable.value = false
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.isServerReachable).isEqualTo(false)
             cancelAndIgnoreRemainingEvents()
         }
     }

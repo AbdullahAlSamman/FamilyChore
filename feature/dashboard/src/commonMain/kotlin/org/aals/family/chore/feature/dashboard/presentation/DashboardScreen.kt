@@ -279,15 +279,25 @@ fun ParentTasksContent(
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = choreName,
-                        onValueChange = { choreName = it },
+                        onValueChange = { 
+                            choreName = it 
+                            onAction(DashboardAction.OnChoreNameChange(it))
+                        },
                         label = { Text("Chore Name") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = state.choreNameError != null,
+                        supportingText = state.choreNameError?.let { { Text(it.asString()) } }
                     )
                     OutlinedTextField(
                         value = chorePoints,
-                        onValueChange = { chorePoints = it },
+                        onValueChange = { 
+                            chorePoints = it 
+                            onAction(DashboardAction.OnChorePointsChange(it))
+                        },
                         label = { Text("Points") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = state.chorePointsError != null,
+                        supportingText = state.chorePointsError?.let { { Text(it.asString()) } }
                     )
                     
                     Text("Assign to:", style = MaterialTheme.typography.labelMedium)

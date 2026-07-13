@@ -15,4 +15,6 @@ sealed interface DashboardAction {
         val description: String?,
         val assignedTo: String
     ) : DashboardAction
+    data class OnChoreNameChange(val name: String) : DashboardAction
+    data class OnChorePointsChange(val points: String) : DashboardAction
 }

@@ -47,11 +47,13 @@ class CreateFamilyViewModelTest {
     }
 
     @Test
-    fun `creating family with empty fields sets error`() = runTest {
+    fun `creating family with empty fields sets field errors`() = runTest {
         viewModel.onAction(CreateFamilyAction.OnCreateClick)
         
         viewModel.state.test {
-            assertThat(awaitItem().error).isEqualTo("Please fill all fields")
+            val state = awaitItem()
+            assertThat(state.familyNameError != null).isEqualTo(true)
+            assertThat(state.nicknameError != null).isEqualTo(true)
         }
     }
 }

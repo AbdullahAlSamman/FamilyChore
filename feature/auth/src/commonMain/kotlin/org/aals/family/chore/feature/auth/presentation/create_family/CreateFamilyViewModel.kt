@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
+import org.aals.family.chore.core.domain.validation.AuthValidator
+import org.aals.family.chore.core.presentation.toUiText
 
 class CreateFamilyViewModel(
     private val authRepository: AuthRepository,
@@ -27,10 +29,10 @@ class CreateFamilyViewModel(
     fun onAction(action: CreateFamilyAction) {
         when (action) {
             is CreateFamilyAction.OnFamilyNameChange -> {
-                _state.update { it.copy(familyName = action.name) }
+                _state.update { it.copy(familyName = action.name, familyNameError = null) }
             }
             is CreateFamilyAction.OnParentNicknameChange -> {
-                _state.update { it.copy(parentNickname = action.nickname) }
+                _state.update { it.copy(parentNickname = action.nickname, nicknameError = null) }
             }
             CreateFamilyAction.OnCreateClick -> createFamily()
             CreateFamilyAction.OnBackClick -> {
@@ -42,18 +44,26 @@ class CreateFamilyViewModel(
     }
 
     private fun createFamily() {
-        val familyName = _state.value.familyName
-        val parentNickname = _state.value.parentNickname
+        val familyName = _state.value.familyName.trim()
+        val parentNickname = _state.value.parentNickname.trim()
 
-        logger.d { "Creating family: $familyName (Parent: $parentNickname)" }
+        val familyNameError = AuthValidator.validateFamilyName(familyName)
+        val nicknameError = AuthValidator.validateNickname(parentNickname)
 
-        if (familyName.isBlank() || parentNickname.isBlank()) {
-            _state.update { it.copy(error = "Please fill all fields") }
+        if (familyNameError != null || nicknameError != null) {
+            _state.update { 
+                it.copy(
+                    familyNameError = familyNameError?.toUiText(),
+                    nicknameError = nicknameError?.toUiText()
+                )
+            }
             return
         }
 
+        logger.d { "Creating family: $familyName (Parent: $parentNickname)" }
+
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
+            _state.update { it.copy(isLoading = true, error = null) }
             authRepository.createFamily(familyName, parentNickname)
                 .onSuccess { user ->
                     _state.update { it.copy(isLoading = false) }

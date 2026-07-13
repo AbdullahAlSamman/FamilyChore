@@ -127,6 +127,61 @@ class DashboardViewModelTest {
     }
 
     @Test
+    fun `CreateChore with empty name shows error`() = runTest {
+        viewModel.state.test {
+            awaitItem() // Initial state
+            val action = DashboardAction.CreateChore(
+                name = "",
+                points = 20,
+                description = null,
+                assignedTo = "child1"
+            )
+            viewModel.onAction(action)
+            
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.choreNameError != null).isEqualTo(true)
+            assertThat(choreRepository.createdChores.isEmpty()).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `CreateChore with zero points shows error`() = runTest {
+        viewModel.state.test {
+            awaitItem() // Initial state
+            val action = DashboardAction.CreateChore(
+                name = "Valid Name",
+                points = 0,
+                description = null,
+                assignedTo = "child1"
+            )
+            viewModel.onAction(action)
+            
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.chorePointsError != null).isEqualTo(true)
+            assertThat(choreRepository.createdChores.isEmpty()).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `OnChoreNameChange clears error`() = runTest {
+        viewModel.state.test {
+            awaitItem() // Initial state
+            
+            // Trigger error
+            viewModel.onAction(DashboardAction.CreateChore("", 10, null, "child1"))
+            awaitItem()
+            
+            // Change name
+            viewModel.onAction(DashboardAction.OnChoreNameChange("A"))
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.choreNameError).isEqualTo(null)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `Error state when current user fails`() = runTest {
         authRepository.currentUser = null
         val newViewModel = DashboardViewModel(

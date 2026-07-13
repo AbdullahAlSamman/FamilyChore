@@ -13,6 +13,7 @@ import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
+import org.aals.family.chore.core.domain.util.TimeProvider
 import org.aals.family.chore.core.domain.util.map
 import org.aals.family.chore.core.domain.util.onSuccess
 import kotlinx.coroutines.flow.map as flowMap
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.map as flowMap
 class ChoreRepositoryImpl(
     private val choreDao: ChoreDao,
     private val choreDataSource: ChoreDataSource,
+    private val timeProvider: TimeProvider,
     private val logger: Logger
 ) : ChoreRepository {
     override fun getChoresForFamily(familyId: String): Flow<List<Chore>> {
@@ -62,7 +64,12 @@ class ChoreRepositoryImpl(
         // Optimistic update
         val currentChore = choreDao.getChoreById(choreId, familyId)
         if (currentChore != null) {
-            choreDao.upsertChore(currentChore.copy(status = newStatus.name))
+            choreDao.upsertChore(
+                currentChore.copy(
+                    status = newStatus.name,
+                    updatedAt = timeProvider.now()
+                )
+            )
         }
 
         val request = UpdateChoreStatusRequest(

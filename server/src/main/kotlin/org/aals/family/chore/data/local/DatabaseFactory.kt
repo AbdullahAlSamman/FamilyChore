@@ -30,7 +30,7 @@ object DatabaseFactory {
         Database.connect(dataSource)
 
         transaction {
-            SchemaUtils.create(FamiliesTable, UsersTable, PinsTable, TransactionsTable, RewardsTable)
+            SchemaUtils.create(FamiliesTable, UsersTable, PinsTable, TransactionsTable, RewardsTable, ChoresTable)
         }
     }
 
@@ -81,6 +81,21 @@ object RewardsTable : Table("rewards") {
     val title = varchar("title", 100)
     val description = varchar("description", 255)
     val pointCost = integer("point_cost")
+
+    override val primaryKey = PrimaryKey(id)
+}
+
+object ChoresTable : Table("chores") {
+    val id = varchar("id", 50)
+    val familyId = varchar("family_id", 50) references FamiliesTable.id
+    val name = varchar("name", 100)
+    val description = varchar("description", 255).nullable()
+    val points = integer("points")
+    val status = varchar("status", 20)
+    val assignedTo = varchar("assigned_to", 50) references UsersTable.id
+    val createdBy = varchar("created_by", 50) references UsersTable.id
+    val createdAt = long("created_at")
+    val updatedAt = long("updated_at")
 
     override val primaryKey = PrimaryKey(id)
 }

@@ -3,10 +3,13 @@ package org.aals.family.chore.feature.dashboard.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.aals.family.chore.core.domain.model.BehaviorItem
@@ -28,9 +31,15 @@ import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
 import org.aals.family.chore.core.domain.validation.AuthValidator
 import org.aals.family.chore.core.domain.validation.ChoreValidator
+import org.aals.family.chore.core.presentation.UiText
 import org.aals.family.chore.core.presentation.toUiText
+import org.aals.family.chore.feature.dashboard.domain.model.BehaviorDefaults
 import org.aals.family.chore.feature.dashboard.presentation.navigation.ChildTodayRoute
 import org.aals.family.chore.feature.dashboard.presentation.navigation.ParentOverviewRoute
+
+sealed interface DashboardEvent {
+    data class Logout(val isServerOnline: Boolean, val familyId: String?) : DashboardEvent
+}
 
 class DashboardViewModel(
     private val authRepository: AuthRepository,
@@ -45,17 +54,8 @@ class DashboardViewModel(
     private val _state = MutableStateFlow<DashboardState>(DashboardState.Loading)
     val state = _state.asStateFlow()
 
-    internal val mockChildren = listOf(
-        User("child1", "family1", "Alice", UserRole.CHILD, 100),
-        User("child2", "family1", "Bob", UserRole.CHILD, 50)
-    )
-
-    internal val defaultBehaviorItems = listOf(
-        BehaviorItem("1", "", "Politeness", 10),
-        BehaviorItem("2", "", "Helping others", 15),
-        BehaviorItem("3", "", "Rudeness", -10),
-        BehaviorItem("4", "", "Ignoring instructions", -20)
-    )
+    private val _events = Channel<DashboardEvent>()
+    val events = _events.receiveAsFlow()
 
     init {
         loadDashboardData()
@@ -66,33 +66,26 @@ class DashboardViewModel(
         when (action) {
             DashboardAction.Refresh -> loadDashboardData(isRefreshing = true)
             DashboardAction.Logout -> {
-                // Logout is handled by the Root/App level via callback
+                val currentState = _state.value
+                val isOnline = (currentState as? DashboardState.Success)?.isServerReachable ?: false
+                val familyId = (currentState as? DashboardState.Success)?.user?.familyId
+                viewModelScope.launch {
+                    _events.send(DashboardEvent.Logout(isOnline, familyId))
+                }
             }
             is DashboardAction.ChangeTab -> {
-                val currentState = _state.value
-                if (currentState is DashboardState.Success) {
-                    _state.value = currentState.copy(currentTab = action.tab)
-                }
+                updateSuccessState { it.copy(currentTab = action.tab) }
             }
             is DashboardAction.SelectAssignee -> {
-                val currentState = _state.value
-                if (currentState is DashboardState.Success) {
-                    _state.value = currentState.copy(selectedAssigneeId = action.userId)
-                }
+                updateSuccessState { it.copy(selectedAssigneeId = action.userId) }
             }
             is DashboardAction.AwardPoints -> awardPoints(action.targetUserId, action.item)
             is DashboardAction.CreateChore -> createChore(action)
             is DashboardAction.OnChoreNameChange -> {
-                val currentState = _state.value
-                if (currentState is DashboardState.Success) {
-                    _state.value = currentState.copy(choreNameError = null)
-                }
+                updateSuccessState { it.copy(choreNameError = null) }
             }
             is DashboardAction.OnChorePointsChange -> {
-                val currentState = _state.value
-                if (currentState is DashboardState.Success) {
-                    _state.value = currentState.copy(chorePointsError = null)
-                }
+                updateSuccessState { it.copy(chorePointsError = null) }
             }
             is DashboardAction.OnChildNicknameChange -> {
                 updateSuccessState { it.copy(newChildNickname = action.nickname, childNicknameError = null) }
@@ -174,10 +167,12 @@ class DashboardViewModel(
         val assigneeError = ChoreValidator.validateAssignee(action.assignedTo)
         
         if (nameError != null || pointsError != null || assigneeError != null) {
-            _state.value = currentState.copy(
-                choreNameError = nameError?.toUiText(),
-                chorePointsError = pointsError?.toUiText()
-            )
+            updateSuccessState {
+                it.copy(
+                    choreNameError = nameError?.toUiText(),
+                    chorePointsError = pointsError?.toUiText()
+                )
+            }
             return
         }
 
@@ -196,7 +191,7 @@ class DashboardViewModel(
                 updatedAt = now
             )
             // Clear errors before attempting to save
-            _state.value = currentState.copy(choreNameError = null, chorePointsError = null)
+            updateSuccessState { it.copy(choreNameError = null, chorePointsError = null) }
             
             choreRepository.createChore(chore)
                 .onFailure { error ->
@@ -227,8 +222,12 @@ class DashboardViewModel(
         }
     }
 
+    private var observationsJob: kotlinx.coroutines.Job? = null
+    private var loadJob: kotlinx.coroutines.Job? = null
+
     private fun loadDashboardData(isRefreshing: Boolean = false) {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             if (isRefreshing) {
                 updateSuccessState { it.copy(isRefreshing = true) }
             } else {
@@ -249,45 +248,50 @@ class DashboardViewModel(
                             ?: familyMembers.firstOrNull()?.id,
                         transactions = emptyList(),
                         chores = emptyList(),
-                        behaviorItems = if (user.role == UserRole.PARENT) defaultBehaviorItems else emptyList(),
+                        behaviorItems = if (user.role == UserRole.PARENT) BehaviorDefaults.defaultItems else emptyList(),
                         currentTab = if (user.role == UserRole.PARENT) ParentOverviewRoute else ChildTodayRoute,
                         isRefreshing = false
                     )
 
-                    // Observe transactions and chores
-                    transactionRepository.getTransactionsForUser(user.id)
-                        .onEach { transactions ->
-                            updateSuccessState { it.copy(transactions = transactions) }
-                        }
-                        .launchIn(viewModelScope)
+                    // Restart observations for the new user
+                    observationsJob?.cancel()
+                    observationsJob = viewModelScope.launch {
+                        transactionRepository.getTransactionsForUser(user.id)
+                            .onEach { transactions ->
+                                updateSuccessState { it.copy(transactions = transactions) }
+                            }
+                            .launchIn(this)
 
-                    choreRepository.getChoresForUser(user.id)
-                        .onEach { chores ->
-                            updateSuccessState { it.copy(chores = chores) }
-                        }
-                        .launchIn(viewModelScope)
+                        choreRepository.getChoresForUser(user.id)
+                            .onEach { chores ->
+                                updateSuccessState { it.copy(chores = chores) }
+                            }
+                            .launchIn(this)
+                    }
                 }
                 .onFailure { error ->
                     logger.e { "Failed to load dashboard data: $error" }
-                    _state.value = DashboardState.Error("Failed to load profile. Please login again.")
+                    _state.value = DashboardState.Error(
+                        UiText.DynamicString("Failed to load profile. Please login again.")
+                    )
                 }
         }
     }
 
     private fun updateSuccessState(update: (DashboardState.Success) -> DashboardState.Success) {
-        val currentState = _state.value
-        if (currentState is DashboardState.Success) {
-            _state.value = update(currentState)
+        _state.update { currentState ->
+            if (currentState is DashboardState.Success) {
+                update(currentState)
+            } else {
+                currentState
+            }
         }
     }
 
     private fun observeConnectivity() {
         connectivityRepository.isServerReachable
             .onEach { isReachable ->
-                val currentState = _state.value
-                if (currentState is DashboardState.Success) {
-                    _state.value = currentState.copy(isServerReachable = isReachable)
-                }
+                updateSuccessState { it.copy(isServerReachable = isReachable) }
             }
             .launchIn(viewModelScope)
     }

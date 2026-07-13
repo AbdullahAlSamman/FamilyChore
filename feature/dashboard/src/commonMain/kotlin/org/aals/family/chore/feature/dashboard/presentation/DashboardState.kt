@@ -29,5 +29,5 @@ sealed interface DashboardState {
         val isAddingChild: Boolean = false,
         val inviteQrContent: String? = null
     ) : DashboardState
-    data class Error(val message: String) : DashboardState
+    data class Error(val message: UiText) : DashboardState
 }

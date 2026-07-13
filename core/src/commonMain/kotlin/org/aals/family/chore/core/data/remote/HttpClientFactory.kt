@@ -3,6 +3,7 @@ package org.aals.family.chore.core.data.remote
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
@@ -15,12 +16,14 @@ import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import org.aals.family.chore.core.domain.repository.TokenStorage
 import co.touchlab.kermit.Logger as KermitLogger
 
 object HttpClientFactory {
     fun create(
         engine: HttpClientEngine,
         baseUrlProvider: BaseUrlProvider,
+        tokenStorage: TokenStorage,
         kermitLogger: KermitLogger
     ): HttpClient {
         return HttpClient(engine) {
@@ -42,8 +45,7 @@ object HttpClientFactory {
             install(Auth) {
                 bearer {
                     loadTokens {
-                        // TODO: Load from DataStore
-                        null
+                        tokenStorage.getToken()?.let { BearerTokens(it, "") }
                     }
                     refreshTokens {
                         // TODO: Implement refresh logic

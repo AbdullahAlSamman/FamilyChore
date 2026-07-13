@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.feature.auth.presentation.navigation.AuthGraph
 import org.aals.family.chore.feature.auth.presentation.navigation.ServerDiscoveryRoute
+import org.aals.family.chore.feature.auth.presentation.navigation.UserSelectionRoute
 import org.aals.family.chore.feature.auth.presentation.navigation.authGraph
 import org.aals.family.chore.feature.dashboard.presentation.navigation.DashboardGraph
 import org.aals.family.chore.feature.dashboard.presentation.navigation.dashboardGraph
@@ -60,12 +61,19 @@ fun App(
 
                     dashboardGraph(
                         navController = navController,
-                        onLogout = {
+                        onLogout = { isServerOnline, familyId ->
                             scope.launch {
-                                logger.d { "Logging out" }
-                                tokenStorage.clear()
-                                navController.navigate(AuthGraph) {
-                                    popUpTo(DashboardGraph) { inclusive = true }
+                                logger.d { "Logging out (online: $isServerOnline)" }
+                                if (isServerOnline && familyId != null) {
+                                    tokenStorage.clearAuth()
+                                    navController.navigate(UserSelectionRoute(familyId = familyId)) {
+                                        popUpTo(DashboardGraph) { inclusive = true }
+                                    }
+                                } else {
+                                    tokenStorage.clear()
+                                    navController.navigate(AuthGraph) {
+                                        popUpTo(DashboardGraph) { inclusive = true }
+                                    }
                                 }
                             }
                         }

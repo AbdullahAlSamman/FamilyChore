@@ -60,6 +60,9 @@ class QrScannerViewModel(
             val pairingToken = Json.decodeFromString<PairingToken>(content)
             viewModelScope.launch {
                 tokenStorage.saveServerUrl(pairingToken.serverIp)
+                tokenStorage.saveToken(pairingToken.token)
+                pairingToken.familyId?.let { tokenStorage.saveFamilyId(it) }
+                pairingToken.userId?.let { tokenStorage.saveUserId(it) }
                 _events.send(QrScannerEvent.QrCodeDetected(pairingToken.serverIp, pairingToken.token))
             }
         } catch (e: Exception) {

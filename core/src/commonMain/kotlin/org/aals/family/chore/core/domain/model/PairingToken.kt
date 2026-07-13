@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class PairingToken(
     val token: String,
     val serverIp: String,
-    val familyId: String? = null
+    val familyId: String? = null,
+    val userId: String? = null
 )

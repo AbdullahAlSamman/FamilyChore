@@ -1,5 +1,5 @@
 # FamilyChore: Full Project Reference & Master Plan
-**Version: 1.0**
+**Version: 1.1**
 
 This document serves as the comprehensive "Source of Truth" for the **FamilyChore** project, consolidating vision, requirements, technical architecture, and the phased implementation roadmap.
 
@@ -30,6 +30,7 @@ FamilyChore is a high-engagement, gamified Kotlin Multiplatform (KMP) applicatio
 2. **Role-Based UX**: The app binary is unified, but UI branches into `Parent` or `Child` dashboards upon authentication.
 3. **SSOT**: Room is the single source of truth; networking only updates the database.
 4. **Local Network Discovery**: Automated scanning (mDNS) or QR-based IP exchange for server pairing.
+5. **Mandatory PIN Protection**: Security gating where every app session start requires user selection and PIN verification, even if an auth token exists.
 
 ---
 
@@ -43,14 +44,52 @@ sequenceDiagram
     participant C as Child Device
 
     P->>S: Generate Pairing Token
-    S-->>P: Token + Server IP
-    P->>P: Display QR Code
+    S-->>P: Token + Server IP + FamilyID + UserID
+    P->>P: Display QR Code (Full Credentials)
     C->>P: Scan QR Code
-    C->>S: Authenticate with Token
-    S-->>C: Pairing Success + Profile Selection
+    C->>C: Save Credentials to Storage
+    C->>S: Immediate Authentication
+    S-->>C: Pairing Success -> Navigate to Dashboard
 ```
 
-### B. Chore Verification Flow
+### B. App Startup & Session Flow
+```mermaid
+flowchart TD
+    Start((App Start))
+    Init{Routing Check}
+    Dashboard[Dashboard]
+    UserSelection[Profile Selection]
+    Discovery[Server Discovery]
+    Welcome[Welcome]
+    CreateFamily[Setup Family]
+    QrScanner[QR Scanner]
+    PinSetup[PIN Setup]
+    PinEntry[PIN Entry]
+    LogoutCheck{Server Online?}
+
+    Start --> Init
+    Init -->|Token Exists| UserSelection
+    Init -->|No Token, Server Online| Welcome
+    Init -->|No Server / Offline| Discovery
+    
+    Discovery --> Welcome 
+    Welcome -->|Setup Family| CreateFamily
+    Welcome -->|Join Family| QrScanner
+    Welcome -->|Existing Family| UserSelection
+    
+    QrScanner -->|Scan Full Creds| Dashboard
+    CreateFamily -->|Success| PinSetup
+    UserSelection -->|Select Profile| PinEntry
+    
+    PinSetup --> Dashboard
+    PinEntry --> Dashboard
+    
+    Dashboard -->|Logout Action| LogoutCheck
+    LogoutCheck -->|Yes| UserSelection
+    LogoutCheck -->|No| Discovery
+```
+
+### C. Chore Verification Flow
 ```mermaid
 sequenceDiagram
     participant C as Child Device
@@ -64,18 +103,6 @@ sequenceDiagram
     S->>C: Points Awarded / Try Again
 ```
 
-### C. Offline-First Sync
-```mermaid
-graph TD
-    A[Action: Complete Chore] --> B{Network Available?}
-    B -- No --> C[Store in Room PENDING_SYNC]
-    B -- Yes --> D[Push to Server]
-    C --> E[SyncWorker Triggered]
-    E --> F[Push PENDING to Server]
-    F --> G[Resolve Conflicts LWW]
-    G --> H[Update Local Room]
-```
-
 ---
 
 ## 5. Detailed Implementation Roadmap
@@ -85,46 +112,35 @@ graph TD
 
 ### Phase 6: Onboarding & Secure Pairing (COMPLETED)
 - **Server Discovery**: Automated search (mDNS/LAN) and IP caching for seamless server connection.
-- **QR-based pairing handshake**: Real-time camera scanning for device linking.
-- **Family creation flow**: Parent-driven family initialization.
-- **Profile selection and PIN-based authentication**: Setup & Verify modes with 4-digit security.
-- **Full unit test coverage**: All Auth features verified.
+- **QR Handshake**: Camera scanning for device linking.
+- **Family Creation**: Parent-driven family initialization and auto-pairing.
+- **Profile Selection & PIN**: Setup & Verify modes with 4-digit security.
 
 ### Phase 6.5: Smart Startup & Connectivity (COMPLETED)
 - **Health-Aware Startup**: Perform fast health check on cached server URL before navigating.
-- **Shared Device Readiness**: Startup always flows to **User Selection (Profile Picker)** if the server is healthy, ensuring a fresh user context.
-- **Real-time Connectivity**: Global `isServerReachable` monitor using **Kermit** for unified logging and state tracking.
+- **Real-time Connectivity**: Global `isServerReachable` monitor for unified state tracking.
 - **Graceful Fallback**: Re-entry to Server Discovery if the cached server is offline.
 
-### Phase 6.6: Server-Side Persistence (COMPLETED)
+### Phase 6.7: PIN Protection & QR Optimization (COMPLETED)
+- **PIN Gating**: Security enhancement where even with a valid session token, the app routes through `UserSelection` and `PinEntry` on startup.
+- **Enriched QR Onboarding**: QR codes now carry full credentials (`serverIp`, `familyId`, `userId`, `token`), enabling instant onboarding directly to the `Dashboard`.
+- **Session Management**: Added `clearAuth()` to allow clearing session data (logout) while preserving server/family configuration for quick profile switching.
+
+### Phase 6.8: Server-Side Persistence (COMPLETED)
 - **SQLite Database**: Migrated server from volatile in-memory storage to a persistent SQLite file using **Exposed** ORM.
-- **Auto-Schema**: Automatic table creation for Families, Users, and PINs on server startup.
-- **HikariCP**: Integrated connection pooling for robust server performance.
+- **Auto-Schema**: Automatic table creation for Families, Users, and PINs.
 
 ### Phase 7: The Points Economy (ACTIVE)
 - **Goal**: Implement the core token economy.
 - **Scope**: `Transaction` models, `TransactionRepository`, and Parent/Child Dashboards showing point balances and history.
-- **Offline Dashboard**: First implementation of offline-ready dashboard with cached data (Deferred from 6.5).
 
 ### Phase 8: Task Management
 - **Goal**: Core chore functionality.
 - **Scope**: Chore assignment (Parent), task list viewing (Child), and live-photo-only verification submission.
-
-### Phase 9: Behavioral Ledger (Dos & Don'ts)
-- **Goal**: Spontaneous feedback system.
-- **Scope**: UI for parents to quickly award bonus points (Dos) or apply penalties (Don'ts) outside of chores.
-
-### Phase 10: Reward Store
-- **Goal**: Point redemption.
-- **Scope**: Custom reward creation (Parent) and redemption requests (Child) requiring parent approval.
-
-### Phase 11: Real-time Sync & Background Workers
-- **Goal**: Robustness and liveness.
-- **Scope**: WebSocket integration for instant notifications and platform-specific workers (WorkManager/BGTasks) for background data integrity.
 
 ---
 
 ## 6. Domain Rules
 - **Live Photo Only**: Chore verification MUST use a live camera photo (no gallery uploads).
 - **Parental Override**: Parents can reset any child's PIN and override chore states.
-- **LWW Resolution**: Conflict resolution defaults to Last Write Wins (LWW) based on entity versioning.
+- **Session Security**: Active tokens do not bypass PIN entry on app launch; they only bypass the full server pairing flow.

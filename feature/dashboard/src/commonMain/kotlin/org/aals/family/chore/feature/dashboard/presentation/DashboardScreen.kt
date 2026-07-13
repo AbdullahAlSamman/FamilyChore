@@ -76,7 +76,7 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun DashboardRoot(
-    onLogout: () -> Unit,
+    onLogout: (isServerOnline: Boolean, familyId: String?) -> Unit,
     viewModel: DashboardViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -85,7 +85,10 @@ fun DashboardRoot(
         state = state,
         onAction = { action ->
             if (action is DashboardAction.Logout) {
-                onLogout()
+                val successState = state as? DashboardState.Success
+                val isOnline = successState?.isServerReachable ?: false
+                val familyId = successState?.user?.familyId
+                onLogout(isOnline, familyId)
             } else {
                 viewModel.onAction(action)
             }

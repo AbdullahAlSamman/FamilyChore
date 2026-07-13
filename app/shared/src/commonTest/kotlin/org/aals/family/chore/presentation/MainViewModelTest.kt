@@ -20,7 +20,6 @@ import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.feature.auth.presentation.navigation.ServerDiscoveryRoute
 import org.aals.family.chore.feature.auth.presentation.navigation.UserSelectionRoute
 import org.aals.family.chore.feature.auth.presentation.navigation.WelcomeRoute
-import org.aals.family.chore.feature.dashboard.presentation.navigation.DashboardGraph
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -68,22 +67,9 @@ class MainViewModelTest {
     }
 
     @Test
-    fun `navigates to Dashboard when token exists`() = runTest {
+    fun `navigates to UserSelection when token exists`() = runTest {
         tokenStorage.saveToken("valid_token")
-        
-        createViewModel()
-        advanceUntilIdle()
-
-        viewModel.state.test {
-            assertThat(awaitItem()).isEqualTo(MainState.Success(DashboardGraph))
-        }
-    }
-
-    @Test
-    fun `navigates to UserSelection when server and family exist`() = runTest {
-        tokenStorage.saveServerUrl("http://localhost")
         tokenStorage.saveFamilyId("family_123")
-        connectivityRepository.healthResult = Result.Success(Unit)
         
         createViewModel()
         advanceUntilIdle()
@@ -94,8 +80,9 @@ class MainViewModelTest {
     }
 
     @Test
-    fun `navigates to Welcome when server exists but no family`() = runTest {
+    fun `navigates to Welcome when server exists but no token`() = runTest {
         tokenStorage.saveServerUrl("http://localhost")
+        tokenStorage.saveFamilyId("family_123")
         connectivityRepository.healthResult = Result.Success(Unit)
         
         createViewModel()
@@ -148,6 +135,11 @@ class MainViewModelTest {
             _userId.value = null
             _serverUrl.value = null
             _serverName.value = null
+        }
+
+        override suspend fun clearAuth() {
+            _token.value = null
+            _userId.value = null
         }
     }
 

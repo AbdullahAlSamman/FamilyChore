@@ -27,7 +27,7 @@ sealed interface DashboardTabRoute
 
 fun NavGraphBuilder.dashboardGraph(
     navController: NavController,
-    onLogout: () -> Unit
+    onLogout: (isServerOnline: Boolean, familyId: String?) -> Unit
 ) {
     navigation<DashboardGraph>(
         startDestination = MainDashboardRoute

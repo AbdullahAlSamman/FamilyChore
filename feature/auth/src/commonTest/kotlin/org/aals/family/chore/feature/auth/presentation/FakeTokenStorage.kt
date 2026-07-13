@@ -54,4 +54,9 @@ class FakeTokenStorage : TokenStorage {
         _serverUrl.value = null
         _serverName.value = null
     }
+
+    override suspend fun clearAuth() {
+        _token.value = null
+        _userId.value = null
+    }
 }

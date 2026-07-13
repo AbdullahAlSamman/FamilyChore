@@ -70,4 +70,11 @@ class DataStoreTokenStorage(
     override suspend fun clear() {
         dataStore.edit { it.clear() }
     }
+
+    override suspend fun clearAuth() {
+        dataStore.edit { preferences ->
+            preferences.remove(KEY_TOKEN)
+            preferences.remove(KEY_USER_ID)
+        }
+    }
 }

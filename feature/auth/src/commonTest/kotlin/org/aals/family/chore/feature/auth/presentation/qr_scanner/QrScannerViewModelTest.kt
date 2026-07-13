@@ -35,15 +35,25 @@ class QrScannerViewModelTest {
     }
 
     @Test
-    fun `valid QR code saves server url and sends event`() = runTest {
-        val qrContent = "{\"serverIp\": \"192.168.1.10\", \"token\": \"pairing_token\"}"
+    fun `valid QR code saves all credentials and sends event`() = runTest {
+        val qrContent = """
+            {
+                "serverIp": "192.168.1.10",
+                "token": "session_token",
+                "familyId": "family_123",
+                "userId": "user_456"
+            }
+        """.trimIndent()
         
         viewModel.onAction(QrScannerAction.OnPermissionResult(granted = true))
 
         viewModel.events.test {
             viewModel.onAction(QrScannerAction.OnQrCodeScanned(qrContent))
-            assertThat(awaitItem()).isEqualTo(QrScannerEvent.QrCodeDetected("192.168.1.10", "pairing_token"))
+            assertThat(awaitItem()).isEqualTo(QrScannerEvent.QrCodeDetected("192.168.1.10", "session_token"))
             assertThat(tokenStorage.getServerUrl()).isEqualTo("192.168.1.10")
+            assertThat(tokenStorage.getToken()).isEqualTo("session_token")
+            assertThat(tokenStorage.getFamilyId()).isEqualTo("family_123")
+            assertThat(tokenStorage.getUserId()).isEqualTo("user_456")
         }
     }
 

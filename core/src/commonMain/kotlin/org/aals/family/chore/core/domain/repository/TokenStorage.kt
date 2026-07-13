@@ -20,4 +20,5 @@ interface TokenStorage {
     suspend fun saveServerName(name: String)
     suspend fun getServerName(): String?
     suspend fun clear()
+    suspend fun clearAuth()
 }

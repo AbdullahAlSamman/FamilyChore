@@ -70,8 +70,8 @@ fun NavGraphBuilder.authGraph(
         composable<QrScannerRoute> {
             QrScannerRoot(
                 onNavigateBack = { navController.popBackStack() },
-                onQrCodeDetected = { _, token ->
-                    navController.navigate(UserSelectionRoute(token))
+                onQrCodeDetected = { _, _ ->
+                    onOnboardingComplete()
                 }
             )
         }

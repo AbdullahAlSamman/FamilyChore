@@ -7,6 +7,7 @@ import org.aals.family.chore.core.data.local.entity.ChoreEntity
 import org.aals.family.chore.core.data.remote.ChoreDataSource
 import org.aals.family.chore.core.data.remote.dto.ChoreDto
 import org.aals.family.chore.core.data.remote.dto.CreateChoreRequest
+import org.aals.family.chore.core.data.remote.dto.UpdateChoreStatusRequest
 import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.repository.ChoreRepository
@@ -50,15 +51,28 @@ class ChoreRepositoryImpl(
         return choreDataSource.createChore(request).map { Unit }
     }
 
-    override suspend fun updateChoreStatus(choreId: String, newStatus: ChoreStatus, adminId: String?): Result<Unit, DataError> {
+    override suspend fun updateChoreStatus(
+        familyId: String,
+        choreId: String,
+        newStatus: ChoreStatus,
+        adminId: String?
+    ): Result<Unit, DataError> {
         logger.d { "Updating chore status: $choreId to $newStatus" }
-        // This is a bit simplified. In a real app we'd have the familyId available or find it.
-        // For now, let's assume we can find it in the local DB.
-        // We'll need a way to get the familyId. Let's assume we have it or can get it from the user context.
-        // For the sake of this implementation, I'll just use a placeholder familyId if not found.
-        
-        // In a real scenario, we might need to pass familyId to this method as well.
-        return Result.Success(Unit)
+
+        // Optimistic update
+        val currentChore = choreDao.getChoreById(choreId, familyId)
+        if (currentChore != null) {
+            choreDao.upsertChore(currentChore.copy(status = newStatus.name))
+        }
+
+        val request = UpdateChoreStatusRequest(
+            choreId = choreId,
+            familyId = familyId,
+            newStatus = newStatus,
+            adminId = adminId
+        )
+
+        return choreDataSource.updateChoreStatus(request).map { Unit }
     }
 
     override suspend fun syncChores(familyId: String): Result<Unit, DataError> {

@@ -26,6 +26,7 @@ class DashboardViewModelTest {
     private lateinit var transactionRepository: FakeTransactionRepository
     private lateinit var choreRepository: FakeChoreRepository
     private lateinit var connectivityRepository: FakeConnectivityRepository
+    private lateinit var timeProvider: FakeTimeProvider
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @BeforeTest
@@ -35,6 +36,7 @@ class DashboardViewModelTest {
         transactionRepository = FakeTransactionRepository()
         choreRepository = FakeChoreRepository()
         connectivityRepository = FakeConnectivityRepository()
+        timeProvider = FakeTimeProvider()
         
         // Default mock setup
         authRepository.currentUser = User("parent1", "family1", "Parent", UserRole.PARENT)
@@ -49,6 +51,7 @@ class DashboardViewModelTest {
             choreRepository = choreRepository,
             connectivityRepository = connectivityRepository,
             logger = Logger.withTag("DashboardViewModelTest"),
+            timeProvider = timeProvider
         )
     }
 
@@ -132,6 +135,7 @@ class DashboardViewModelTest {
             choreRepository = choreRepository,
             connectivityRepository = connectivityRepository,
             logger = Logger.withTag("DashboardViewModelTest"),
+            timeProvider = timeProvider
         )
         newViewModel.state.test {
             val state = awaitItem()

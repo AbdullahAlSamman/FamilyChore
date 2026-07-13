@@ -12,6 +12,7 @@ interface ChoreRepository {
     
     suspend fun createChore(chore: Chore): Result<Unit, DataError>
     suspend fun updateChoreStatus(
+        familyId: String,
         choreId: String, 
         newStatus: ChoreStatus, 
         adminId: String? = null // Optional adminId if approval is needed

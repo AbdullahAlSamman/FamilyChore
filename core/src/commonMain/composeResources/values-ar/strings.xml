@@ -8,6 +8,11 @@
     <string name="submit">إرسال</string>
     <string name="skip">تخطي</string>
     <string name="connect">اتصال</string>
+    <string name="refresh">تحديث</string>
+
+    <!-- Roles -->
+    <string name="role_parent">ولي أمر</string>
+    <string name="role_child">طفل</string>
 
     <!-- Errors -->
     <string name="error_unknown">حدث خطأ غير معروف</string>
@@ -52,6 +57,7 @@
     <string name="welcome_or">أو</string>
     <string name="welcome_setup_family">إعداد عائلة جديدة</string>
     <string name="welcome_join_family">الانضمام إلى عائلة موجودة</string>
+    <string name="welcome_change_language">AR/EN</string>
 
     <!-- Create Family -->
     <string name="create_family_title">أنشئ عائلتك</string>

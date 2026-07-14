@@ -42,6 +42,8 @@ import familychore.core.generated.resources.family_management_require_pin
 import familychore.core.generated.resources.family_management_title
 import familychore.core.generated.resources.pin_label
 import familychore.core.generated.resources.pts_count
+import familychore.core.generated.resources.role_child
+import familychore.core.generated.resources.role_parent
 import familychore.core.generated.resources.save
 import familychore.core.generated.resources.task_assigned_to
 import familychore.core.generated.resources.task_management_add_chore
@@ -53,6 +55,7 @@ import familychore.core.generated.resources.task_management_save_action
 import familychore.core.generated.resources.task_management_title
 import familychore.core.generated.resources.task_unknown_user
 import org.aals.family.chore.core.domain.model.User
+import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
 import org.aals.family.chore.feature.dashboard.presentation.DashboardState
 import org.jetbrains.compose.resources.stringResource
@@ -289,7 +292,11 @@ fun FamilyMemberCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(user.nickname, style = MaterialTheme.typography.titleMedium)
-                Text(user.role.name, style = MaterialTheme.typography.bodySmall)
+                val roleText = when (user.role) {
+                    UserRole.PARENT -> stringResource(Res.string.role_parent)
+                    UserRole.CHILD -> stringResource(Res.string.role_child)
+                }
+                Text(roleText, style = MaterialTheme.typography.bodySmall)
             }
             
             if (user.role == org.aals.family.chore.core.domain.model.UserRole.CHILD) {
@@ -298,7 +305,7 @@ fun FamilyMemberCard(
                     Switch(
                         checked = user.requiresPin,
                         onCheckedChange = { onAction(DashboardAction.UpdateUserPinRequirement(user.id, it)) },
-                        modifier = Modifier.scale(0.7f),
+                        modifier = Modifier.layoutScale(0.7f),
                         enabled = isOnline
                     )
                 }
@@ -310,4 +317,4 @@ fun FamilyMemberCard(
     }
 }
 
-private fun Modifier.scale(scale: Float) = this.then(Modifier.size((scale * 48).dp)) // Rough scale hack
+internal fun Modifier.layoutScale(scale: Float) = this.then(Modifier.size((scale * 48).dp)) // Rough scale hack

@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.feature.dashboard.domain.model.BehaviorDefaults
@@ -233,6 +234,22 @@ class DashboardViewModelTest {
             viewModel.onAction(DashboardAction.DismissInviteQr)
             val state = awaitItem() as DashboardState.Success
             assertThat(state.inviteQrContent).isEqualTo(null)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `ChangeLanguage action persists language and updates state`() = runTest {
+        viewModel.state.test {
+            awaitItem() // Initial Success
+            
+            viewModel.onAction(DashboardAction.ChangeLanguage(AppLanguage.ARABIC))
+            
+            // State should update via observation
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.language).isEqualTo(AppLanguage.ARABIC)
+            assertThat(tokenStorage.language.value).isEqualTo(AppLanguage.ARABIC.isoCode)
+            
             cancelAndIgnoreRemainingEvents()
         }
     }

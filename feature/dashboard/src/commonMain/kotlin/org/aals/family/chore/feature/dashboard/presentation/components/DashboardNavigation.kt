@@ -40,6 +40,8 @@ import familychore.core.generated.resources.dashboard_tab_store
 import familychore.core.generated.resources.dashboard_tab_tasks
 import familychore.core.generated.resources.dashboard_tab_today
 import familychore.core.generated.resources.dashboard_title
+import familychore.core.generated.resources.welcome_change_language
+import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
 import org.aals.family.chore.feature.dashboard.presentation.DashboardState
@@ -58,6 +60,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun DashboardTopBar(
     state: DashboardState,
+    currentLanguage: AppLanguage,
     onAction: (DashboardAction) -> Unit
 ) {
     TopAppBar(
@@ -65,6 +68,16 @@ fun DashboardTopBar(
             Text(stringResource(Res.string.dashboard_title))
         },
         actions = {
+            IconButton(onClick = {
+                val nextLang = if (currentLanguage == AppLanguage.ENGLISH) AppLanguage.ARABIC else AppLanguage.ENGLISH
+                onAction(DashboardAction.ChangeLanguage(nextLang))
+            }) {
+                Text(
+                    text = stringResource(Res.string.welcome_change_language),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
             IconButton(onClick = { onAction(DashboardAction.Logout) }) {
                 Icon(
                     imageVector = Icons.Default.ExitToApp,

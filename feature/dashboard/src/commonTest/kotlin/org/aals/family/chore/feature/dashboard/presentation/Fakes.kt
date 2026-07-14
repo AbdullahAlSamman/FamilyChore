@@ -104,6 +104,7 @@ class FakeTokenStorage : org.aals.family.chore.core.domain.repository.TokenStora
     override val userId = MutableStateFlow<String?>(null)
     override val serverUrl = MutableStateFlow<String?>(null)
     override val serverName = MutableStateFlow<String?>(null)
+    override val language = MutableStateFlow<String?>(null)
 
     override suspend fun saveToken(token: String) { this.token.value = token }
     override suspend fun getToken(): String? = token.value
@@ -115,12 +116,15 @@ class FakeTokenStorage : org.aals.family.chore.core.domain.repository.TokenStora
     override suspend fun getServerUrl(): String? = serverUrl.value
     override suspend fun saveServerName(name: String) { this.serverName.value = name }
     override suspend fun getServerName(): String? = serverName.value
+    override suspend fun saveLanguage(languageCode: String) { this.language.value = languageCode }
+    override suspend fun getLanguage(): String? = language.value
     override suspend fun clear() {
         token.value = null
         familyId.value = null
         userId.value = null
         serverUrl.value = null
         serverName.value = null
+        language.value = null
     }
     override suspend fun clearAuth() {
         token.value = null

@@ -8,6 +8,11 @@
     <string name="submit">Submit</string>
     <string name="skip">Skip</string>
     <string name="connect">Connect</string>
+    <string name="refresh">Refresh</string>
+
+    <!-- Roles -->
+    <string name="role_parent">Parent</string>
+    <string name="role_child">Child</string>
 
     <!-- Errors -->
     <string name="error_unknown">Unknown error occurred</string>
@@ -52,6 +57,7 @@
     <string name="welcome_or">OR</string>
     <string name="welcome_setup_family">Setup New Family</string>
     <string name="welcome_join_family">Join Existing Family</string>
+    <string name="welcome_change_language">EN/AR</string>
 
     <!-- Create Family -->
     <string name="create_family_title">Create Your Family</string>

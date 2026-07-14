@@ -6,9 +6,12 @@ import co.touchlab.kermit.Logger
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.onFailure
@@ -31,6 +34,7 @@ class WelcomeViewModel(
             val name = tokenStorage.getServerName()
             _state.update { it.copy(serverName = name) }
         }
+        observeLanguage()
         loadFamilies()
     }
 
@@ -55,7 +59,21 @@ class WelcomeViewModel(
                     _events.send(WelcomeEvent.NavigateToUserSelection(action.family.id))
                 }
             }
+            is WelcomeAction.OnChangeLanguage -> {
+                viewModelScope.launch {
+                    tokenStorage.saveLanguage(action.language.isoCode)
+                }
+            }
         }
+    }
+
+    private fun observeLanguage() {
+        tokenStorage.language
+            .onEach { langCode ->
+                val currentLang = AppLanguage.entries.find { it.isoCode == langCode } ?: AppLanguage.ENGLISH
+                _state.update { it.copy(currentLanguage = currentLang) }
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun loadFamilies() {

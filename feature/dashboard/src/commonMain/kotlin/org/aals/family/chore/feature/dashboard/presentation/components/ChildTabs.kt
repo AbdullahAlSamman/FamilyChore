@@ -23,6 +23,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.behavior_award_to
+import familychore.core.generated.resources.behavior_helping
+import familychore.core.generated.resources.behavior_ignoring
+import familychore.core.generated.resources.behavior_politeness
+import familychore.core.generated.resources.behavior_rudeness
 import familychore.core.generated.resources.behavior_title
 import familychore.core.generated.resources.dashboard_points_label
 import familychore.core.generated.resources.dashboard_tab_today
@@ -149,8 +153,15 @@ fun BehaviorCard(item: BehaviorItem, onClick: () -> Unit) {
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val localizedName = when(item.id) {
+                "1" -> stringResource(Res.string.behavior_politeness)
+                "2" -> stringResource(Res.string.behavior_helping)
+                "3" -> stringResource(Res.string.behavior_rudeness)
+                "4" -> stringResource(Res.string.behavior_ignoring)
+                else -> item.name
+            }
             Text(
-                item.name,
+                localizedName,
                 style = MaterialTheme.typography.titleSmall,
                 textAlign = TextAlign.Center
             )

@@ -22,7 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.role_child
+import familychore.core.generated.resources.role_parent
 import familychore.core.generated.resources.user_selection_title
+import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.presentation.ObserveAsEvents
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -77,7 +80,13 @@ fun UserSelectionScreen(
                             items(state.users) { user ->
                                 ListItem(
                                     headlineContent = { Text(user.nickname) },
-                                    supportingContent = { Text(user.role.name) },
+                                    supportingContent = {
+                                        val roleText = when (user.role) {
+                                            UserRole.PARENT -> stringResource(Res.string.role_parent)
+                                            UserRole.CHILD -> stringResource(Res.string.role_child)
+                                        }
+                                        Text(roleText)
+                                    },
                                     modifier = Modifier.clickable(enabled = !state.isConfirming) {
                                         onAction(UserSelectionAction.OnUserClick(user))
                                     }

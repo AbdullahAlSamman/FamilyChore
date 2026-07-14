@@ -1,5 +1,6 @@
 package org.aals.family.chore.feature.dashboard.presentation
 
+import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.BehaviorItem
 import org.aals.family.chore.feature.dashboard.presentation.navigation.DashboardTabRoute
 
@@ -25,4 +26,6 @@ sealed interface DashboardAction {
     data class UpdateUserPinRequirement(val userId: String, val requiresPin: Boolean) : DashboardAction
     data class ShowInviteQr(val userId: String? = null) : DashboardAction
     data object DismissInviteQr : DashboardAction
+
+    data class ChangeLanguage(val language: AppLanguage) : DashboardAction
 }

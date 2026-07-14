@@ -3,6 +3,8 @@ package org.aals.family.chore.feature.dashboard.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
+import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.dashboard_load_failed_error
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -148,7 +150,7 @@ class DashboardViewModel(
                         serverIp = serverUrl,
                         familyId = currentState.user.familyId,
                         userId = userId,
-                        familyName = "Family" // Ideally fetch real family name
+                        familyName = "" // Set in pairing token generation on server or handled by UI
                     )
                     val json = Json.encodeToString(pairingToken)
                     updateSuccessState { it.copy(inviteQrContent = json) }
@@ -272,7 +274,7 @@ class DashboardViewModel(
                 .onFailure { error ->
                     logger.e { "Failed to load dashboard data: $error" }
                     _state.value = DashboardState.Error(
-                        UiText.DynamicString("Failed to load profile. Please login again.")
+                        UiText.StringResource(Res.string.dashboard_load_failed_error)
                     )
                 }
         }

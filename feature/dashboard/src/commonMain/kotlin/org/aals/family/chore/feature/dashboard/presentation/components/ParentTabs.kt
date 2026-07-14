@@ -34,13 +34,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.dashboard_overview_title
 import familychore.core.generated.resources.family_management_add_child
 import familychore.core.generated.resources.family_management_invite_member
 import familychore.core.generated.resources.family_management_nickname_label
 import familychore.core.generated.resources.family_management_require_pin
 import familychore.core.generated.resources.family_management_title
-import familychore.core.generated.resources.pts_suffix
+import familychore.core.generated.resources.pin_label
+import familychore.core.generated.resources.pts_count
 import familychore.core.generated.resources.save
+import familychore.core.generated.resources.task_assigned_to
 import familychore.core.generated.resources.task_management_add_chore
 import familychore.core.generated.resources.task_management_assign_to
 import familychore.core.generated.resources.task_management_empty
@@ -48,6 +51,7 @@ import familychore.core.generated.resources.task_management_name_label
 import familychore.core.generated.resources.task_management_points_label
 import familychore.core.generated.resources.task_management_save_action
 import familychore.core.generated.resources.task_management_title
+import familychore.core.generated.resources.task_unknown_user
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
 import org.aals.family.chore.feature.dashboard.presentation.DashboardState
@@ -60,7 +64,7 @@ fun ParentOverviewContent(
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
-            text = "Family Overview",
+            text = stringResource(Res.string.dashboard_overview_title),
             style = MaterialTheme.typography.titleLarge
         )
         Spacer(modifier = Modifier.size(16.dp))
@@ -83,7 +87,7 @@ fun ChildSummaryCard(user: User) {
                 Text(user.nickname, style = MaterialTheme.typography.titleMedium)
             }
             Text(
-                "${user.points} " + stringResource(Res.string.pts_suffix),
+                stringResource(Res.string.pts_count, user.points),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -134,11 +138,15 @@ fun ParentTasksContent(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(chore.name, style = MaterialTheme.typography.titleMedium)
                                 Text(
-                                    "Assigned to: ${state.familyMembers.find { it.id == chore.assignedTo }?.nickname ?: "Unknown"}",
+                                    stringResource(
+                                        Res.string.task_assigned_to,
+                                        state.familyMembers.find { it.id == chore.assignedTo }?.nickname
+                                            ?: stringResource(Res.string.task_unknown_user)
+                                    ),
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
-                            Text("${chore.points} pts", color = MaterialTheme.colorScheme.primary)
+                            Text(stringResource(Res.string.pts_count, chore.points), color = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }
@@ -286,7 +294,7 @@ fun FamilyMemberCard(
             
             if (user.role == org.aals.family.chore.core.domain.model.UserRole.CHILD) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("PIN", style = MaterialTheme.typography.labelSmall)
+                    Text(stringResource(Res.string.pin_label), style = MaterialTheme.typography.labelSmall)
                     Switch(
                         checked = user.requiresPin,
                         onCheckedChange = { onAction(DashboardAction.UpdateUserPinRequirement(user.id, it)) },

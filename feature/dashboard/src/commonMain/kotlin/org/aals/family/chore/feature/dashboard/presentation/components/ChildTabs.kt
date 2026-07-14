@@ -26,7 +26,9 @@ import familychore.core.generated.resources.behavior_award_to
 import familychore.core.generated.resources.behavior_title
 import familychore.core.generated.resources.dashboard_points_label
 import familychore.core.generated.resources.dashboard_tab_today
-import familychore.core.generated.resources.pts_suffix
+import familychore.core.generated.resources.pts
+import familychore.core.generated.resources.pts_count
+import familychore.core.generated.resources.task_today_empty
 import org.aals.family.chore.core.domain.model.BehaviorItem
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
 import org.aals.family.chore.feature.dashboard.presentation.DashboardState
@@ -51,7 +53,7 @@ fun ChildTodayContent(
         
         if (state.chores.isEmpty()) {
             Text(
-                "No chores for today!",
+                stringResource(Res.string.task_today_empty),
                 modifier = Modifier.fillMaxWidth().padding(32.dp),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyMedium
@@ -62,7 +64,7 @@ fun ChildTodayContent(
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(chore.name, style = MaterialTheme.typography.titleMedium)
-                            Text("${chore.points} pts", color = MaterialTheme.colorScheme.primary)
+                            Text(stringResource(Res.string.pts_count, chore.points), color = MaterialTheme.colorScheme.primary)
                         }
                     }
                 }
@@ -90,7 +92,7 @@ fun PointsHeader(points: Int) {
                 style = MaterialTheme.typography.displayLarge
             )
             Text(
-                stringResource(Res.string.pts_suffix),
+                stringResource(Res.string.pts),
                 style = MaterialTheme.typography.labelMedium
             )
         }

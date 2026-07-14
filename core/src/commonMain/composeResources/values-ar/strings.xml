@@ -8,9 +8,32 @@
     <string name="submit">إرسال</string>
     <string name="skip">تخطي</string>
     <string name="connect">اتصال</string>
+
+    <!-- Errors -->
     <string name="error_unknown">حدث خطأ غير معروف</string>
+    <string name="error_invalid_number">رقم غير صالح</string>
+    <string name="dashboard_load_failed_error">فشل تحميل الملف الشخصي. يرجى تسجيل الدخول مرة أخرى.</string>
+
+    <!-- Validation Errors - Auth -->
+    <string name="auth_family_name_empty_error">اسم العائلة لا يمكن أن يكون فارغاً</string>
+    <string name="auth_family_name_too_short_error">اسم العائلة قصير جداً (3 أحرف على الأقل)</string>
+    <string name="auth_family_name_invalid_error">يجب أن يحتوي اسم العائلة على أحرف وأرقام فقط</string>
+    <string name="auth_nickname_empty_error">اللقب لا يمكن أن يكون فارغاً</string>
+    <string name="auth_nickname_too_short_error">اللقب قصير جداً (حرفان على الأقل)</string>
+    <string name="auth_nickname_invalid_error">يجب أن يحتوي اللقب على أحرف وأرقام فقط</string>
+    <string name="auth_pin_invalid_length_error">يجب أن يتكون رمز PIN من 4 أرقام</string>
+    <string name="auth_pin_not_digits_error">يجب أن يحتوي رمز PIN على أرقام فقط</string>
+
+    <!-- Validation Errors - Chore -->
+    <string name="chore_name_empty_error">اسم المهمة لا يمكن أن يكون فارغاً</string>
+    <string name="chore_name_too_short_error">اسم المهمة قصير جداً (3 أحرف على الأقل)</string>
+    <string name="chore_name_invalid_error">يجب أن يحتوي اسم المهمة على أحرف وأرقام فقط</string>
+    <string name="chore_points_negative_error">النقاط لا يمكن أن تكون سالبة</string>
+    <string name="chore_points_zero_error">يجب أن تكون النقاط أكبر من الصفر</string>
+    <string name="chore_points_too_high_error">النقاط مرتفعة جداً (1000 كحد أقصى)</string>
     <string name="settings">الإعدادات</string>
-    <string name="pts_suffix">%1$d نقطة</string>
+    <string name="pts">نقطة</string>
+    <string name="pts_count">%1$d نقطة</string>
 
     <!-- Server Discovery -->
     <string name="discovery_title">اكتشاف الخادم</string>
@@ -54,6 +77,7 @@
     <string name="dashboard_title">لوحة التحكم</string>
     <string name="dashboard_logout">تسجيل الخروج</string>
     <string name="dashboard_offline_banner">الخادم غير متاح - وضع عدم الاتصال</string>
+    <string name="dashboard_overview_title">نظرة عامة على العائلة</string>
 
     <!-- Dashboard Tabs -->
     <string name="dashboard_tab_overview">نظرة عامة</string>
@@ -86,13 +110,23 @@
     <string name="task_today_empty">لا توجد مهام معينة لليوم بعد!</string>
     <string name="task_summary_review_count">المهام التي تنتظر المراجعة: %1$d</string>
     <string name="task_status_prefix">الحالة: %1$s</string>
+    <string name="task_assigned_to">معين لـ: %1$s</string>
+    <string name="task_unknown_user">غير معروف</string>
 
     <!-- Behavior -->
     <string name="behavior_title">إدارة السلوك</string>
-    <string name="behavior_award_to">منح لـ:</string>
+    <string name="behavior_award_to">منح لـ: %1$s</string>
+    <string name="behavior_politeness">اللباقة</string>
+    <string name="behavior_helping">مساعدة الآخرين</string>
+    <string name="behavior_rudeness">الوقاحة</string>
+    <string name="behavior_ignoring">تجاهل التعليمات</string>
 
     <!-- History & Transactions -->
     <string name="dashboard_points_label">نقاطك</string>
     <string name="transaction_default_note">تحديث النقاط</string>
     <string name="transaction_id_prefix">المعرف: %1$s</string>
+    <string name="transaction_no_note">بدون ملاحظة</string>
+
+    <!-- Pairing -->
+    <string name="family_default_name">العائلة</string>
 </resources>

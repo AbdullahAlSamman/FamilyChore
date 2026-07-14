@@ -8,14 +8,14 @@ plugins {
 
 compose.resources {
     publicResClass = true
+    packageOfResClass = "familychore.core.generated.resources"
+}
+
+android {
+    namespace = "org.aals.family.chore.core"
 }
 
 kotlin {
-    android {
-        namespace = "org.aals.family.chore.core"
-        compileSdk = libs.versions.android.compileSdk.get().toInt()
-    }
-
     sourceSets {
         commonMain.dependencies {
             implementation(libs.compose.runtime)

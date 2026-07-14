@@ -5,12 +5,11 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
-kotlin {
-    android {
-        namespace = "org.aals.family.chore.feature.auth"
-        compileSdk = libs.versions.android.compileSdk.get().toInt()
-    }
+android {
+    namespace = "org.aals.family.chore.feature.auth"
+}
 
+kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.core)

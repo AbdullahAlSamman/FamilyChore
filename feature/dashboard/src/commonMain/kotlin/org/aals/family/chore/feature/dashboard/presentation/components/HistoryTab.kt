@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.dashboard_tab_history
+import familychore.core.generated.resources.transaction_no_note
 import org.aals.family.chore.core.domain.model.Transaction
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
 import org.aals.family.chore.feature.dashboard.presentation.DashboardState
@@ -59,7 +60,7 @@ fun TransactionItem(transaction: Transaction) {
                 modifier = Modifier.size(32.dp)
             )
             Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
-                Text(transaction.note ?: "No note", style = MaterialTheme.typography.titleMedium)
+                Text(transaction.note ?: stringResource(Res.string.transaction_no_note), style = MaterialTheme.typography.titleMedium)
                 Text(
                     transaction.type.name,
                     style = MaterialTheme.typography.bodySmall

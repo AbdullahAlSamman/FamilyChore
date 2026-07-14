@@ -23,6 +23,7 @@ import org.aals.family.chore.feature.dashboard.presentation.navigation.Dashboard
 import org.aals.family.chore.feature.dashboard.presentation.navigation.dashboardGraph
 import org.aals.family.chore.presentation.MainState
 import org.aals.family.chore.presentation.MainViewModel
+import org.aals.family.chore.presentation.util.SetLocale
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -38,8 +39,15 @@ fun App(
 
     val scope = rememberCoroutineScope()
 
-    val language = (state as? MainState.Success)?.language ?: AppLanguage.ENGLISH
-    val layoutDirection = if (language == AppLanguage.ARABIC) LayoutDirection.Rtl else LayoutDirection.Ltr
+    val currentState = state
+    val language = (currentState as? MainState.Success)?.language ?: AppLanguage.ENGLISH
+    val layoutDirection = if (currentState is MainState.Success) {
+        if (language.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
+    } else {
+        LocalLayoutDirection.current
+    }
+
+    SetLocale(language)
 
     CompositionLocalProvider(
         LocalLayoutDirection provides layoutDirection

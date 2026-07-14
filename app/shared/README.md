@@ -19,6 +19,13 @@ The `:app:shared` module acts as the "orchestration layer" for all client applic
 - `:app:desktopApp`
 - `iosApp` (Xcode project)
 
+## Multi-Language Support
+The app supports English and Arabic with full RTL support. 
+- **Localization**: All strings are stored in `:core` and accessed via `stringResource(Res.string.key)`.
+- **Locale Management**: `MainViewModel` observes the language preference from `TokenStorage` and updates the `MainState`.
+- **RTL Handling**: The `App` composable provides `LocalLayoutDirection` and uses a platform-specific `SetLocale` helper to ensure Compose Multiplatform Resources reload correctly on language change.
+- **Arabic Support**: Mandatory Arabic translations are provided in `values-ar/strings.xml`.
+
 ## Testing
 - Tests are located in `src/commonTest`.
 - (Planned) ViewModel unit tests and Compose UI tests.

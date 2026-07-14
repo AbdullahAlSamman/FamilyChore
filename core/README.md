@@ -5,7 +5,8 @@ The `:core` module provides shared infrastructure, domain models, and utilities 
 
 ## Key Components
 - **Domain Utilities**: `Result` wrapper for idiomatic error handling and `DataError` definitions.
-- **Presentation Utilities**: `UiText` for multiplatform-safe string resource handling.
+- **Presentation Utilities**: `UiText` for multiplatform-safe string resource handling and `ValidationMappers` for error localization.
+- **Localization**: Single Source of Truth (SSOT) for all application strings via `composeResources`. Supports English and Arabic (RTL).
 - **Data Utilities**: `HttpClientFactory` for Ktor client configuration and `SafeCall` helpers for consistent network error mapping.
 - **Local Persistence**: `FamilyDatabase` (Room KMP) definition and entities (`UserEntity`, `ChoreEntity`, `TransactionEntity`) with multi-tenant scoping.
 - **Domain Models**: Core models like `User`, `Family`, `Transaction`, `Reward`, and `PairingToken` used across the project.

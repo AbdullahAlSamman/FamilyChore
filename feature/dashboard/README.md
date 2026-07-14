@@ -9,7 +9,7 @@ The `:feature:dashboard` module provides the main user interface after successfu
     - **Children**: 3-tab system (Today, History, Store).
 - **Points Economy Interaction**:
     - **Behavior Management**: Parents can award/deduct points using a grid of predefined behaviors (Do/Don'ts).
-    - **Transaction History**: Real-time ledger showing point movements with visual indicators.
+    - **Transaction History**: Real-time localized ledger showing point movements with visual indicators. Default behavior notes are automatically localized in the UI.
 - **Connectivity Monitoring**: Real-time server health tracking with a persistent connectivity banner for offline feedback.
 - **Offline Resilience**: Immediate local persistence of transactions and display of cached data.
 

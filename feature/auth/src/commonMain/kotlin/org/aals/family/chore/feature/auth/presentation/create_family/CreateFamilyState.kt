@@ -8,5 +8,5 @@ data class CreateFamilyState(
     val isLoading: Boolean = false,
     val familyNameError: UiText? = null,
     val nicknameError: UiText? = null,
-    val error: String? = null
+    val error: UiText? = null
 )

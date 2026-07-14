@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
+import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.auth_pin_invalid_length_error
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,6 +14,8 @@ import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
+import org.aals.family.chore.core.presentation.UiText
+import org.aals.family.chore.core.presentation.toUiText
 
 class PinEntryViewModel(
     private val authRepository: AuthRepository,
@@ -63,7 +67,7 @@ class PinEntryViewModel(
                 if (currentState.pin.length == 4) {
                     submitPin()
                 } else {
-                    _state.value = currentState.copy(error = "PIN must be 4 digits")
+                    _state.value = currentState.copy(error = UiText.StringResource(Res.string.auth_pin_invalid_length_error))
                 }
             }
             PinEntryAction.OnSkip -> {
@@ -95,7 +99,7 @@ class PinEntryViewModel(
                 }
                 .onFailure { error ->
                     logger.e { "PIN operation failed: $error" }
-                    _state.value = PinEntryState.Entering(pin = pin, error = error.toString())
+                    _state.value = PinEntryState.Entering(pin = pin, error = error.toUiText())
                 }
         }
     }

@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.family_management_invite_member
+import familychore.core.generated.resources.family_management_invite_qr_desc
 import familychore.core.generated.resources.family_management_token_expiry
 import familychore.core.generated.resources.ok
 import io.github.alexzhirkevich.qrose.rememberQrCodePainter
@@ -45,7 +46,7 @@ fun InviteQrDialog(
                 
                 Image(
                     painter = rememberQrCodePainter(qrContent),
-                    contentDescription = "Invite QR Code",
+                    contentDescription = stringResource(Res.string.family_management_invite_qr_desc),
                     modifier = Modifier.size(250.dp)
                 )
 

@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.BehaviorItem
 import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.ChoreStatus
@@ -62,6 +63,7 @@ class DashboardViewModel(
     init {
         loadDashboardData()
         observeConnectivity()
+        observeLanguage()
     }
 
     fun onAction(action: DashboardAction) {
@@ -99,6 +101,11 @@ class DashboardViewModel(
             is DashboardAction.UpdateUserPinRequirement -> updateUserPinRequirement(action.userId, action.requiresPin)
             is DashboardAction.ShowInviteQr -> showInviteQr(action.userId)
             DashboardAction.DismissInviteQr -> updateSuccessState { it.copy(inviteQrContent = null) }
+            is DashboardAction.ChangeLanguage -> {
+                viewModelScope.launch {
+                    tokenStorage.saveLanguage(action.language.isoCode)
+                }
+            }
         }
     }
 
@@ -241,10 +248,13 @@ class DashboardViewModel(
                     // Load family members
                     val membersResult = authRepository.getFamilyMembers(user.familyId)
                     val familyMembers = membersResult.getOrElse { emptyList<User>() }
+                    val langCode = tokenStorage.getLanguage()
+                    val currentLang = AppLanguage.entries.find { it.isoCode == langCode } ?: AppLanguage.ENGLISH
 
                     // Initial state setup
                     _state.value = DashboardState.Success(
                         user = user,
+                        language = currentLang,
                         familyMembers = familyMembers,
                         selectedAssigneeId = familyMembers.firstOrNull { it.role == UserRole.CHILD }?.id 
                             ?: familyMembers.firstOrNull()?.id,
@@ -294,6 +304,15 @@ class DashboardViewModel(
         connectivityRepository.isServerReachable
             .onEach { isReachable ->
                 updateSuccessState { it.copy(isServerReachable = isReachable) }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun observeLanguage() {
+        tokenStorage.language
+            .onEach { languageCode ->
+                val newLang = AppLanguage.entries.find { it.isoCode == languageCode } ?: AppLanguage.ENGLISH
+                updateSuccessState { it.copy(language = newLang) }
             }
             .launchIn(viewModelScope)
     }

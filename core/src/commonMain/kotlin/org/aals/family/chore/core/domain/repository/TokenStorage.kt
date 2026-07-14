@@ -8,6 +8,7 @@ interface TokenStorage {
     val userId: Flow<String?>
     val serverUrl: Flow<String?>
     val serverName: Flow<String?>
+    val language: Flow<String?>
 
     suspend fun saveToken(token: String)
     suspend fun getToken(): String?
@@ -19,6 +20,8 @@ interface TokenStorage {
     suspend fun getServerUrl(): String?
     suspend fun saveServerName(name: String)
     suspend fun getServerName(): String?
+    suspend fun saveLanguage(languageCode: String)
+    suspend fun getLanguage(): String?
     suspend fun clear()
     suspend fun clearAuth()
 }

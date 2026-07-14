@@ -6,13 +6,8 @@
 - Tests must be related to implementation don't placeholder tests.
 - No placeholders UI components in any screen, implement real feature with permission requesting in mind e.g camera for QR code scans, if clarification is required then stop implementation and ask
 - Don't add any file as placeholder unless you add to `TODO` inside it explain why! should be also document it `README.md` so you can pick it up from there next time.
-- Always keep the architecture as agreed on based on the skills available to you.
-- Each transaction with server side should be logged to logs to followup on issues via kermit.
 - Commit message starts with T* number of the ticket mentioned in branch name.
 - Don't commit until you have been asked to.
-- Use sealed interfaces/classes as state no data class
-- Develop the feature complete data, domain and ui.
-- **Any field or data entry should be validated before submission.**
 
 ## Data Entry & Validation
 - **Domain-Level SSOT**: All validation logic MUST reside in the `core:domain` layer (e.g., `ChoreValidator`).
@@ -21,6 +16,13 @@
 - **UI Pattern**: Screens MUST support real-time feedback (on field change) and final "On-Submit" validation.
 - **Server Parity**: Server-side routes MUST implement mirror validation logic. If validation fails, the server MUST respond with `HttpStatusCode.BadRequest` (400) and a structured `ErrorResponse` detailing the validation errors.
 - **Client-Side Handling**: The client `SafeCall` mechanism MUST be able to parse server-side validation errors and map them to `DataError.Network.VALIDATION_ERROR`.
+
+## Implementation rules
+- Features should be always implemented by the skill set available to you, with complete layers data, domain, ui.
+- Always localize ui layer with English and Arabic following localization skill.
+- **Any field or data entry should be validated before submission.**
+- Use sealed interfaces/classes as state no data class.
+- Each transaction with server side should be logged and audited followup on issues.
 
 This file tracks critical architectural decisions and domain rules for the FamilyChore project.
 ## Critical Engineering Decisions
@@ -48,6 +50,8 @@ This file tracks critical architectural decisions and domain rules for the Famil
     - **Parents**: 5-tab system (Overview, Tasks, Behavior, Rewards, Family).
     - **Children**: 3-tab system (Today, History, Store).
 - **Navigation logic** automatically routes users to their specific functional area and uses type-safe sub-routes within the Dashboard.
+- **Logging** use kermit to log.
+- **Auditing** all transaction should be preserved in DB server and local. 
 
 ## Domain Rules
 - **Chore Verification**: Mandatory live photo (no gallery uploads).

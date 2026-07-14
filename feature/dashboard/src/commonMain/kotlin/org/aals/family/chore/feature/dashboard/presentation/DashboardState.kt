@@ -1,5 +1,6 @@
 package org.aals.family.chore.feature.dashboard.presentation
 
+import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.BehaviorItem
 import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.Transaction
@@ -11,6 +12,7 @@ sealed interface DashboardState {
     data object Loading : DashboardState
     data class Success(
         val user: User,
+        val language: AppLanguage = AppLanguage.ENGLISH,
         val familyMembers: List<User> = emptyList(),
         val selectedAssigneeId: String? = null,
         val transactions: List<Transaction> = emptyList(),

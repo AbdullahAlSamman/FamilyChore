@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.dashboard_tab_store
 import familychore.core.generated.resources.error_unknown
+import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.presentation.ObserveAsEvents
@@ -68,7 +69,8 @@ fun DashboardScreen(
     Scaffold(
         topBar = {
             Column {
-                DashboardTopBar(state, onAction)
+                val currentLanguage = (state as? DashboardState.Success)?.language ?: AppLanguage.ENGLISH
+                DashboardTopBar(state, currentLanguage, onAction)
                 if (state is DashboardState.Success) {
                     ConnectivityBanner(state.isServerReachable)
                 }

@@ -1,6 +1,7 @@
 package org.aals.family.chore.feature.auth.presentation.welcome
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,18 +10,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FamilyRestroom
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.welcome_change_language
 import familychore.core.generated.resources.welcome_join_family
 import familychore.core.generated.resources.welcome_login_existing
 import familychore.core.generated.resources.welcome_or
@@ -40,6 +45,7 @@ import familychore.core.generated.resources.welcome_setup_family
 import familychore.core.generated.resources.welcome_subtitle
 import familychore.core.generated.resources.welcome_title_generic
 import familychore.core.generated.resources.welcome_title_to
+import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.Family
 import org.aals.family.chore.core.presentation.ObserveAsEvents
 import org.jetbrains.compose.resources.stringResource
@@ -73,18 +79,50 @@ fun WelcomeScreen(
     state: WelcomeState,
     onAction: (WelcomeAction) -> Unit
 ) {
-    Surface(
+    Scaffold(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
+        topBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(8.dp)
+            ) {
+                IconButton(
+                    onClick = {
+                        val nextLang = if (state.currentLanguage == AppLanguage.ENGLISH) AppLanguage.ARABIC else AppLanguage.ENGLISH
+                        onAction(WelcomeAction.OnChangeLanguage(nextLang))
+                    },
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Language,
+                            contentDescription = stringResource(Res.string.welcome_change_language),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = if (state.currentLanguage == AppLanguage.ENGLISH) "AR" else "EN",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                }
+            }
+        }
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.weight(1f))
-            
             Text(
                 text = if (state.serverName != null) {
                     stringResource(Res.string.welcome_title_to, state.serverName)
@@ -125,9 +163,7 @@ fun WelcomeScreen(
                 
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(2f, fill = false)
-                        .verticalScroll(rememberScrollState()),
+                        .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     state.families.forEach { family ->
@@ -186,8 +222,6 @@ fun WelcomeScreen(
             ) {
                 Text(stringResource(Res.string.welcome_join_family))
             }
-            
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

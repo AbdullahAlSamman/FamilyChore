@@ -45,6 +45,7 @@ import familychore.core.generated.resources.discovery_manual_title
 import familychore.core.generated.resources.discovery_no_servers
 import familychore.core.generated.resources.discovery_title
 import familychore.core.generated.resources.discovery_url_label
+import familychore.core.generated.resources.refresh
 import org.aals.family.chore.core.presentation.ObserveAsEvents
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -79,7 +80,7 @@ fun ServerDiscoveryScreen(
                 title = { Text(stringResource(Res.string.discovery_title)) },
                 actions = {
                     IconButton(onClick = { onAction(ServerDiscoveryAction.OnScanAgainClick) }) {
-                        Icon(Icons.Default.Refresh, contentDescription = stringResource(Res.string.connect))
+                        Icon(Icons.Default.Refresh, contentDescription = stringResource(Res.string.refresh))
                     }
                 }
             )

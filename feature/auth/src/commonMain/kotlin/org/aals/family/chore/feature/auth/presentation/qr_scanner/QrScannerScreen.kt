@@ -31,7 +31,7 @@ import familychore.core.generated.resources.cancel
 import familychore.core.generated.resources.qr_error_permission
 import familychore.core.generated.resources.qr_scan_instructions
 import familychore.core.generated.resources.qr_scan_title
-import familychore.core.generated.resources.submit
+import familychore.core.generated.resources.refresh
 import org.aals.family.chore.core.presentation.ObserveAsEvents
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -120,7 +120,7 @@ fun QrScannerScreen(
                             Text(stringResource(Res.string.qr_error_permission), color = Color.White)
                             Spacer(modifier = Modifier.height(8.dp))
                             IconButton(onClick = { onAction(QrScannerAction.OnRetryPermissionClick) }) {
-                                Icon(Icons.Default.Refresh, contentDescription = stringResource(Res.string.submit), tint = Color.White)
+                                Icon(Icons.Default.Refresh, contentDescription = stringResource(Res.string.refresh), tint = Color.White)
                             }
                         }
                     }

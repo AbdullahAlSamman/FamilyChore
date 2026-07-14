@@ -24,7 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.role_child
 import familychore.core.generated.resources.role_parent
-import familychore.core.generated.resources.user_selection_title
+import familychore.core.generated.resources.user_selection_screen_title
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.presentation.ObserveAsEvents
 import org.jetbrains.compose.resources.stringResource
@@ -57,7 +57,7 @@ fun UserSelectionScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(Res.string.user_selection_title)) })
+            TopAppBar(title = { Text(stringResource(Res.string.user_selection_screen_title)) })
         }
     ) { padding ->
         Box(
@@ -100,7 +100,7 @@ fun UserSelectionScreen(
 
                         state.error?.let {
                             Text(
-                                text = it,
+                                text = it.asString(),
                                 color = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)
                             )
@@ -108,7 +108,7 @@ fun UserSelectionScreen(
                     }
                 }
                 is UserSelectionState.Error -> {
-                    Text(state.message, color = MaterialTheme.colorScheme.error)
+                    Text(state.message.asString(), color = MaterialTheme.colorScheme.error)
                 }
             }
         }

@@ -1,6 +1,7 @@
 package org.aals.family.chore.feature.auth.presentation.user_selection
 
 import org.aals.family.chore.core.domain.model.User
+import org.aals.family.chore.core.presentation.UiText
 
 /**
  * Represents the state of the user profile selection screen.
@@ -14,9 +15,9 @@ sealed interface UserSelectionState {
     data class Success(
         val users: List<User>,
         val isConfirming: Boolean = false,
-        val error: String? = null
+        val error: UiText? = null
     ) : UserSelectionState
     
     /** Failed to fetch or select a user. */
-    data class Error(val message: String) : UserSelectionState
+    data class Error(val message: UiText) : UserSelectionState
 }

@@ -25,6 +25,7 @@ Follows the project's strict MVI pattern:
 - **CameraX & ML Kit (Android)**: Real-time QR code scanning infrastructure.
 
 ## Implementation Details
+- **Localization**: All user-facing strings are strictly localized (English/Arabic). ViewModels use `UiText` to handle dynamic errors and messages consistently.
 - **QrScannerView**: A platform-specific Composable implemented via `expect`/`actual`.
     - **Android**: Uses CameraX for preview and Google ML Kit Barcode Scanning for detection.
     - **JVM/iOS**: Current placeholder implementation.

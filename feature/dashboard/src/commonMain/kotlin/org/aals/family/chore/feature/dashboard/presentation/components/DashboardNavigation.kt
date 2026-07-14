@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -72,10 +73,9 @@ fun DashboardTopBar(
                 val nextLang = if (currentLanguage == AppLanguage.ENGLISH) AppLanguage.ARABIC else AppLanguage.ENGLISH
                 onAction(DashboardAction.ChangeLanguage(nextLang))
             }) {
-                Text(
-                    text = stringResource(Res.string.welcome_change_language),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
+                Icon(
+                    imageVector = Icons.Default.Language,
+                    contentDescription = stringResource(Res.string.welcome_change_language)
                 )
             }
             IconButton(onClick = { onAction(DashboardAction.Logout) }) {

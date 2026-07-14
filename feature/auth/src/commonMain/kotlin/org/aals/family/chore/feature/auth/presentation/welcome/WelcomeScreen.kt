@@ -95,21 +95,10 @@ fun WelcomeScreen(
                     },
                     modifier = Modifier.align(Alignment.CenterEnd)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Language,
-                            contentDescription = stringResource(Res.string.welcome_change_language),
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = if (state.currentLanguage == AppLanguage.ENGLISH) "AR" else "EN",
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Language,
+                        contentDescription = stringResource(Res.string.welcome_change_language)
+                    )
                 }
             }
         }

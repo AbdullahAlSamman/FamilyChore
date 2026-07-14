@@ -3,6 +3,8 @@ package org.aals.family.chore.feature.auth.presentation.qr_scanner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
+import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.qr_error_invalid
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.aals.family.chore.core.domain.model.PairingToken
 import org.aals.family.chore.core.domain.repository.TokenStorage
+import org.aals.family.chore.core.presentation.UiText
 
 class QrScannerViewModel(
     private val tokenStorage: TokenStorage,
@@ -67,7 +70,7 @@ class QrScannerViewModel(
             }
         } catch (e: Exception) {
             logger.e(e) { "Failed to parse QR content" }
-            _state.value = QrScannerState.Scanning(error = "Invalid QR code")
+            _state.value = QrScannerState.Scanning(error = UiText.StringResource(Res.string.qr_error_invalid))
         }
     }
 }

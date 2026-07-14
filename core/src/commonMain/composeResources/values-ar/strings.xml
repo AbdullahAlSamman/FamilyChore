@@ -9,6 +9,8 @@
     <string name="skip">تخطي</string>
     <string name="connect">اتصال</string>
     <string name="refresh">تحديث</string>
+    <string name="language_en">الإنجليزية</string>
+    <string name="language_ar">العربية</string>
 
     <!-- Roles -->
     <string name="role_parent">ولي أمر</string>
@@ -17,6 +19,7 @@
     <!-- Errors -->
     <string name="error_unknown">حدث خطأ غير معروف</string>
     <string name="error_invalid_number">رقم غير صالح</string>
+    <string name="error_missing_params">المعلمات التعريفية مفقودة</string>
     <string name="dashboard_load_failed_error">فشل تحميل الملف الشخصي. يرجى تسجيل الدخول مرة أخرى.</string>
 
     <!-- Validation Errors - Auth -->
@@ -72,7 +75,7 @@
     <string name="qr_error_invalid">رمز QR غير صالح</string>
 
     <!-- User Selection -->
-    <string name="user_selection_title">اختر الملف الشخصي</string>
+    <string name="user_selection_screen_title">اختر الملف الشخصي</string>
 
     <!-- PIN Entry -->
     <string name="pin_title">أدخل رمز PIN</string>
@@ -101,6 +104,7 @@
     <string name="family_management_nickname_label">اللقب</string>
     <string name="family_management_require_pin">تطلب رمز PIN</string>
     <string name="family_management_invite_member">دعوة عضو</string>
+    <string name="family_management_invite_qr_desc">رمز QR للدعوة</string>
     <string name="family_management_quick_join">انضمام سريع</string>
     <string name="family_management_token_expiry">تنتهي صلاحية الرمز خلال 10 دقائق</string>
 
@@ -130,6 +134,9 @@
     <!-- History & Transactions -->
     <string name="dashboard_points_label">نقاطك</string>
     <string name="transaction_default_note">تحديث النقاط</string>
+    <string name="transaction_type_chore">مهمة</string>
+    <string name="transaction_type_bonus">مكافأة</string>
+    <string name="transaction_type_penalty">جزاء</string>
     <string name="transaction_id_prefix">المعرف: %1$s</string>
     <string name="transaction_no_note">بدون ملاحظة</string>
 

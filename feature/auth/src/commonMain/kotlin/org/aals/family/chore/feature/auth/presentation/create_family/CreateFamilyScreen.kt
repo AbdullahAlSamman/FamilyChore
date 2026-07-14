@@ -99,7 +99,7 @@ fun CreateFamilyScreen(
             }
             if (state.error != null) {
                 Text(
-                    text = state.error,
+                    text = state.error.asString(),
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 16.dp)
                 )

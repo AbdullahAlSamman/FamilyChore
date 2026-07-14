@@ -9,6 +9,8 @@
     <string name="skip">Skip</string>
     <string name="connect">Connect</string>
     <string name="refresh">Refresh</string>
+    <string name="language_en">English</string>
+    <string name="language_ar">Arabic</string>
 
     <!-- Roles -->
     <string name="role_parent">Parent</string>
@@ -17,6 +19,7 @@
     <!-- Errors -->
     <string name="error_unknown">Unknown error occurred</string>
     <string name="error_invalid_number">Invalid number</string>
+    <string name="error_missing_params">Missing identification parameters</string>
     <string name="dashboard_load_failed_error">Failed to load profile. Please login again.</string>
 
     <!-- Validation Errors - Auth -->
@@ -72,7 +75,7 @@
     <string name="qr_error_invalid">Invalid QR code</string>
 
     <!-- User Selection -->
-    <string name="user_selection_title">Select Profile</string>
+    <string name="user_selection_screen_title">Select Profile</string>
 
     <!-- PIN Entry -->
     <string name="pin_title">Enter PIN</string>
@@ -101,6 +104,7 @@
     <string name="family_management_nickname_label">Nickname</string>
     <string name="family_management_require_pin">Require PIN</string>
     <string name="family_management_invite_member">Invite Member</string>
+    <string name="family_management_invite_qr_desc">Invite QR Code</string>
     <string name="family_management_quick_join">Quick Join</string>
     <string name="family_management_token_expiry">Token expires in 10 minutes</string>
 
@@ -130,6 +134,9 @@
     <!-- History & Transactions -->
     <string name="dashboard_points_label">Your Points</string>
     <string name="transaction_default_note">Points Update</string>
+    <string name="transaction_type_chore">Chore</string>
+    <string name="transaction_type_bonus">Bonus</string>
+    <string name="transaction_type_penalty">Penalty</string>
     <string name="transaction_id_prefix">ID: %1$s</string>
     <string name="transaction_no_note">No note</string>
 

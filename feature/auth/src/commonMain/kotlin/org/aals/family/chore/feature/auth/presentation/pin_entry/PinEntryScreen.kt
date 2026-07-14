@@ -95,7 +95,7 @@ fun PinEntryScreen(
 
             error?.let {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(it, color = MaterialTheme.colorScheme.error)
+                Text(it.asString(), color = MaterialTheme.colorScheme.error)
             }
 
             Spacer(modifier = Modifier.height(32.dp))

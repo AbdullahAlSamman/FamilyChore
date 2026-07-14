@@ -134,7 +134,7 @@ fun QrScannerScreen(
             val error = (state as? QrScannerState.Scanning)?.error
             error?.let {
                 Spacer(modifier = Modifier.height(16.dp))
-                Text(it, color = MaterialTheme.colorScheme.error)
+                Text(it.asString(), color = MaterialTheme.colorScheme.error)
             }
         }
     }

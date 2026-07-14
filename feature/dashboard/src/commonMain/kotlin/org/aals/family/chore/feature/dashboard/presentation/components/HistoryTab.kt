@@ -21,9 +21,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.behavior_helping
+import familychore.core.generated.resources.behavior_ignoring
+import familychore.core.generated.resources.behavior_politeness
+import familychore.core.generated.resources.behavior_rudeness
 import familychore.core.generated.resources.dashboard_tab_history
 import familychore.core.generated.resources.transaction_no_note
+import familychore.core.generated.resources.transaction_type_bonus
+import familychore.core.generated.resources.transaction_type_chore
+import familychore.core.generated.resources.transaction_type_penalty
 import org.aals.family.chore.core.domain.model.Transaction
+import org.aals.family.chore.core.domain.model.TransactionType
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
 import org.aals.family.chore.feature.dashboard.presentation.DashboardState
 import org.jetbrains.compose.resources.stringResource
@@ -60,9 +68,21 @@ fun TransactionItem(transaction: Transaction) {
                 modifier = Modifier.size(32.dp)
             )
             Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
-                Text(transaction.note ?: stringResource(Res.string.transaction_no_note), style = MaterialTheme.typography.titleMedium)
+                val localizedNote = when (transaction.note) {
+                    "Politeness" -> stringResource(Res.string.behavior_politeness)
+                    "Helping others" -> stringResource(Res.string.behavior_helping)
+                    "Rudeness" -> stringResource(Res.string.behavior_rudeness)
+                    "Ignoring instructions" -> stringResource(Res.string.behavior_ignoring)
+                    else -> transaction.note ?: stringResource(Res.string.transaction_no_note)
+                }
+                Text(localizedNote, style = MaterialTheme.typography.titleMedium)
+                val typeText = when (transaction.type) {
+                    TransactionType.CHORE -> stringResource(Res.string.transaction_type_chore)
+                    TransactionType.BONUS -> stringResource(Res.string.transaction_type_bonus)
+                    TransactionType.PENALTY -> stringResource(Res.string.transaction_type_penalty)
+                }
                 Text(
-                    transaction.type.name,
+                    typeText,
                     style = MaterialTheme.typography.bodySmall
                 )
             }

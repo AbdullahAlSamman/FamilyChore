@@ -15,7 +15,11 @@ import familychore.core.generated.resources.chore_name_too_short_error
 import familychore.core.generated.resources.chore_points_negative_error
 import familychore.core.generated.resources.chore_points_too_high_error
 import familychore.core.generated.resources.chore_points_zero_error
+import familychore.core.generated.resources.discovery_error_unreachable
 import familychore.core.generated.resources.error_invalid_number
+import familychore.core.generated.resources.error_unknown
+import org.aals.family.chore.core.domain.util.DataError
+import org.aals.family.chore.core.domain.util.Error
 import org.aals.family.chore.core.domain.validation.AuthValidationError
 import org.aals.family.chore.core.domain.validation.ChoreValidationError
 
@@ -56,5 +60,16 @@ fun AuthValidationError.PinError.toUiText(): UiText {
     return when (this) {
         AuthValidationError.PinError.INVALID_LENGTH -> UiText.StringResource(Res.string.auth_pin_invalid_length_error)
         AuthValidationError.PinError.NOT_DIGITS -> UiText.StringResource(Res.string.auth_pin_not_digits_error)
+    }
+}
+
+fun Error.toUiText(): UiText {
+    return when (this) {
+        is DataError.Network -> when (this) {
+            DataError.Network.NO_INTERNET -> UiText.StringResource(Res.string.discovery_error_unreachable)
+            else -> UiText.StringResource(Res.string.error_unknown)
+        }
+        is DataError.Local -> UiText.StringResource(Res.string.error_unknown)
+        else -> UiText.StringResource(Res.string.error_unknown)
     }
 }

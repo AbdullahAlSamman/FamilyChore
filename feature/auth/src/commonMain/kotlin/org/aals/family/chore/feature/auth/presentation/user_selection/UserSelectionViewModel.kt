@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
+import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.error_missing_params
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,6 +14,8 @@ import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
+import org.aals.family.chore.core.presentation.UiText
+import org.aals.family.chore.core.presentation.toUiText
 
 class UserSelectionViewModel(
     private val authRepository: AuthRepository,
@@ -56,7 +60,7 @@ class UserSelectionViewModel(
                 pairingToken != null -> authRepository.getPairingUsers(pairingToken)
                 familyId != null -> authRepository.getFamilyMembers(familyId)
                 else -> {
-                    _state.value = UserSelectionState.Error("Missing identification parameters")
+                    _state.value = UserSelectionState.Error(UiText.StringResource(Res.string.error_missing_params))
                     return@launch
                 }
             }
@@ -66,7 +70,7 @@ class UserSelectionViewModel(
                     _state.value = UserSelectionState.Success(users = users)
                 }
                 .onFailure { error ->
-                    _state.value = UserSelectionState.Error(error.toString())
+                    _state.value = UserSelectionState.Error(error.toUiText())
                 }
         }
     }
@@ -83,7 +87,7 @@ class UserSelectionViewModel(
                     _events.send(UserSelectionEvent.PairingConfirmed(user.id))
                 }
                 .onFailure { error ->
-                    _state.value = currentSuccess.copy(isConfirming = false, error = error.toString())
+                    _state.value = currentSuccess.copy(isConfirming = false, error = error.toUiText())
                 }
         }
     }

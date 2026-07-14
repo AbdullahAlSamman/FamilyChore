@@ -70,7 +70,7 @@ class CreateFamilyViewModel(
                     _events.send(CreateFamilyEvent.FamilyCreated(user.familyId, user.id))
                 }
                 .onFailure { error ->
-                    _state.update { it.copy(isLoading = false, error = error.toString()) }
+                    _state.update { it.copy(isLoading = false, error = error.toUiText()) }
                 }
         }
     }

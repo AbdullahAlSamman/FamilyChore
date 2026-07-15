@@ -8,9 +8,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Today
@@ -41,7 +41,7 @@ import familychore.core.generated.resources.dashboard_tab_store
 import familychore.core.generated.resources.dashboard_tab_tasks
 import familychore.core.generated.resources.dashboard_tab_today
 import familychore.core.generated.resources.dashboard_title
-import familychore.core.generated.resources.welcome_change_language
+import familychore.core.generated.resources.settings
 import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
@@ -69,13 +69,10 @@ fun DashboardTopBar(
             Text(stringResource(Res.string.dashboard_title))
         },
         actions = {
-            IconButton(onClick = {
-                val nextLang = if (currentLanguage == AppLanguage.ENGLISH) AppLanguage.ARABIC else AppLanguage.ENGLISH
-                onAction(DashboardAction.ChangeLanguage(nextLang))
-            }) {
+            IconButton(onClick = { onAction(DashboardAction.NavigateToSettings) }) {
                 Icon(
-                    imageVector = Icons.Default.Language,
-                    contentDescription = stringResource(Res.string.welcome_change_language)
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = stringResource(Res.string.settings)
                 )
             }
             IconButton(onClick = { onAction(DashboardAction.Logout) }) {

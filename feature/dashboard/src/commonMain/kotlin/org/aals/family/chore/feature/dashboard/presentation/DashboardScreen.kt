@@ -45,6 +45,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun DashboardRoot(
     onLogout: (isServerOnline: Boolean, familyId: String?) -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: DashboardViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -52,6 +53,7 @@ fun DashboardRoot(
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is DashboardEvent.Logout -> onLogout(event.isServerOnline, event.familyId)
+            DashboardEvent.NavigateToSettings -> onNavigateToSettings()
         }
     }
 

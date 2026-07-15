@@ -11,6 +11,7 @@
     <string name="refresh">تحديث</string>
     <string name="language_en">الإنجليزية</string>
     <string name="language_ar">العربية</string>
+    <string name="settings">الإعدادات</string>
 
     <!-- Roles -->
     <string name="role_parent">ولي أمر</string>
@@ -39,7 +40,6 @@
     <string name="chore_points_negative_error">النقاط لا يمكن أن تكون سالبة</string>
     <string name="chore_points_zero_error">يجب أن تكون النقاط أكبر من الصفر</string>
     <string name="chore_points_too_high_error">النقاط مرتفعة جداً (1000 كحد أقصى)</string>
-    <string name="settings">الإعدادات</string>
     <string name="pts">نقطة</string>
     <string name="pts_count">%1$d نقطة</string>
 

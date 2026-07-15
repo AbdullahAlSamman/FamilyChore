@@ -6,10 +6,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import kotlinx.serialization.Serializable
 import org.aals.family.chore.feature.dashboard.presentation.DashboardRoot
+import org.aals.family.chore.feature.dashboard.presentation.settings.SettingsRoot
 
 @Serializable object DashboardGraph
 
 @Serializable object MainDashboardRoute
+@Serializable object SettingsRoute
 
 sealed interface DashboardTabRoute
 
@@ -34,7 +36,17 @@ fun NavGraphBuilder.dashboardGraph(
     ) {
         composable<MainDashboardRoute> {
             DashboardRoot(
-                onLogout = onLogout
+                onLogout = onLogout,
+                onNavigateToSettings = {
+                    navController.navigate(SettingsRoute)
+                }
+            )
+        }
+        composable<SettingsRoute> {
+            SettingsRoot(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
             )
         }
     }

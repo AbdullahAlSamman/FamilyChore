@@ -42,6 +42,7 @@ import org.aals.family.chore.feature.dashboard.presentation.navigation.ParentOve
 
 sealed interface DashboardEvent {
     data class Logout(val isServerOnline: Boolean, val familyId: String?) : DashboardEvent
+    data object NavigateToSettings : DashboardEvent
 }
 
 class DashboardViewModel(
@@ -104,6 +105,11 @@ class DashboardViewModel(
             is DashboardAction.ChangeLanguage -> {
                 viewModelScope.launch {
                     tokenStorage.saveLanguage(action.language.isoCode)
+                }
+            }
+            DashboardAction.NavigateToSettings -> {
+                viewModelScope.launch {
+                    _events.send(DashboardEvent.NavigateToSettings)
                 }
             }
         }

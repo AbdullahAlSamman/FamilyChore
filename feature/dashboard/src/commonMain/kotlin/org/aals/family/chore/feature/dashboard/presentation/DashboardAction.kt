@@ -28,4 +28,5 @@ sealed interface DashboardAction {
     data object DismissInviteQr : DashboardAction
 
     data class ChangeLanguage(val language: AppLanguage) : DashboardAction
+    data object NavigateToSettings : DashboardAction
 }

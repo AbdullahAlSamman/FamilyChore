@@ -4,6 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,6 +36,7 @@ fun App(
     tokenStorage: TokenStorage = koinInject(),
     logger: Logger = koinInject { parametersOf("App") }
 ) {
+    val navController = rememberNavController()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()
@@ -47,7 +49,9 @@ fun App(
         LocalLayoutDirection.current
     }
 
-    SetLocale(language)
+    if (currentState is MainState.Success) {
+        SetLocale(currentState.language)
+    }
 
     CompositionLocalProvider(
         LocalLayoutDirection provides layoutDirection
@@ -59,11 +63,11 @@ fun App(
                 }
                 is MainState.Success -> {
                     val authStartDestination = currentState.startDestination
-                    val navController = rememberNavController()
-                    NavHost(
-                        navController = navController,
-                        startDestination = if (authStartDestination is DashboardGraph) DashboardGraph else AuthGraph
-                    ) {
+                    key(language) {
+                        NavHost(
+                            navController = navController,
+                            startDestination = if (authStartDestination is DashboardGraph) DashboardGraph else AuthGraph
+                        ) {
                         authGraph(
                             navController = navController,
                             startDestination = if (authStartDestination is DashboardGraph) ServerDiscoveryRoute() else authStartDestination,
@@ -98,6 +102,7 @@ fun App(
                         )
                     }
                 }
+            }
             }
         }
     }

@@ -4,12 +4,15 @@ import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import co.touchlab.kermit.Logger
+import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.qr_error_invalid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.aals.family.chore.core.presentation.UiText
 import org.aals.family.chore.feature.auth.presentation.FakeTokenStorage
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -68,7 +71,8 @@ class QrScannerViewModelTest {
             
             viewModel.onAction(QrScannerAction.OnQrCodeScanned(qrContent))
             val state = awaitItem() as QrScannerState.Scanning
-            assertThat(state.error).isEqualTo("Invalid QR code")
+            val error = state.error as? UiText.StringResource
+            assertThat(error?.id).isEqualTo(Res.string.qr_error_invalid)
         }
     }
 

@@ -5,12 +5,15 @@ import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import co.touchlab.kermit.Logger
+import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.auth_pin_invalid_length_error
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.aals.family.chore.core.presentation.UiText
 import org.aals.family.chore.feature.auth.presentation.FakeAuthRepository
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -63,7 +66,8 @@ class PinEntryViewModelTest {
             assertThat(awaitItem().pin).isEqualTo("123")
             viewModel.onAction(PinEntryAction.OnSubmit)
             val state = awaitItem() as PinEntryState.Entering
-            assertThat(state.error).isEqualTo("PIN must be 4 digits")
+            val error = state.error as? UiText.StringResource
+            assertThat(error?.id).isEqualTo(Res.string.auth_pin_invalid_length_error)
         }
     }
 }

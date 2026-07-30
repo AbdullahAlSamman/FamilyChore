@@ -142,4 +142,11 @@
 
     <!-- Pairing -->
     <string name="family_default_name">Family</string>
+
+    <!-- Mode Selection -->
+    <string name="mode_selection_title">Choose Your Setup</string>
+    <string name="mode_selection_single_device">Single Device</string>
+    <string name="mode_selection_single_device_desc">Keep everything on this device. No internet required. Best for one-phone households.</string>
+    <string name="mode_selection_multiple_devices">Multiple Devices</string>
+    <string name="mode_selection_multiple_devices_desc">Sync chores across multiple phones and tablets. Requires a FamilyChore server.</string>
 </resources>

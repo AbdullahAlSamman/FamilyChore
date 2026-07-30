@@ -2,13 +2,10 @@ package org.aals.family.chore
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -24,7 +21,7 @@ import org.aals.family.chore.feature.dashboard.presentation.navigation.Dashboard
 import org.aals.family.chore.feature.dashboard.presentation.navigation.dashboardGraph
 import org.aals.family.chore.presentation.MainState
 import org.aals.family.chore.presentation.MainViewModel
-import org.aals.family.chore.presentation.util.SetLocale
+import org.aals.family.chore.presentation.util.LanguageProvider
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -43,27 +40,16 @@ fun App(
 
     val currentState = state
     val language = (currentState as? MainState.Success)?.language ?: AppLanguage.ENGLISH
-    val layoutDirection = if (currentState is MainState.Success) {
-        if (language.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
-    } else {
-        LocalLayoutDirection.current
-    }
 
-    if (currentState is MainState.Success) {
-        SetLocale(currentState.language)
-    }
-
-    CompositionLocalProvider(
-        LocalLayoutDirection provides layoutDirection
-    ) {
+    LanguageProvider(language = language) {
         key(language) {
             MaterialTheme {
-                when (val currentState = state) {
+                when (val currentMainState = state) {
                     MainState.Loading -> {
                         // You might want to show a splash screen or loader here
                     }
                     is MainState.Success -> {
-                        val authStartDestination = currentState.startDestination
+                        val authStartDestination = currentMainState.startDestination
                         NavHost(
                             navController = navController,
                             startDestination = if (authStartDestination is DashboardGraph) DashboardGraph else AuthGraph
@@ -83,15 +69,17 @@ fun App(
 
                             dashboardGraph(
                                 navController = navController,
-                                onLogout = { isServerOnline, familyId ->
+                                onLogout = { _, familyId ->
                                     scope.launch {
-                                        logger.d { "Logging out (online: $isServerOnline)" }
-                                        if (isServerOnline && familyId != null) {
-                                            tokenStorage.clearAuth()
-                                            navController.navigate(UserSelectionRoute(familyId = familyId)) {
+                                        tokenStorage.clearAuth()
+                                        val targetFamilyId = familyId ?: tokenStorage.getFamilyId()
+                                        if (targetFamilyId != null) {
+                                            logger.d { "Logging out to UserSelection for family: \$targetFamilyId" }
+                                            navController.navigate(UserSelectionRoute(familyId = targetFamilyId)) {
                                                 popUpTo(DashboardGraph) { inclusive = true }
                                             }
                                         } else {
+                                            logger.d { "Logging out to AuthGraph (no familyId)" }
                                             tokenStorage.clear()
                                             navController.navigate(AuthGraph) {
                                                 popUpTo(DashboardGraph) { inclusive = true }

@@ -32,7 +32,8 @@ class WelcomeViewModel(
     init {
         viewModelScope.launch {
             val name = tokenStorage.getServerName()
-            _state.update { it.copy(serverName = name) }
+            val isOffline = tokenStorage.getOfflineMode() ?: false
+            _state.update { it.copy(serverName = name, isOfflineMode = isOffline) }
         }
         observeLanguage()
         loadFamilies()
@@ -50,6 +51,12 @@ class WelcomeViewModel(
                 logger.d { "User chose: Join Existing Family" }
                 viewModelScope.launch {
                     _events.send(WelcomeEvent.NavigateToJoinFamily)
+                }
+            }
+            WelcomeAction.OnBackClick -> {
+                viewModelScope.launch {
+                    tokenStorage.setOfflineMode(null)
+                    _events.send(WelcomeEvent.NavigateToModeSelection)
                 }
             }
             is WelcomeAction.OnFamilyClick -> {

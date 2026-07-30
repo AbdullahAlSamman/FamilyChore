@@ -11,6 +11,7 @@ import org.aals.family.chore.core.data.remote.dto.UpdateChoreStatusRequest
 import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.repository.ChoreRepository
+import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.core.domain.util.TimeProvider
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.map as flowMap
 class ChoreRepositoryImpl(
     private val choreDao: ChoreDao,
     private val choreDataSource: ChoreDataSource,
+    private val tokenStorage: TokenStorage,
     private val timeProvider: TimeProvider,
     private val logger: Logger
 ) : ChoreRepository {
@@ -41,6 +43,10 @@ class ChoreRepositoryImpl(
         // Optimistic update
         choreDao.upsertChore(chore.toEntity())
         
+        if (tokenStorage.getOfflineMode() == true) {
+            return Result.Success(Unit)
+        }
+
         val request = CreateChoreRequest(
             familyId = chore.familyId,
             name = chore.name,
@@ -72,6 +78,10 @@ class ChoreRepositoryImpl(
             )
         }
 
+        if (tokenStorage.getOfflineMode() == true) {
+            return Result.Success(Unit)
+        }
+
         val request = UpdateChoreStatusRequest(
             choreId = choreId,
             familyId = familyId,
@@ -84,6 +94,9 @@ class ChoreRepositoryImpl(
 
     override suspend fun syncChores(familyId: String): Result<Unit, DataError> {
         logger.d { "Syncing chores for family: $familyId" }
+        if (tokenStorage.getOfflineMode() == true) {
+            return Result.Success(Unit)
+        }
         return choreDataSource.getChores(familyId)
             .onSuccess { dtos ->
                 dtos.forEach { choreDao.upsertChore(it.toEntity()) }

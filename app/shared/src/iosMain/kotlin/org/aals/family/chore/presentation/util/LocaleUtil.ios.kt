@@ -4,5 +4,6 @@ import androidx.compose.runtime.Composable
 import org.aals.family.chore.core.domain.model.AppLanguage
 
 @Composable
-actual fun SetLocale(language: AppLanguage) {
+actual fun LanguageProvider(language: AppLanguage, content: @Composable () -> Unit) {
+    content()
 }

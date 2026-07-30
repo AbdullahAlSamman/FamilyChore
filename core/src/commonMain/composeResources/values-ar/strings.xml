@@ -142,4 +142,11 @@
 
     <!-- Pairing -->
     <string name="family_default_name">العائلة</string>
+
+    <!-- Mode Selection -->
+    <string name="mode_selection_title">اختر طريقة الإعداد</string>
+    <string name="mode_selection_single_device">جهاز واحد</string>
+    <string name="mode_selection_single_device_desc">احتفظ بكل شيء على هذا الجهاز. لا يتطلب إنترنت. الأفضل للعائلات التي تستخدم هاتفاً واحداً.</string>
+    <string name="mode_selection_multiple_devices">أجهزة متعددة</string>
+    <string name="mode_selection_multiple_devices_desc">مزامنة المهام عبر عدة هواتف وأجهزة لوحية. يتطلب خادم FamilyChore.</string>
 </resources>

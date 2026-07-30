@@ -6,10 +6,13 @@ interface TokenStorage {
     val token: Flow<String?>
     val familyId: Flow<String?>
     val userId: Flow<String?>
+    val isOfflineMode: Flow<Boolean?>
     val serverUrl: Flow<String?>
     val serverName: Flow<String?>
     val language: Flow<String?>
 
+    suspend fun setOfflineMode(enabled: Boolean?)
+    suspend fun getOfflineMode(): Boolean?
     suspend fun saveToken(token: String)
     suspend fun getToken(): String?
     suspend fun saveFamilyId(familyId: String)

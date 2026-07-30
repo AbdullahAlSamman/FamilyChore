@@ -5,7 +5,8 @@ import org.aals.family.chore.core.domain.model.AppLanguage
 import java.util.Locale
 
 @Composable
-actual fun SetLocale(language: AppLanguage) {
+actual fun LanguageProvider(language: AppLanguage, content: @Composable () -> Unit) {
     val locale = Locale(language.isoCode)
     Locale.setDefault(locale)
+    content()
 }

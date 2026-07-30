@@ -6,6 +6,7 @@ import org.aals.family.chore.core.data.local.dao.TransactionDao
 import org.aals.family.chore.core.data.local.entity.TransactionEntity
 import org.aals.family.chore.core.data.remote.TransactionDataSource
 import org.aals.family.chore.core.domain.model.Transaction
+import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.repository.TransactionRepository
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.map as flowMap
 class TransactionRepositoryImpl(
     private val transactionDao: TransactionDao,
     private val transactionDataSource: TransactionDataSource,
+    private val tokenStorage: TokenStorage,
     private val logger: Logger
 ) : TransactionRepository {
 
@@ -33,6 +35,9 @@ class TransactionRepositoryImpl(
 
     override suspend fun syncTransactions(familyId: String): Result<Unit, DataError> {
         logger.d { "Syncing transactions for family: ${familyId}" }
+        if (tokenStorage.getOfflineMode() == true) {
+            return Result.Success(Unit)
+        }
         return transactionDataSource.getTransactions(familyId)
             .onSuccess { transactions ->
                 transactionDao.insertTransactions(transactions.map { it.toEntity() })
@@ -43,6 +48,9 @@ class TransactionRepositoryImpl(
     override suspend fun addTransaction(transaction: Transaction): Result<Unit, DataError> {
         logger.d { "Adding transaction: ${transaction.id}" }
         transactionDao.insertTransaction(transaction.toEntity())
+        if (tokenStorage.getOfflineMode() == true) {
+            return Result.Success(Unit)
+        }
         return transactionDataSource.addTransaction(transaction)
     }
 }

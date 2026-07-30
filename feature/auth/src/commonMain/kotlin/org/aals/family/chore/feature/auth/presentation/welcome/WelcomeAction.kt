@@ -6,6 +6,7 @@ import org.aals.family.chore.core.domain.model.Family
 sealed interface WelcomeAction {
     data object OnSetupNewFamilyClick : WelcomeAction
     data object OnJoinFamilyClick : WelcomeAction
+    data object OnBackClick : WelcomeAction
     data class OnFamilyClick(val family: Family) : WelcomeAction
     data class OnChangeLanguage(val language: AppLanguage) : WelcomeAction
 }

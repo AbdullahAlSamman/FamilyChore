@@ -15,6 +15,7 @@ class DataStoreTokenStorage(
 
     private companion object {
         val KEY_TOKEN = stringPreferencesKey("token")
+        val KEY_OFFLINE_MODE = stringPreferencesKey("offline_mode")
         val KEY_FAMILY_ID = stringPreferencesKey("family_id")
         val KEY_USER_ID = stringPreferencesKey("user_id")
         val KEY_SERVER_URL = stringPreferencesKey("server_url")
@@ -23,11 +24,23 @@ class DataStoreTokenStorage(
     }
 
     override val token: Flow<String?> = dataStore.data.map { it[KEY_TOKEN] }
+    override val isOfflineMode: Flow<Boolean?> = dataStore.data.map { it[KEY_OFFLINE_MODE]?.toBooleanStrictOrNull() }
     override val familyId: Flow<String?> = dataStore.data.map { it[KEY_FAMILY_ID] }
     override val userId: Flow<String?> = dataStore.data.map { it[KEY_USER_ID] }
     override val serverUrl: Flow<String?> = dataStore.data.map { it[KEY_SERVER_URL] }
     override val serverName: Flow<String?> = dataStore.data.map { it[KEY_SERVER_NAME] }
     override val language: Flow<String?> = dataStore.data.map { it[KEY_LANGUAGE] }
+
+    override suspend fun setOfflineMode(enabled: Boolean?) {
+        dataStore.edit { 
+            if (enabled == null) it.remove(KEY_OFFLINE_MODE)
+            else it[KEY_OFFLINE_MODE] = enabled.toString()
+        }
+    }
+
+    override suspend fun getOfflineMode(): Boolean? {
+        return dataStore.data.map { it[KEY_OFFLINE_MODE]?.toBooleanStrictOrNull() }.first()
+    }
 
     override suspend fun saveToken(token: String) {
         dataStore.edit { it[KEY_TOKEN] = token }

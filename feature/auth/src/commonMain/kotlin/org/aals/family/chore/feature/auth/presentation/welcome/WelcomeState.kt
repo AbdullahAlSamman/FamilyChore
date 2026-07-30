@@ -8,5 +8,6 @@ data class WelcomeState(
     val families: List<Family> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val currentLanguage: AppLanguage = AppLanguage.ENGLISH
+    val currentLanguage: AppLanguage = AppLanguage.ENGLISH,
+    val isOfflineMode: Boolean = false
 )

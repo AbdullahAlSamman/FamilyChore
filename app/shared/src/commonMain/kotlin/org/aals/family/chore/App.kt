@@ -56,53 +56,53 @@ fun App(
     CompositionLocalProvider(
         LocalLayoutDirection provides layoutDirection
     ) {
-        MaterialTheme {
-            when (val currentState = state) {
-                MainState.Loading -> {
-                    // You might want to show a splash screen or loader here
-                }
-                is MainState.Success -> {
-                    val authStartDestination = currentState.startDestination
-                    key(language) {
+        key(language) {
+            MaterialTheme {
+                when (val currentState = state) {
+                    MainState.Loading -> {
+                        // You might want to show a splash screen or loader here
+                    }
+                    is MainState.Success -> {
+                        val authStartDestination = currentState.startDestination
                         NavHost(
                             navController = navController,
                             startDestination = if (authStartDestination is DashboardGraph) DashboardGraph else AuthGraph
                         ) {
-                        authGraph(
-                            navController = navController,
-                            startDestination = if (authStartDestination is DashboardGraph) ServerDiscoveryRoute() else authStartDestination,
-                            onOnboardingComplete = {
-                                scope.launch {
-                                    logger.d { "Onboarding complete, navigating to Dashboard" }
-                                    navController.navigate(DashboardGraph) {
-                                        popUpTo(AuthGraph) { inclusive = true }
+                            authGraph(
+                                navController = navController,
+                                startDestination = if (authStartDestination is DashboardGraph) ServerDiscoveryRoute() else authStartDestination,
+                                onOnboardingComplete = {
+                                    scope.launch {
+                                        logger.d { "Onboarding complete, navigating to Dashboard" }
+                                        navController.navigate(DashboardGraph) {
+                                            popUpTo(AuthGraph) { inclusive = true }
+                                        }
                                     }
                                 }
-                            }
-                        )
+                            )
 
-                        dashboardGraph(
-                            navController = navController,
-                            onLogout = { isServerOnline, familyId ->
-                                scope.launch {
-                                    logger.d { "Logging out (online: $isServerOnline)" }
-                                    if (isServerOnline && familyId != null) {
-                                        tokenStorage.clearAuth()
-                                        navController.navigate(UserSelectionRoute(familyId = familyId)) {
-                                            popUpTo(DashboardGraph) { inclusive = true }
-                                        }
-                                    } else {
-                                        tokenStorage.clear()
-                                        navController.navigate(AuthGraph) {
-                                            popUpTo(DashboardGraph) { inclusive = true }
+                            dashboardGraph(
+                                navController = navController,
+                                onLogout = { isServerOnline, familyId ->
+                                    scope.launch {
+                                        logger.d { "Logging out (online: $isServerOnline)" }
+                                        if (isServerOnline && familyId != null) {
+                                            tokenStorage.clearAuth()
+                                            navController.navigate(UserSelectionRoute(familyId = familyId)) {
+                                                popUpTo(DashboardGraph) { inclusive = true }
+                                            }
+                                        } else {
+                                            tokenStorage.clear()
+                                            navController.navigate(AuthGraph) {
+                                                popUpTo(DashboardGraph) { inclusive = true }
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
-            }
             }
         }
     }

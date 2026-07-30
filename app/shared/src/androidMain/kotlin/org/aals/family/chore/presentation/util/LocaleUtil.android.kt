@@ -10,19 +10,26 @@ import java.util.Locale
 
 @Composable
 actual fun SetLocale(language: AppLanguage) {
+    val context = LocalContext.current
     val configuration = LocalConfiguration.current
-    val resources = LocalContext.current.resources
+    val resources = context.resources
     val locale = Locale(language.isoCode)
     
     LaunchedEffect(language) {
         if (configuration.locales[0] != locale) {
             Locale.setDefault(locale)
-            val newConfig = Configuration(configuration).apply {
+            val newConfig = Configuration(resources.configuration).apply {
                 setLocale(locale)
                 setLayoutDirection(locale)
             }
+            
             @Suppress("DEPRECATION")
             resources.updateConfiguration(newConfig, resources.displayMetrics)
+            
+            // Also update Application context to ensure global strings (like notifications or shortcuts) sync
+            val appResources = context.applicationContext.resources
+            @Suppress("DEPRECATION")
+            appResources.updateConfiguration(newConfig, appResources.displayMetrics)
         }
     }
 }

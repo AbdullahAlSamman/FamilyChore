@@ -1,24 +1,55 @@
 package org.aals.family.chore.core.data.repository
 
 import co.touchlab.kermit.Logger
+import kotlinx.coroutines.flow.first
+import org.aals.family.chore.core.data.local.dao.FamilyDao
+import org.aals.family.chore.core.data.local.dao.UserDao
+import org.aals.family.chore.core.data.local.entity.FamilyEntity
+import org.aals.family.chore.core.data.local.entity.UserEntity
 import org.aals.family.chore.core.data.remote.PairingDataSource
 import org.aals.family.chore.core.domain.model.Family
 import org.aals.family.chore.core.domain.model.User
+import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.core.domain.util.map
 import org.aals.family.chore.core.domain.util.onSuccess
+import org.aals.family.chore.core.domain.util.randomUUID
+import kotlinx.coroutines.flow.map as flowMap
 
 class AuthRepositoryImpl(
     private val pairingDataSource: PairingDataSource,
     private val tokenStorage: TokenStorage,
+    private val userDao: UserDao,
+    private val familyDao: FamilyDao,
     private val logger: Logger
 ) : AuthRepository {
 
     override suspend fun createFamily(familyName: String, parentNickname: String): Result<User, DataError.Network> {
         logger.d { "Creating family: $familyName with parent: $parentNickname" }
+        
+        if (tokenStorage.getOfflineMode() == true) {
+            val familyId = randomUUID()
+            val userId = randomUUID()
+            val user = User(
+                id = userId,
+                familyId = familyId,
+                nickname = parentNickname,
+                role = UserRole.PARENT,
+                requiresPin = false
+            )
+            
+            familyDao.upsertFamily(FamilyEntity(id = familyId, name = familyName))
+            userDao.upsertUser(user.toEntity())
+            
+            tokenStorage.saveFamilyId(familyId)
+            tokenStorage.saveUserId(userId)
+            
+            return Result.Success(user)
+        }
+
         return pairingDataSource.createFamily(familyName, parentNickname).map { response ->
             logger.d { "Family created successfully: ${response.familyId}" }
             tokenStorage.saveFamilyId(response.familyId)
@@ -30,6 +61,11 @@ class AuthRepositoryImpl(
 
     override suspend fun getFamilies(): Result<List<Family>, DataError.Network> {
         logger.d { "Fetching all families" }
+        if (tokenStorage.getOfflineMode() == true) {
+            return familyDao.getFamilies()
+                .flowMap { entities -> entities.map { it.toDomain() } }
+                .first().let { Result.Success(it) }
+        }
         return pairingDataSource.getFamilies()
     }
 
@@ -45,6 +81,11 @@ class AuthRepositoryImpl(
 
     override suspend fun getFamilyMembers(familyId: String): Result<List<User>, DataError.Network> {
         logger.d { "Fetching members for family: $familyId" }
+        if (tokenStorage.getOfflineMode() == true) {
+            return userDao.getUsers(familyId)
+                .flowMap { entities -> entities.map { it.toUser() } }
+                .first().let { Result.Success(it) }
+        }
         return pairingDataSource.getFamilyMembers(familyId).map { it.users }
     }
 
@@ -67,6 +108,12 @@ class AuthRepositoryImpl(
 
     override suspend fun getUser(userId: String): Result<User, DataError.Network> {
         logger.d { "Fetching user profile: $userId" }
+        if (tokenStorage.getOfflineMode() == true) {
+            // Need a getById in UserDao or filter
+            return userDao.getUsers(tokenStorage.getFamilyId() ?: "")
+                .flowMap { it.find { user -> user.id == userId }?.toUser() }
+                .first()?.let { Result.Success(it) } ?: Result.Error(DataError.Network.NOT_FOUND)
+        }
         return pairingDataSource.getUser(userId)
     }
 
@@ -96,6 +143,30 @@ class AuthRepositoryImpl(
     override suspend fun getCurrentUser(): Result<User, DataError.Network> {
         val userId = tokenStorage.getUserId() ?: return Result.Error(DataError.Network.UNAUTHORIZED)
         logger.d { "Fetching current user profile: $userId" }
+        if (tokenStorage.getOfflineMode() == true) {
+            return getUser(userId)
+        }
         return pairingDataSource.getUser(userId)
     }
 }
+
+fun User.toEntity(): UserEntity = UserEntity(
+    id = id,
+    familyId = familyId,
+    name = nickname,
+    role = role.name,
+    pin = null
+)
+
+fun UserEntity.toUser(): User = User(
+    id = id,
+    familyId = familyId,
+    nickname = name,
+    role = UserRole.valueOf(role),
+    requiresPin = pin != null
+)
+
+fun FamilyEntity.toDomain(): Family = Family(
+    id = id,
+    name = name
+)

@@ -12,6 +12,7 @@ import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.Result
+import org.aals.family.chore.feature.auth.presentation.navigation.ModeSelectionRoute
 import org.aals.family.chore.feature.auth.presentation.navigation.ServerDiscoveryRoute
 import org.aals.family.chore.feature.auth.presentation.navigation.UserSelectionRoute
 import org.aals.family.chore.feature.auth.presentation.navigation.WelcomeRoute
@@ -37,12 +38,17 @@ class MainViewModel(
 
     private fun checkInitialState() {
         viewModelScope.launch {
+            val isOffline = tokenStorage.getOfflineMode()
             val serverUrl = tokenStorage.getServerUrl()
             val familyId = tokenStorage.getFamilyId()
             val token = tokenStorage.getToken()
 
-            val destination = if (token != null) {
+            val destination = if (token != null || familyId != null) {
                 UserSelectionRoute(familyId = familyId)
+            } else if (isOffline == null) {
+                ModeSelectionRoute
+            } else if (isOffline) {
+                WelcomeRoute
             } else if (serverUrl != null) {
                 val result = connectivityRepository.checkHealth()
                 if (result is Result.Success) {

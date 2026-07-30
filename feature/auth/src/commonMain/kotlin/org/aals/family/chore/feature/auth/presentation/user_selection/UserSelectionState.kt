@@ -15,6 +15,7 @@ sealed interface UserSelectionState {
     data class Success(
         val users: List<User>,
         val isConfirming: Boolean = false,
+        val isFromDiscovery: Boolean = false,
         val error: UiText? = null
     ) : UserSelectionState
     

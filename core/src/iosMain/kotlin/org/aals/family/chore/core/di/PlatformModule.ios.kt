@@ -54,4 +54,5 @@ actual val platformModule: Module = module {
     single { get<FamilyDatabase>().userDao() }
     single { get<FamilyDatabase>().choreDao() }
     single { get<FamilyDatabase>().transactionDao() }
+    single { get<FamilyDatabase>().familyDao() }
 }

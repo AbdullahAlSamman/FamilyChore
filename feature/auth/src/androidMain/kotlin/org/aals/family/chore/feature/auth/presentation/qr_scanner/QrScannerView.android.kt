@@ -19,6 +19,7 @@ import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
 
 @OptIn(ExperimentalGetImage::class)
+@Suppress("UnsafeOptInUsageError")
 @Composable
 actual fun QrScannerView(
     onQrCodeScanned: (String) -> Unit,

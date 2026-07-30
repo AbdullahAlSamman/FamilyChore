@@ -12,17 +12,17 @@ import java.util.Locale
 actual fun SetLocale(language: AppLanguage) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
-    val resources = context.resources
     val locale = Locale(language.isoCode)
     
     LaunchedEffect(language) {
         if (configuration.locales[0] != locale) {
             Locale.setDefault(locale)
-            val newConfig = Configuration(resources.configuration).apply {
+            val newConfig = Configuration(configuration).apply {
                 setLocale(locale)
                 setLayoutDirection(locale)
             }
             
+            val resources = context.resources
             @Suppress("DEPRECATION")
             resources.updateConfiguration(newConfig, resources.displayMetrics)
             

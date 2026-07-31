@@ -255,6 +255,52 @@ class DashboardViewModelTest {
     }
 
     @Test
+    fun `AddChild in offline mode adds user and does NOT show QR`() = runTest {
+        tokenStorage.setOfflineMode(true)
+        
+        viewModel.onAction(DashboardAction.Refresh)
+
+        viewModel.state.test {
+            // Skip until we get Success with offline mode
+            var state = awaitItem()
+            while (state !is DashboardState.Success || !state.isOfflineMode) {
+                state = awaitItem()
+            }
+            
+            viewModel.onAction(DashboardAction.AddChild("Charlie", true))
+            
+            // Skip until adding is done and members are refreshed
+            while (state !is DashboardState.Success || state.isAddingChild || state.familyMembers.none { it.nickname == "Charlie" }) {
+                state = awaitItem()
+            }
+            
+            val finalState = state as DashboardState.Success
+            assertThat(finalState.inviteQrContent).isEqualTo(null)
+            assertThat(authRepository.familyMembers.any { it.nickname == "Charlie" }).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `AddChild when server unreachable and NOT offline is blocked`() = runTest {
+        connectivityRepository.isServerReachable.value = false
+        tokenStorage.setOfflineMode(false)
+        
+        viewModel.state.test {
+            awaitItem() // Skip initial Success
+            
+            viewModel.onAction(DashboardAction.AddChild("Charlie", true))
+            
+            // authRepository.addChildUser should NOT be called
+            // Actually, in the current implementation, it just returns without doing anything.
+            // So the state won't even change to "isAddingChild = true".
+            
+            assertThat(authRepository.familyMembers.any { it.nickname == "Charlie" }).isEqualTo(false)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `Connectivity changes update state`() = runTest {
         viewModel.state.test {
             awaitItem()

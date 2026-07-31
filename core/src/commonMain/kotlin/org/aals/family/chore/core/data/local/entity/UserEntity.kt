@@ -10,5 +10,6 @@ data class UserEntity(
     val familyId: String,
     val name: String,
     val role: String,
-    val pin: String?
+    val pin: String?,
+    val requiresPin: Boolean
 )

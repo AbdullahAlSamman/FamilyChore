@@ -35,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.dashboard_overview_title
-import familychore.core.generated.resources.family_management_add_child
+import familychore.core.generated.resources.family_management_add_member
 import familychore.core.generated.resources.family_management_invite_member
 import familychore.core.generated.resources.family_management_nickname_label
 import familychore.core.generated.resources.family_management_require_pin
@@ -221,6 +221,7 @@ fun ParentTasksContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FamilyManagementContent(
     state: DashboardState.Success,
@@ -233,34 +234,64 @@ fun FamilyManagementContent(
         )
         Spacer(modifier = Modifier.size(16.dp))
 
-        // Add Child Section
+        // Add Member Section
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    stringResource(Res.string.family_management_add_child),
+                    stringResource(Res.string.family_management_add_member),
                     style = MaterialTheme.typography.titleMedium
                 )
+                
+                // Role Selection
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    UserRole.entries.forEach { role ->
+                        val label = when (role) {
+                            UserRole.PARENT -> stringResource(Res.string.role_parent)
+                            UserRole.CHILD -> stringResource(Res.string.role_child)
+                        }
+                        FilterChip(
+                            selected = state.newMemberRole == role,
+                            onClick = { onAction(DashboardAction.ChangeNewMemberRole(role)) },
+                            label = { Text(label) }
+                        )
+                    }
+                }
+
                 OutlinedTextField(
-                    value = state.newChildNickname,
-                    onValueChange = { onAction(DashboardAction.OnChildNicknameChange(it)) },
+                    value = state.newMemberNickname,
+                    onValueChange = { onAction(DashboardAction.OnMemberNicknameChange(it)) },
                     label = { Text(stringResource(Res.string.family_management_nickname_label)) },
                     modifier = Modifier.fillMaxWidth(),
-                    isError = state.childNicknameError != null,
-                    supportingText = { state.childNicknameError?.let { Text(it.asString()) } }
+                    isError = state.memberNicknameError != null,
+                    supportingText = { state.memberNicknameError?.let { Text(it.asString()) } }
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    val isParent = state.newMemberRole == UserRole.PARENT
                     Checkbox(
-                        checked = state.requiresPinForNewChild,
-                        onCheckedChange = { onAction(DashboardAction.TogglePinRequirement) }
+                        checked = if (isParent) true else state.requiresPinForNewMember,
+                        onCheckedChange = { onAction(DashboardAction.TogglePinRequirement) },
+                        enabled = !isParent
                     )
                     Text(stringResource(Res.string.family_management_require_pin))
                 }
                 Button(
-                    onClick = { onAction(DashboardAction.AddChild(state.newChildNickname, state.requiresPinForNewChild)) },
+                    onClick = { 
+                        onAction(DashboardAction.AddMember(
+                            state.newMemberNickname, 
+                            state.newMemberRole,
+                            state.requiresPinForNewMember
+                        )) 
+                    },
                     modifier = Modifier.align(Alignment.End),
-                    enabled = !state.isAddingChild && state.newChildNickname.isNotBlank()
+                    enabled = !state.isAddingMember && 
+                        state.newMemberNickname.isNotBlank() && 
+                        (state.isServerReachable || state.isOfflineMode)
                 ) {
-                    if (state.isAddingChild) {
+                    if (state.isAddingMember) {
                         CircularProgressIndicator(modifier = Modifier.size(16.dp))
                     } else {
                         Text(stringResource(Res.string.save))
@@ -299,14 +330,23 @@ fun FamilyMemberCard(
                 Text(roleText, style = MaterialTheme.typography.bodySmall)
             }
             
-            if (user.role == org.aals.family.chore.core.domain.model.UserRole.CHILD) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (user.role == UserRole.CHILD) {
                     Text(stringResource(Res.string.pin_label), style = MaterialTheme.typography.labelSmall)
                     Switch(
                         checked = user.requiresPin,
                         onCheckedChange = { onAction(DashboardAction.UpdateUserPinRequirement(user.id, it)) },
                         modifier = Modifier.layoutScale(0.7f),
                         enabled = isOnline
+                    )
+                } else {
+                    // Show that PIN is required for parents (just a label or icon)
+                    Text(stringResource(Res.string.pin_label), style = MaterialTheme.typography.labelSmall)
+                    Switch(
+                        checked = true,
+                        onCheckedChange = {},
+                        modifier = Modifier.layoutScale(0.7f),
+                        enabled = false
                     )
                 }
                 IconButton(onClick = { onAction(DashboardAction.ShowInviteQr(user.id)) }) {

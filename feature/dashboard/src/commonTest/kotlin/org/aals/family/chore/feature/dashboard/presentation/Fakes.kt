@@ -102,10 +102,13 @@ class FakeTokenStorage : org.aals.family.chore.core.domain.repository.TokenStora
     override val token = MutableStateFlow<String?>(null)
     override val familyId = MutableStateFlow<String?>(null)
     override val userId = MutableStateFlow<String?>(null)
+    override val isOfflineMode = MutableStateFlow<Boolean?>(null)
     override val serverUrl = MutableStateFlow<String?>(null)
     override val serverName = MutableStateFlow<String?>(null)
     override val language = MutableStateFlow<String?>(null)
 
+    override suspend fun setOfflineMode(enabled: Boolean?) { this.isOfflineMode.value = enabled }
+    override suspend fun getOfflineMode(): Boolean? = isOfflineMode.value
     override suspend fun saveToken(token: String) { this.token.value = token }
     override suspend fun getToken(): String? = token.value
     override suspend fun saveFamilyId(familyId: String) { this.familyId.value = familyId }

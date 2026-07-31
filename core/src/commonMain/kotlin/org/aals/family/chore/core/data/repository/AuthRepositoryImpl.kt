@@ -90,13 +90,26 @@ class AuthRepositoryImpl(
         return pairingDataSource.getFamilyMembers(familyId).map { it.users }
     }
 
-    override suspend fun addChildUser(
+    override suspend fun addFamilyMember(
         familyId: String,
         nickname: String,
+        role: UserRole,
         requiresPin: Boolean
     ): Result<User, DataError.Network> {
-        logger.d { "Adding child user: $nickname to family: $familyId" }
-        return pairingDataSource.addChildUser(familyId, nickname, requiresPin)
+        logger.d { "Adding family member: $nickname ($role) to family: $familyId" }
+        if (tokenStorage.getOfflineMode() == true) {
+            val userId = randomUUID()
+            val user = User(
+                id = userId,
+                familyId = familyId,
+                nickname = nickname,
+                role = role,
+                requiresPin = requiresPin
+            )
+            userDao.upsertUser(user.toEntity())
+            return Result.Success(user)
+        }
+        return pairingDataSource.addFamilyMember(familyId, nickname, role, requiresPin)
     }
 
     override suspend fun updateUserPinRequirement(
@@ -104,6 +117,11 @@ class AuthRepositoryImpl(
         requiresPin: Boolean
     ): Result<Unit, DataError.Network> {
         logger.d { "Updating pin requirement for user: $userId to $requiresPin" }
+        if (tokenStorage.getOfflineMode() == true) {
+            val userEntity = userDao.getUserById(userId) ?: return Result.Error(DataError.Network.NOT_FOUND)
+            userDao.upsertUser(userEntity.copy(requiresPin = requiresPin))
+            return Result.Success(Unit)
+        }
         return pairingDataSource.updateUserPinRequirement(userId, requiresPin)
     }
 
@@ -178,7 +196,8 @@ fun User.toEntity(): UserEntity = UserEntity(
     familyId = familyId,
     name = nickname,
     role = role.name,
-    pin = null
+    pin = null,
+    requiresPin = requiresPin
 )
 
 fun UserEntity.toUser(): User = User(
@@ -186,7 +205,7 @@ fun UserEntity.toUser(): User = User(
     familyId = familyId,
     nickname = name,
     role = UserRole.valueOf(role),
-    requiresPin = pin != null
+    requiresPin = requiresPin
 )
 
 fun FamilyEntity.toDomain(): Family = Family(

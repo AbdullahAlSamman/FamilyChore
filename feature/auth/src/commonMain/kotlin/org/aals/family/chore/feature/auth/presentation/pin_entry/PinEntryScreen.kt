@@ -17,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,7 +30,6 @@ import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.pin_instructions
 import familychore.core.generated.resources.pin_label
 import familychore.core.generated.resources.pin_title
-import familychore.core.generated.resources.skip
 import familychore.core.generated.resources.submit
 import org.aals.family.chore.core.presentation.ObserveAsEvents
 import org.jetbrains.compose.resources.stringResource
@@ -110,16 +108,6 @@ fun PinEntryScreen(
                 } else {
                     Text(stringResource(Res.string.submit))
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextButton(
-                onClick = { onAction(PinEntryAction.OnSkip) },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoading
-            ) {
-                Text(stringResource(Res.string.skip))
             }
         }
     }

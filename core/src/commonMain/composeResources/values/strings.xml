@@ -20,6 +20,9 @@
     <!-- Errors -->
     <string name="error_unknown">Unknown error occurred</string>
     <string name="error_invalid_number">Invalid number</string>
+    <string name="error_unauthorized">Invalid PIN or unauthorized access</string>
+    <string name="error_serialization">Server response error. Please try again.</string>
+    <string name="error_server">Server error. Please try again later.</string>
     <string name="error_missing_params">Missing identification parameters</string>
     <string name="dashboard_load_failed_error">Failed to load profile. Please login again.</string>
 

@@ -29,6 +29,7 @@ kotlin {
             implementation(libs.ktor.client.auth)
             implementation(libs.datastore.preferences)
             implementation(libs.kermit)
+            implementation(libs.okio)
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)

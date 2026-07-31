@@ -13,4 +13,7 @@ interface UserDao {
     
     @Upsert
     suspend fun upsertUser(user: UserEntity)
+
+    @Query("SELECT * FROM UserEntity WHERE id = :userId")
+    suspend fun getUserById(userId: String): UserEntity?
 }

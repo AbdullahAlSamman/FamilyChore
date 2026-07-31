@@ -13,6 +13,8 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.aals.family.chore.core.domain.model.User
+import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.presentation.UiText
 import org.aals.family.chore.feature.auth.presentation.FakeAuthRepository
 import kotlin.test.AfterTest
@@ -54,6 +56,7 @@ class PinEntryViewModelTest {
 
     @Test
     fun `submitting short pin sets error`() = runTest {
+        authRepository.users.add(User(userId, "f1", "Parent", UserRole.PARENT, 0, true))
         viewModel = PinEntryViewModel(
             authRepository,
             SavedStateHandle(mapOf("userId" to userId)),
@@ -68,6 +71,49 @@ class PinEntryViewModelTest {
             val state = awaitItem() as PinEntryState.Entering
             val error = state.error as? UiText.StringResource
             assertThat(error?.id).isEqualTo(Res.string.auth_pin_invalid_length_error)
+        }
+    }
+
+    @Test
+    fun `parent user with requiresPin false does not bypass`() = runTest {
+        authRepository.users.add(User(userId, "f1", "Parent", UserRole.PARENT, 0, false))
+        viewModel = PinEntryViewModel(
+            authRepository,
+            SavedStateHandle(mapOf("userId" to userId)),
+            Logger.withTag("Test")
+        )
+
+        viewModel.events.test {
+            // No event should be emitted automatically
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `child user with requiresPin false bypasses automatically`() = runTest {
+        authRepository.users.add(User(userId, "f1", "Child", UserRole.CHILD, 0, false))
+        viewModel = PinEntryViewModel(
+            authRepository,
+            SavedStateHandle(mapOf("userId" to userId)),
+            Logger.withTag("Test")
+        )
+
+        viewModel.events.test {
+            assertThat(awaitItem()).isEqualTo(PinEntryEvent.PinVerified)
+        }
+    }
+
+    @Test
+    fun `child user with requiresPin true does not bypass`() = runTest {
+        authRepository.users.add(User(userId, "f1", "Child", UserRole.CHILD, 0, true))
+        viewModel = PinEntryViewModel(
+            authRepository,
+            SavedStateHandle(mapOf("userId" to userId)),
+            Logger.withTag("Test")
+        )
+
+        viewModel.events.test {
+            expectNoEvents()
         }
     }
 }

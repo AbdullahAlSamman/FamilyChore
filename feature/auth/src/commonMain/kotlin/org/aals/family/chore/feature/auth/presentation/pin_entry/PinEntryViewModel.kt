@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
@@ -33,22 +34,27 @@ class PinEntryViewModel(
     val events = _events.receiveAsFlow()
 
     init {
-        checkPinRequirement()
+        loadUserAndCheckRequirement()
     }
 
-    private fun checkPinRequirement() {
+    private fun loadUserAndCheckRequirement() {
         if (isSetupMode) return
 
         viewModelScope.launch {
+            _state.value = PinEntryState.Verifying("")
             authRepository.getUser(userId)
                 .onSuccess { user ->
-                    if (!user.requiresPin) {
-                        logger.d { "PIN not required for user, bypassing" }
+                    val isParent = user.role == UserRole.PARENT
+                    if (!isParent && !user.requiresPin) {
+                        logger.d { "PIN not required for child, bypassing" }
                         _events.send(PinEntryEvent.PinVerified)
+                    } else {
+                        _state.value = PinEntryState.Entering()
                     }
                 }
                 .onFailure { e ->
                     logger.e { "Failed to fetch user profile: $e" }
+                    _state.value = PinEntryState.Entering(error = e.toUiText())
                 }
         }
     }
@@ -68,11 +74,6 @@ class PinEntryViewModel(
                     submitPin()
                 } else {
                     _state.value = currentState.copy(error = UiText.StringResource(Res.string.auth_pin_invalid_length_error))
-                }
-            }
-            PinEntryAction.OnSkip -> {
-                viewModelScope.launch {
-                    _events.send(PinEntryEvent.PinVerified)
                 }
             }
         }
@@ -98,7 +99,7 @@ class PinEntryViewModel(
                     _events.send(PinEntryEvent.PinVerified)
                 }
                 .onFailure { error ->
-                    logger.e { "PIN operation failed: $error" }
+                    logger.e { "PIN operation failed for user $userId: $error" }
                     _state.value = PinEntryState.Entering(pin = pin, error = error.toUiText())
                 }
         }

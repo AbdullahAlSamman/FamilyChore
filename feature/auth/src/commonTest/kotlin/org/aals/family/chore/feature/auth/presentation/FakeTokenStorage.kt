@@ -11,6 +11,7 @@ class FakeTokenStorage : TokenStorage {
     private val _serverUrl = MutableStateFlow<String?>(null)
     private val _serverName = MutableStateFlow<String?>(null)
     private val _language = MutableStateFlow<String?>(null)
+    private val _isOfflineMode = MutableStateFlow<Boolean?>(null)
 
     override val token: Flow<String?> = _token
     override val familyId: Flow<String?> = _familyId
@@ -18,6 +19,13 @@ class FakeTokenStorage : TokenStorage {
     override val serverUrl: Flow<String?> = _serverUrl
     override val serverName: Flow<String?> = _serverName
     override val language: Flow<String?> = _language
+    override val isOfflineMode: Flow<Boolean?> = _isOfflineMode
+
+    override suspend fun setOfflineMode(enabled: Boolean?) {
+        _isOfflineMode.value = enabled
+    }
+
+    override suspend fun getOfflineMode(): Boolean? = _isOfflineMode.value
 
     override suspend fun saveToken(token: String) {
         _token.value = token

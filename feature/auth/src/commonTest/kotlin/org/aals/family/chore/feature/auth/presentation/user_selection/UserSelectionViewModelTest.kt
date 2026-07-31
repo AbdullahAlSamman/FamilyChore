@@ -51,7 +51,7 @@ class UserSelectionViewModelTest {
         viewModel.state.test {
             // With UnconfinedTestDispatcher, the init block runs immediately.
             // We expect the final Success state.
-            assertThat(awaitItem()).isEqualTo(UserSelectionState.Success(users))
+            assertThat(awaitItem()).isEqualTo(UserSelectionState.Success(users, isFromDiscovery = true))
         }
     }
 

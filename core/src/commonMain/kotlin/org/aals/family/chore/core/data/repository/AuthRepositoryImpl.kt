@@ -17,6 +17,7 @@ import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.core.domain.util.map
 import org.aals.family.chore.core.domain.util.onSuccess
 import org.aals.family.chore.core.domain.util.randomUUID
+import org.aals.family.chore.core.domain.util.toSha256
 import kotlinx.coroutines.flow.map as flowMap
 
 class AuthRepositoryImpl(
@@ -109,10 +110,8 @@ class AuthRepositoryImpl(
     override suspend fun getUser(userId: String): Result<User, DataError.Network> {
         logger.d { "Fetching user profile: $userId" }
         if (tokenStorage.getOfflineMode() == true) {
-            // Need a getById in UserDao or filter
-            return userDao.getUsers(tokenStorage.getFamilyId() ?: "")
-                .flowMap { it.find { user -> user.id == userId }?.toUser() }
-                .first()?.let { Result.Success(it) } ?: Result.Error(DataError.Network.NOT_FOUND)
+            return userDao.getUserById(userId)?.toUser()
+                ?.let { Result.Success(it) } ?: Result.Error(DataError.Network.NOT_FOUND)
         }
         return pairingDataSource.getUser(userId)
     }
@@ -129,13 +128,37 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun setupPin(userId: String, pin: String): Result<Unit, DataError.Network> {
-        logger.d { "Setting up PIN for user: $userId" }
-        return pairingDataSource.setupPin(userId, pin)
+        val hashedPin = pin.toSha256()
+        logger.d { "Setting up PIN for user: $userId (offline: ${tokenStorage.getOfflineMode()})" }
+        
+        if (tokenStorage.getOfflineMode() == true) {
+            val userEntity = userDao.getUserById(userId) ?: return Result.Error(DataError.Network.NOT_FOUND)
+            val updatedUser = userEntity.copy(pin = hashedPin)
+            userDao.upsertUser(updatedUser)
+            tokenStorage.saveUserId(userId)
+            return Result.Success(Unit)
+        }
+        
+        return pairingDataSource.setupPin(userId, hashedPin).onSuccess {
+            tokenStorage.saveUserId(userId)
+        }
     }
 
     override suspend fun verifyPin(userId: String, pin: String): Result<Unit, DataError.Network> {
-        logger.d { "Verifying PIN for user: $userId" }
-        return pairingDataSource.verifyPin(userId, pin).onSuccess {
+        val hashedPin = pin.toSha256()
+        logger.d { "Verifying PIN for user: $userId (offline: ${tokenStorage.getOfflineMode()})" }
+        
+        if (tokenStorage.getOfflineMode() == true) {
+            val userEntity = userDao.getUserById(userId) ?: return Result.Error(DataError.Network.NOT_FOUND)
+            return if (userEntity.pin == hashedPin) {
+                tokenStorage.saveUserId(userId)
+                Result.Success(Unit)
+            } else {
+                Result.Error(DataError.Network.UNAUTHORIZED)
+            }
+        }
+        
+        return pairingDataSource.verifyPin(userId, hashedPin).onSuccess {
             tokenStorage.saveUserId(userId)
         }
     }

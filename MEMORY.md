@@ -13,6 +13,7 @@
 - **Domain-Level SSOT**: All validation logic MUST reside in the `core:domain` layer (e.g., `ChoreValidator`).
 - **Standardized Error Types**: Validators MUST return domain-specific error types inheriting from `core.domain.util.Error`.
 - **Presentation Mapping**: Domain errors MUST be mapped to `UiText` in the presentation layer via `ValidationMappers.kt`.
+- **Zero Plain-Text Persistence**: Sensitive data (like PINs) MUST NEVER be saved to any database (local or server) in plain text. Hashing (SHA-256) MUST occur at the Repository level before any storage or network transmission.
 - **UI Pattern**: Screens MUST support real-time feedback (on field change) and final "On-Submit" validation.
 - **Server Parity**: Server-side routes MUST implement mirror validation logic. If validation fails, the server MUST respond with `HttpStatusCode.BadRequest` (400) and a structured `ErrorResponse` detailing the validation errors.
 - **Client-Side Handling**: The client `SafeCall` mechanism MUST be able to parse server-side validation errors and map them to `DataError.Network.VALIDATION_ERROR`.
@@ -44,7 +45,7 @@ This file tracks critical architectural decisions and domain rules for the Famil
     - **Case**: Always use `snake_case`.
     - **State**: Use `UiText` in ViewModels to handle localized resources.
 - **Pairing Flow**: Onboarding uses a real-time QR handshake (CameraX/ML Kit). QR content is a JSON `PairingToken` (ip, token, familyName, userId). Joining a family involves scanning, fetching users via token, and picking a profile.
-- **PIN Authentication**: 4-digit PIN is verified against the server. Child PINs are optional (managed via `requiresPin` flag). During onboarding, the parent sets a PIN (setup mode), and subsequent joins or re-auths use verification mode unless disabled.
+- **PIN Authentication**: 4-digit PIN is verified against the server or local DB (if offline). PINs are ALWAYS hashed (SHA-256) on the client before leaving the Repository. Child PINs are optional (managed via `requiresPin` flag). During onboarding, the parent sets a PIN (setup mode), and subsequent joins or re-auths use verification mode unless disabled.
 - **Points Economy**: Points are managed via a local transaction ledger (Room) as the Single Source of Truth. Each point movement (Chore, Bonus, Penalty, Redemption) is recorded as a `Transaction` entity. Parents can award points directly via a dedicated **Behavior** management tab.
 - **Role-Based Dashboard**: The main UI uses a role-sensitive navigation system (Bottom Navigation Bar).
     - **Parents**: 5-tab system (Overview, Tasks, Behavior, Rewards, Family).

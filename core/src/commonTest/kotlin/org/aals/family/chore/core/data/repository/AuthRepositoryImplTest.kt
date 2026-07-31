@@ -183,7 +183,7 @@ class AuthRepositoryImplTest {
     fun `setupPin saves hashed pin in offline mode`() = runTest {
         val userId = "user123"
         val pin = "1234"
-        val userEntity = UserEntity(userId, "f1", "Dad", "PARENT", null)
+        val userEntity = UserEntity(userId, "f1", "Dad", "PARENT", null, true)
         userDao.users[userId] = userEntity
         tokenStorage.setOfflineMode(true)
         repository = createRepository(MockEngine { respond("") })
@@ -199,7 +199,7 @@ class AuthRepositoryImplTest {
     fun `verifyPin succeeds with correct pin in offline mode`() = runTest {
         val userId = "user123"
         val pin = "1234"
-        val userEntity = UserEntity(userId, "f1", "Dad", "PARENT", pin.toSha256())
+        val userEntity = UserEntity(userId, "f1", "Dad", "PARENT", pin.toSha256(), true)
         userDao.users[userId] = userEntity
         tokenStorage.setOfflineMode(true)
         repository = createRepository(MockEngine { respond("") })
@@ -214,7 +214,7 @@ class AuthRepositoryImplTest {
     fun `verifyPin fails with wrong pin in offline mode`() = runTest {
         val userId = "user123"
         val pin = "1234"
-        val userEntity = UserEntity(userId, "f1", "Dad", "PARENT", "wrong_hash")
+        val userEntity = UserEntity(userId, "f1", "Dad", "PARENT", "wrong_hash", true)
         userDao.users[userId] = userEntity
         tokenStorage.setOfflineMode(true)
         repository = createRepository(MockEngine { respond("") })

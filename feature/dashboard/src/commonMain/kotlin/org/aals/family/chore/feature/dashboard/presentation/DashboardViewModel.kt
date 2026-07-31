@@ -92,13 +92,16 @@ class DashboardViewModel(
             is DashboardAction.OnChorePointsChange -> {
                 updateSuccessState { it.copy(chorePointsError = null) }
             }
-            is DashboardAction.OnChildNicknameChange -> {
-                updateSuccessState { it.copy(newChildNickname = action.nickname, childNicknameError = null) }
+            is DashboardAction.OnMemberNicknameChange -> {
+                updateSuccessState { it.copy(newMemberNickname = action.nickname, memberNicknameError = null) }
+            }
+            is DashboardAction.ChangeNewMemberRole -> {
+                updateSuccessState { it.copy(newMemberRole = action.role) }
             }
             DashboardAction.TogglePinRequirement -> {
-                updateSuccessState { it.copy(requiresPinForNewChild = !it.requiresPinForNewChild) }
+                updateSuccessState { it.copy(requiresPinForNewMember = !it.requiresPinForNewMember) }
             }
-            is DashboardAction.AddChild -> addChild(action.nickname, action.requiresPin)
+            is DashboardAction.AddMember -> addMember(action.nickname, action.role, action.requiresPin)
             is DashboardAction.UpdateUserPinRequirement -> updateUserPinRequirement(action.userId, action.requiresPin)
             is DashboardAction.ShowInviteQr -> showInviteQr(action.userId)
             DashboardAction.DismissInviteQr -> updateSuccessState { it.copy(inviteQrContent = null) }
@@ -115,27 +118,32 @@ class DashboardViewModel(
         }
     }
 
-    private fun addChild(nickname: String, requiresPin: Boolean) {
+    private fun addMember(nickname: String, role: UserRole, requiresPin: Boolean) {
         val currentState = _state.value as? DashboardState.Success ?: return
-        if (!currentState.isServerReachable) return
+        if (!currentState.isServerReachable && !currentState.isOfflineMode) return
 
         val error = AuthValidator.validateNickname(nickname)
         if (error != null) {
-            updateSuccessState { it.copy(childNicknameError = error.toUiText()) }
+            updateSuccessState { it.copy(memberNicknameError = error.toUiText()) }
             return
         }
 
+        // Parent must always have a PIN
+        val finalRequiresPin = if (role == UserRole.PARENT) true else requiresPin
+
         viewModelScope.launch {
-            updateSuccessState { it.copy(isAddingChild = true) }
-            authRepository.addChildUser(currentState.user.familyId, nickname, requiresPin)
+            updateSuccessState { it.copy(isAddingMember = true) }
+            authRepository.addFamilyMember(currentState.user.familyId, nickname, role, finalRequiresPin)
                 .onSuccess { newUser ->
-                    updateSuccessState { it.copy(isAddingChild = false, newChildNickname = "") }
+                    updateSuccessState { it.copy(isAddingMember = false, newMemberNickname = "") }
                     loadDashboardData(isRefreshing = true) // Refresh members
-                    showInviteQr(newUser.id)
+                    if (!currentState.isOfflineMode) {
+                        showInviteQr(newUser.id)
+                    }
                 }
                 .onFailure { e ->
-                    logger.e { "Failed to add child: $e" }
-                    updateSuccessState { it.copy(isAddingChild = false) }
+                    logger.e { "Failed to add member: $e" }
+                    updateSuccessState { it.copy(isAddingMember = false) }
                 }
         }
     }
@@ -154,6 +162,8 @@ class DashboardViewModel(
 
     private fun showInviteQr(userId: String?) {
         val currentState = _state.value as? DashboardState.Success ?: return
+        if (currentState.isOfflineMode || !currentState.isServerReachable) return
+        
         viewModelScope.launch {
             authRepository.generatePairingToken(currentState.user.familyId)
                 .onSuccess { token ->
@@ -256,6 +266,7 @@ class DashboardViewModel(
                     val familyMembers = membersResult.getOrElse { emptyList<User>() }
                     val langCode = tokenStorage.getLanguage()
                     val currentLang = AppLanguage.entries.find { it.isoCode == langCode } ?: AppLanguage.ENGLISH
+                    val isOffline = tokenStorage.getOfflineMode() ?: false
 
                     // Initial state setup
                     _state.value = DashboardState.Success(
@@ -268,6 +279,7 @@ class DashboardViewModel(
                         chores = emptyList(),
                         behaviorItems = if (user.role == UserRole.PARENT) BehaviorDefaults.defaultItems else emptyList(),
                         currentTab = if (user.role == UserRole.PARENT) ParentOverviewRoute else ChildTodayRoute,
+                        isOfflineMode = isOffline,
                         isRefreshing = false
                     )
 

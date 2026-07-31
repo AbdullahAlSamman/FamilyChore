@@ -50,7 +50,7 @@ fun Route.pairingRoutes(
 
             Logger.d { "API: Creating family ${request.familyName}" }
             val family = familyRepository.createFamily(request.familyName)
-            val parent = familyRepository.addUserToFamily(family.id, request.parentNickname, UserRole.PARENT)
+            val parent = familyRepository.addUserToFamily(family.id, request.parentNickname, UserRole.PARENT, true)
             
             // For now, "token" is just a dummy JWT
             call.respond(

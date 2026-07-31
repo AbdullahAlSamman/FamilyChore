@@ -94,12 +94,12 @@ class AuthRepositoryImpl(
         familyId: String,
         nickname: String,
         role: UserRole,
-        pin: String?
+        pin: String?,
+        requiresPin: Boolean
     ): Result<User, DataError.Network> {
         val hashedPin = pin?.toSha256()
-        val requiresPin = pin != null
         
-        logger.d { "Adding family member: $nickname ($role) to family: $familyId (pin: ${pin != null})" }
+        logger.d { "Adding family member: $nickname ($role) to family: $familyId (pin: ${pin != null}, requiresPin: $requiresPin)" }
         
         if (tokenStorage.getOfflineMode() == true) {
             val userId = randomUUID()
@@ -113,7 +113,7 @@ class AuthRepositoryImpl(
             userDao.upsertUser(user.toEntity().copy(pin = hashedPin))
             return Result.Success(user)
         }
-        return pairingDataSource.addFamilyMember(familyId, nickname, role, hashedPin)
+        return pairingDataSource.addFamilyMember(familyId, nickname, role, hashedPin, requiresPin)
     }
 
     override suspend fun updateUserPinRequirement(
@@ -136,6 +136,12 @@ class AuthRepositoryImpl(
                 ?.let { Result.Success(it) } ?: Result.Error(DataError.Network.NOT_FOUND)
         }
         return pairingDataSource.getUser(userId)
+    }
+
+    override suspend fun selectUser(userId: String): Result<Unit, DataError.Network> {
+        logger.d { "Selecting user for session: $userId" }
+        tokenStorage.saveUserId(userId)
+        return Result.Success(Unit)
     }
 
     override suspend fun confirmPairing(pairingToken: String, userId: String): Result<User, DataError.Network> {

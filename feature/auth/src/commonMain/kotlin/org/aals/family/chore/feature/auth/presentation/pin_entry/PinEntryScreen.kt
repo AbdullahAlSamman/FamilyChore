@@ -1,6 +1,7 @@
 package org.aals.family.chore.feature.auth.presentation.pin_entry
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -68,6 +69,13 @@ fun PinEntryScreen(
     state: PinEntryState,
     onAction: (PinEntryAction) -> Unit
 ) {
+    if (state is PinEntryState.Checking) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
     val isLoading = state is PinEntryState.Verifying
     val error = (state as? PinEntryState.Entering)?.error
 

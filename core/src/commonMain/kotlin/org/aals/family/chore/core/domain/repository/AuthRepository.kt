@@ -19,9 +19,11 @@ interface AuthRepository {
         familyId: String,
         nickname: String,
         role: UserRole,
-        pin: String? = null
+        pin: String? = null,
+        requiresPin: Boolean = true
     ): Result<User, DataError.Network>
     suspend fun updateUserPinRequirement(userId: String, requiresPin: Boolean): Result<Unit, DataError.Network>
     suspend fun getUser(userId: String): Result<User, DataError.Network>
+    suspend fun selectUser(userId: String): Result<Unit, DataError.Network>
     suspend fun getCurrentUser(): Result<User, DataError.Network>
 }

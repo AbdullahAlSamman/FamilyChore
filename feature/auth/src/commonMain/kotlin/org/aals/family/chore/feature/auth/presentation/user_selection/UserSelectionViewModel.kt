@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
@@ -44,9 +45,16 @@ class UserSelectionViewModel(
                 if (pairingToken != null) {
                     confirmPairing(action.user.id)
                 } else {
-                    // If no pairing token, we probably just navigate to PIN entry for this user
-                    viewModelScope.launch {
-                        _events.send(UserSelectionEvent.PairingConfirmed(action.user.id))
+                    if (action.user.role == UserRole.CHILD && !action.user.requiresPin) {
+                        logger.d { "PIN not required for child, bypassing" }
+                        viewModelScope.launch {
+                            authRepository.selectUser(action.user.id)
+                            _events.send(UserSelectionEvent.PinVerified)
+                        }
+                    } else {
+                        viewModelScope.launch {
+                            _events.send(UserSelectionEvent.PairingConfirmed(action.user.id))
+                        }
                     }
                 }
             }
@@ -88,7 +96,13 @@ class UserSelectionViewModel(
             authRepository.confirmPairing(currentToken, userId)
                 .onSuccess { user ->
                     _state.value = currentSuccess.copy(isConfirming = false)
-                    _events.send(UserSelectionEvent.PairingConfirmed(user.id))
+                    if (user.role == UserRole.CHILD && !user.requiresPin) {
+                        logger.d { "PIN not required for paired child, bypassing" }
+                        authRepository.selectUser(user.id)
+                        _events.send(UserSelectionEvent.PinVerified)
+                    } else {
+                        _events.send(UserSelectionEvent.PairingConfirmed(user.id))
+                    }
                 }
                 .onFailure { error ->
                     _state.value = currentSuccess.copy(isConfirming = false, error = error.toUiText())

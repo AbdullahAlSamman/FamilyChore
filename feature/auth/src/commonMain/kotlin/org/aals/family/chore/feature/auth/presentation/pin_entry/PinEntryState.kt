@@ -13,6 +13,12 @@ sealed interface PinEntryState {
     /** Whether the screen is in setup mode (first time setting PIN). */
     val isSetupMode: Boolean
 
+    /** The app is checking if a PIN is required for this user. */
+    data class Checking(
+        override val pin: String = "",
+        override val isSetupMode: Boolean = false
+    ) : PinEntryState
+
     /** The user is actively typing the PIN. */
     data class Entering(
         override val pin: String = "",

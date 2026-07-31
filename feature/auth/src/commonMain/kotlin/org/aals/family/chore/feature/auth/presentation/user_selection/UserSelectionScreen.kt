@@ -37,6 +37,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun UserSelectionRoot(
     onPairingConfirmed: (String) -> Unit,
+    onPinVerified: () -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: UserSelectionViewModel = koinViewModel()
 ) {
@@ -45,6 +46,7 @@ fun UserSelectionRoot(
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is UserSelectionEvent.PairingConfirmed -> onPairingConfirmed(event.userId)
+            UserSelectionEvent.PinVerified -> onPinVerified()
         }
     }
 

@@ -43,10 +43,11 @@ class FakeAuthRepository : AuthRepository {
         familyId: String,
         nickname: String,
         role: UserRole,
-        pin: String?
+        pin: String?,
+        requiresPin: Boolean
     ): Result<User, DataError.Network> {
         return nextError?.let { Result.Error(it) } ?: run {
-            val user = User("new", familyId, nickname, role, 0, pin != null)
+            val user = User("new", familyId, nickname, role, 0, requiresPin)
             familyMembers.add(user)
             Result.Success(user)
         }
@@ -56,6 +57,8 @@ class FakeAuthRepository : AuthRepository {
         userId: String,
         requiresPin: Boolean
     ): Result<Unit, DataError.Network> = Result.Success(Unit)
+
+    override suspend fun selectUser(userId: String): Result<Unit, DataError.Network> = Result.Success(Unit)
 
     override suspend fun getUser(userId: String): Result<User, DataError.Network> {
         val user = familyMembers.find { it.id == userId } ?: User(userId, "family1", "User", org.aals.family.chore.core.domain.model.UserRole.CHILD, 0)

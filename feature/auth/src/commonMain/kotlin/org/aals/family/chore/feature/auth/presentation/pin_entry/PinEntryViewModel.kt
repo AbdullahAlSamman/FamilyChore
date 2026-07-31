@@ -27,7 +27,10 @@ class PinEntryViewModel(
     private val userId: String = checkNotNull(savedStateHandle["userId"])
     private val isSetupMode: Boolean = savedStateHandle["isSetupMode"] ?: false
 
-    private val _state = MutableStateFlow<PinEntryState>(PinEntryState.Entering(isSetupMode = isSetupMode))
+    private val _state = MutableStateFlow<PinEntryState>(
+        if (isSetupMode) PinEntryState.Entering(isSetupMode = true)
+        else PinEntryState.Checking()
+    )
     val state = _state.asStateFlow()
 
     private val _events = Channel<PinEntryEvent>()
@@ -41,7 +44,6 @@ class PinEntryViewModel(
         if (isSetupMode) return
 
         viewModelScope.launch {
-            _state.value = PinEntryState.Verifying("", isSetupMode = false)
             authRepository.getUser(userId)
                 .onSuccess { user ->
                     val isParent = user.role == UserRole.PARENT

@@ -103,6 +103,7 @@ fun NavGraphBuilder.authGraph(
                 onPairingConfirmed = { userId ->
                     navController.navigate(PinEntryRoute(userId))
                 },
+                onPinVerified = onOnboardingComplete,
                 onNavigateBack = {
                     navController.popBackStack()
                 }

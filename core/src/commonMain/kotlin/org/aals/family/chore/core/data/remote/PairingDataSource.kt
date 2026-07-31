@@ -67,11 +67,12 @@ class PairingDataSource(
         familyId: String,
         nickname: String,
         role: UserRole,
-        pin: String? = null
+        pin: String? = null,
+        requiresPin: Boolean = true
     ): Result<User, DataError.Network> {
         return httpClient.post(
             route = "auth/family/$familyId/user",
-            body = AddUserRequest(nickname, role, pin)
+            body = AddUserRequest(nickname, role, pin, requiresPin)
         )
     }
 

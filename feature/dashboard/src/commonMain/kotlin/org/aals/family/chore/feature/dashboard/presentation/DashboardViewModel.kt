@@ -135,9 +135,11 @@ class DashboardViewModel(
             return
         }
 
+        val requiresPin = role == UserRole.PARENT || !pin.isNullOrBlank()
+
         viewModelScope.launch {
             updateSuccessState { it.copy(isAddingMember = true) }
-            authRepository.addFamilyMember(currentState.user.familyId, nickname, role, pin)
+            authRepository.addFamilyMember(currentState.user.familyId, nickname, role, pin, requiresPin)
                 .onSuccess { newUser ->
                     updateSuccessState { it.copy(isAddingMember = false, newMemberNickname = "", newMemberPin = "") }
                     loadDashboardData(isRefreshing = true) // Refresh members

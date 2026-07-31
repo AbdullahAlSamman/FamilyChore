@@ -10,9 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -24,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import familychore.core.generated.resources.Res
@@ -37,7 +42,9 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun PinEntryRoot(
+// ... (omitted for brevity in thinking, but I'll use the tool correctly below)
     onPinVerified: () -> Unit,
+    onNavigateBack: () -> Unit,
     viewModel: PinEntryViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -45,6 +52,7 @@ fun PinEntryRoot(
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             PinEntryEvent.PinVerified -> onPinVerified()
+            PinEntryEvent.NavigateBack -> onNavigateBack()
         }
     }
 
@@ -65,7 +73,17 @@ fun PinEntryScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(Res.string.pin_title)) })
+            TopAppBar(
+                title = { Text(stringResource(Res.string.pin_title)) },
+                navigationIcon = {
+                    IconButton(onClick = { onAction(PinEntryAction.OnBackClick) }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null
+                        )
+                    }
+                }
+            )
         }
     ) { padding ->
         Column(
@@ -110,5 +128,16 @@ fun PinEntryScreen(
                 }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+fun PinEntryScreenPreview() {
+    MaterialTheme {
+        PinEntryScreen(
+            state = PinEntryState.Entering(pin = "12"),
+            onAction = {}
+        )
     }
 }

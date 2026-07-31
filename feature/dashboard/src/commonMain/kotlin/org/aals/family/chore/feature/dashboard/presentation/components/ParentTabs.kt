@@ -10,12 +10,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -32,15 +34,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.dashboard_overview_title
 import familychore.core.generated.resources.family_management_add_member
 import familychore.core.generated.resources.family_management_invite_member
 import familychore.core.generated.resources.family_management_nickname_label
-import familychore.core.generated.resources.family_management_require_pin
 import familychore.core.generated.resources.family_management_title
 import familychore.core.generated.resources.pin_label
+import familychore.core.generated.resources.pin_mandatory
+import familychore.core.generated.resources.pin_optional
 import familychore.core.generated.resources.pts_count
 import familychore.core.generated.resources.role_child
 import familychore.core.generated.resources.role_parent
@@ -269,26 +275,40 @@ fun FamilyManagementContent(
                     isError = state.memberNicknameError != null,
                     supportingText = { state.memberNicknameError?.let { Text(it.asString()) } }
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val isParent = state.newMemberRole == UserRole.PARENT
-                    Checkbox(
-                        checked = if (isParent) true else state.requiresPinForNewMember,
-                        onCheckedChange = { onAction(DashboardAction.TogglePinRequirement) },
-                        enabled = !isParent
-                    )
-                    Text(stringResource(Res.string.family_management_require_pin))
-                }
+                
+                var pinVisible by remember { mutableStateOf(false) }
+                val isParent = state.newMemberRole == UserRole.PARENT
+                OutlinedTextField(
+                    value = state.newMemberPin,
+                    onValueChange = { onAction(DashboardAction.OnNewMemberPinChange(it)) },
+                    label = { 
+                        val hint = if (isParent) stringResource(Res.string.pin_mandatory) 
+                                   else stringResource(Res.string.pin_optional)
+                        Text("${stringResource(Res.string.pin_label)} ($hint)") 
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    visualTransformation = if (pinVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        val image = if (pinVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                        IconButton(onClick = { pinVisible = !pinVisible }) {
+                            Icon(imageVector = image, contentDescription = null)
+                        }
+                    }
+                )
+
                 Button(
                     onClick = { 
                         onAction(DashboardAction.AddMember(
                             state.newMemberNickname, 
                             state.newMemberRole,
-                            state.requiresPinForNewMember
+                            state.newMemberPin.ifBlank { null }
                         )) 
                     },
                     modifier = Modifier.align(Alignment.End),
                     enabled = !state.isAddingMember && 
                         state.newMemberNickname.isNotBlank() && 
+                        (!isParent || state.newMemberPin.isNotBlank()) &&
                         (state.isServerReachable || state.isOfflineMode)
                 ) {
                     if (state.isAddingMember) {

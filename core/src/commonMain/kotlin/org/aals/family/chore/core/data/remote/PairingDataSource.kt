@@ -63,14 +63,15 @@ class PairingDataSource(
         )
     }
 
-    suspend fun addChildUser(
+    suspend fun addFamilyMember(
         familyId: String,
         nickname: String,
-        requiresPin: Boolean
+        role: UserRole,
+        pin: String? = null
     ): Result<User, DataError.Network> {
         return httpClient.post(
             route = "auth/family/$familyId/user",
-            body = AddUserRequest(nickname, UserRole.CHILD, requiresPin)
+            body = AddUserRequest(nickname, role, pin)
         )
     }
 

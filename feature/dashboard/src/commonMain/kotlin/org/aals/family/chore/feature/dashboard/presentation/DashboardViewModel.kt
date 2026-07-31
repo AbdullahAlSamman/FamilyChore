@@ -98,10 +98,10 @@ class DashboardViewModel(
             is DashboardAction.ChangeNewMemberRole -> {
                 updateSuccessState { it.copy(newMemberRole = action.role) }
             }
-            DashboardAction.TogglePinRequirement -> {
-                updateSuccessState { it.copy(requiresPinForNewMember = !it.requiresPinForNewMember) }
+            is DashboardAction.OnNewMemberPinChange -> {
+                updateSuccessState { it.copy(newMemberPin = action.pin) }
             }
-            is DashboardAction.AddMember -> addMember(action.nickname, action.role, action.requiresPin)
+            is DashboardAction.AddMember -> addMember(action.nickname, action.role, action.pin)
             is DashboardAction.UpdateUserPinRequirement -> updateUserPinRequirement(action.userId, action.requiresPin)
             is DashboardAction.ShowInviteQr -> showInviteQr(action.userId)
             DashboardAction.DismissInviteQr -> updateSuccessState { it.copy(inviteQrContent = null) }
@@ -118,7 +118,7 @@ class DashboardViewModel(
         }
     }
 
-    private fun addMember(nickname: String, role: UserRole, requiresPin: Boolean) {
+    private fun addMember(nickname: String, role: UserRole, pin: String?) {
         val currentState = _state.value as? DashboardState.Success ?: return
         if (!currentState.isServerReachable && !currentState.isOfflineMode) return
 
@@ -128,14 +128,18 @@ class DashboardViewModel(
             return
         }
 
-        // Parent must always have a PIN
-        val finalRequiresPin = if (role == UserRole.PARENT) true else requiresPin
+        // For Parent, PIN is mandatory
+        if (role == UserRole.PARENT && pin.isNullOrBlank()) {
+            // Should show PIN error, but for now just log
+            logger.e { "Parent requires a PIN" }
+            return
+        }
 
         viewModelScope.launch {
             updateSuccessState { it.copy(isAddingMember = true) }
-            authRepository.addFamilyMember(currentState.user.familyId, nickname, role, finalRequiresPin)
+            authRepository.addFamilyMember(currentState.user.familyId, nickname, role, pin)
                 .onSuccess { newUser ->
-                    updateSuccessState { it.copy(isAddingMember = false, newMemberNickname = "") }
+                    updateSuccessState { it.copy(isAddingMember = false, newMemberNickname = "", newMemberPin = "") }
                     loadDashboardData(isRefreshing = true) // Refresh members
                     if (!currentState.isOfflineMode) {
                         showInviteQr(newUser.id)

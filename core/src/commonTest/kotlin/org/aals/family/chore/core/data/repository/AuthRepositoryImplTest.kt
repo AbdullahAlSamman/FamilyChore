@@ -158,6 +158,21 @@ class AuthRepositoryImplTest {
     }
 
     @Test
+    fun `addFamilyMember adds user to local db in offline mode`() = runTest {
+        tokenStorage.setOfflineMode(true)
+        repository = createRepository(MockEngine { respond("") })
+
+        val result = repository.addFamilyMember("family123", "Charlie", UserRole.CHILD, "1234")
+
+        assertThat(result).isInstanceOf(Result.Success::class)
+        val user = (result as Result.Success).data
+        assertThat(user.nickname).isEqualTo("Charlie")
+        assertThat(user.role).isEqualTo(UserRole.CHILD)
+        assertThat(user.requiresPin).isEqualTo(true)
+        assertThat(userDao.users[user.id]).isEqualTo(user.toEntity().copy(pin = "1234".toSha256()))
+    }
+
+    @Test
     fun `setupPin sends hashed pin to server in online mode`() = runTest {
         val userId = "user123"
         val pin = "1234"

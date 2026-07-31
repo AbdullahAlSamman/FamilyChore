@@ -2,6 +2,7 @@ package org.aals.family.chore.feature.auth.presentation
 
 import org.aals.family.chore.core.domain.model.Family
 import org.aals.family.chore.core.domain.model.User
+import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
@@ -44,12 +45,13 @@ class FakeAuthRepository : AuthRepository {
         return error?.let { Result.Error(it) } ?: Result.Success(Unit)
     }
 
-    override suspend fun addChildUser(
+    override suspend fun addFamilyMember(
         familyId: String,
         nickname: String,
-        requiresPin: Boolean
+        role: UserRole,
+        pin: String?
     ): Result<User, DataError.Network> {
-        val user = User("new", familyId, nickname, org.aals.family.chore.core.domain.model.UserRole.CHILD, 0, requiresPin)
+        val user = User("new", familyId, nickname, role, 0, pin != null)
         users.add(user)
         return error?.let { Result.Error(it) } ?: Result.Success(user)
     }

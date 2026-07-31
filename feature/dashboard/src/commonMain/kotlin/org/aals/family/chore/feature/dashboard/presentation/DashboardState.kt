@@ -30,7 +30,7 @@ sealed interface DashboardState {
         val newMemberNickname: String = "",
         val memberNicknameError: UiText? = null,
         val newMemberRole: UserRole = UserRole.CHILD,
-        val requiresPinForNewMember: Boolean = true,
+        val newMemberPin: String = "",
         val isAddingMember: Boolean = false,
         val inviteQrContent: String? = null
     ) : DashboardState

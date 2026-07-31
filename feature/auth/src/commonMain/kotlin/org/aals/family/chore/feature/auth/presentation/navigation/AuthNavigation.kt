@@ -56,6 +56,9 @@ fun NavGraphBuilder.authGraph(
             ServerDiscoveryRoot(
                 onNavigateToWelcome = {
                     navController.navigate(WelcomeRoute)
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -107,7 +110,14 @@ fun NavGraphBuilder.authGraph(
         }
         composable<PinEntryRoute> {
             PinEntryRoot(
-                onPinVerified = onOnboardingComplete
+                onPinVerified = onOnboardingComplete,
+                onNavigateBack = {
+                    if (!navController.popBackStack()) {
+                        navController.navigate(ModeSelectionRoute) {
+                            popUpTo(AuthGraph) { inclusive = true }
+                        }
+                    }
+                }
             )
         }
     }

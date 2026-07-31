@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Button
@@ -53,6 +54,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ServerDiscoveryRoot(
     onNavigateToWelcome: () -> Unit,
+    onNavigateBack: () -> Unit,
     viewModel: ServerDiscoveryViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -60,6 +62,7 @@ fun ServerDiscoveryRoot(
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             ServerDiscoveryEvent.NavigateToWelcome -> onNavigateToWelcome()
+            ServerDiscoveryEvent.NavigateBack -> onNavigateBack()
         }
     }
 
@@ -78,6 +81,14 @@ fun ServerDiscoveryScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(Res.string.discovery_title)) },
+                navigationIcon = {
+                    IconButton(onClick = { onAction(ServerDiscoveryAction.OnBackClick) }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null
+                        )
+                    }
+                },
                 actions = {
                     IconButton(onClick = { onAction(ServerDiscoveryAction.OnScanAgainClick) }) {
                         Icon(Icons.Default.Refresh, contentDescription = stringResource(Res.string.refresh))

@@ -7,6 +7,7 @@ import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.model.Family
 import org.aals.family.chore.core.domain.model.Transaction
 import org.aals.family.chore.core.domain.model.User
+import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
@@ -38,13 +39,14 @@ class FakeAuthRepository : AuthRepository {
     override suspend fun setupPin(userId: String, pin: String): Result<Unit, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
     override suspend fun verifyPin(userId: String, pin: String): Result<Unit, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
 
-    override suspend fun addChildUser(
+    override suspend fun addFamilyMember(
         familyId: String,
         nickname: String,
-        requiresPin: Boolean
+        role: UserRole,
+        pin: String?
     ): Result<User, DataError.Network> {
         return nextError?.let { Result.Error(it) } ?: run {
-            val user = User("new", familyId, nickname, org.aals.family.chore.core.domain.model.UserRole.CHILD, 0, requiresPin)
+            val user = User("new", familyId, nickname, role, 0, pin != null)
             familyMembers.add(user)
             Result.Success(user)
         }

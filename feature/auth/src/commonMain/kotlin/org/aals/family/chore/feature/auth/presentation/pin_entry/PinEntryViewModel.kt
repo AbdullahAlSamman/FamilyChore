@@ -27,7 +27,7 @@ class PinEntryViewModel(
     private val userId: String = checkNotNull(savedStateHandle["userId"])
     private val isSetupMode: Boolean = savedStateHandle["isSetupMode"] ?: false
 
-    private val _state = MutableStateFlow<PinEntryState>(PinEntryState.Entering())
+    private val _state = MutableStateFlow<PinEntryState>(PinEntryState.Entering(isSetupMode = isSetupMode))
     val state = _state.asStateFlow()
 
     private val _events = Channel<PinEntryEvent>()
@@ -41,7 +41,7 @@ class PinEntryViewModel(
         if (isSetupMode) return
 
         viewModelScope.launch {
-            _state.value = PinEntryState.Verifying("")
+            _state.value = PinEntryState.Verifying("", isSetupMode = false)
             authRepository.getUser(userId)
                 .onSuccess { user ->
                     val isParent = user.role == UserRole.PARENT
@@ -49,18 +49,26 @@ class PinEntryViewModel(
                         logger.d { "PIN not required for child, bypassing" }
                         _events.send(PinEntryEvent.PinVerified)
                     } else {
-                        _state.value = PinEntryState.Entering()
+                        _state.value = PinEntryState.Entering(isSetupMode = false)
                     }
                 }
                 .onFailure { e ->
                     logger.e { "Failed to fetch user profile: $e" }
-                    _state.value = PinEntryState.Entering(error = e.toUiText())
+                    _state.value = PinEntryState.Entering(error = e.toUiText(), isSetupMode = false)
                 }
         }
     }
 
     fun onAction(action: PinEntryAction) {
         val currentState = _state.value
+        
+        if (action == PinEntryAction.OnBackClick) {
+            viewModelScope.launch {
+                _events.send(PinEntryEvent.NavigateBack)
+            }
+            return
+        }
+
         if (currentState !is PinEntryState.Entering) return
 
         when (action) {
@@ -85,7 +93,7 @@ class PinEntryViewModel(
 
         viewModelScope.launch {
             logger.d { "Submitting PIN (isSetupMode=$isSetupMode)" }
-            _state.value = PinEntryState.Verifying(pin)
+            _state.value = PinEntryState.Verifying(pin, isSetupMode = isSetupMode)
 
             val result = if (isSetupMode) {
                 authRepository.setupPin(userId, pin)
@@ -100,7 +108,7 @@ class PinEntryViewModel(
                 }
                 .onFailure { error ->
                     logger.e { "PIN operation failed for user $userId: $error" }
-                    _state.value = PinEntryState.Entering(pin = pin, error = error.toUiText())
+                    _state.value = PinEntryState.Entering(pin = pin, error = error.toUiText(), isSetupMode = isSetupMode)
                 }
         }
     }

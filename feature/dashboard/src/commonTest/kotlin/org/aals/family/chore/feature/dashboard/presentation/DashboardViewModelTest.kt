@@ -199,15 +199,32 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun `AddChild success adds user and shows QR`() = runTest {
+    fun `AddMember success adds user and shows QR`() = runTest {
         viewModel.state.test {
             awaitItem() // Initial Success
-            viewModel.onAction(DashboardAction.AddChild("Charlie", true))
+            viewModel.onAction(DashboardAction.AddMember("Charlie", UserRole.CHILD, "1234"))
             
             // Should show loading state/flag if implemented, but here it's fast
             val stateAfterAdd = awaitItem() as DashboardState.Success
             assertThat(stateAfterAdd.inviteQrContent != null).isEqualTo(true)
             assertThat(authRepository.familyMembers.any { it.nickname == "Charlie" }).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `AddMember parent enforces PIN and shows QR`() = runTest {
+        viewModel.state.test {
+            awaitItem() // Initial Success
+            // Attempt to add parent with PIN
+            viewModel.onAction(DashboardAction.AddMember("NewParent", UserRole.PARENT, "1234"))
+            
+            val stateAfterAdd = awaitItem() as DashboardState.Success
+            val newParent = authRepository.familyMembers.find { it.nickname == "NewParent" }
+            assertThat(newParent != null).isEqualTo(true)
+            assertThat(newParent!!.role).isEqualTo(UserRole.PARENT)
+            assertThat(newParent.requiresPin).isEqualTo(true)
+            assertThat(stateAfterAdd.inviteQrContent != null).isEqualTo(true)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -255,7 +272,7 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun `AddChild in offline mode adds user and does NOT show QR`() = runTest {
+    fun `AddMember in offline mode adds user and does NOT show QR`() = runTest {
         tokenStorage.setOfflineMode(true)
         
         viewModel.onAction(DashboardAction.Refresh)
@@ -267,10 +284,10 @@ class DashboardViewModelTest {
                 state = awaitItem()
             }
             
-            viewModel.onAction(DashboardAction.AddChild("Charlie", true))
+            viewModel.onAction(DashboardAction.AddMember("Charlie", UserRole.CHILD, "1234"))
             
             // Skip until adding is done and members are refreshed
-            while (state !is DashboardState.Success || state.isAddingChild || state.familyMembers.none { it.nickname == "Charlie" }) {
+            while (state !is DashboardState.Success || state.isAddingMember || state.familyMembers.none { it.nickname == "Charlie" }) {
                 state = awaitItem()
             }
             
@@ -282,18 +299,18 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun `AddChild when server unreachable and NOT offline is blocked`() = runTest {
+    fun `AddMember when server unreachable and NOT offline is blocked`() = runTest {
         connectivityRepository.isServerReachable.value = false
         tokenStorage.setOfflineMode(false)
         
         viewModel.state.test {
             awaitItem() // Skip initial Success
             
-            viewModel.onAction(DashboardAction.AddChild("Charlie", true))
+            viewModel.onAction(DashboardAction.AddMember("Charlie", UserRole.CHILD, "1234"))
             
-            // authRepository.addChildUser should NOT be called
+            // authRepository.addFamilyMember should NOT be called
             // Actually, in the current implementation, it just returns without doing anything.
-            // So the state won't even change to "isAddingChild = true".
+            // So the state won't even change to "isAddingMember = true".
             
             assertThat(authRepository.familyMembers.any { it.nickname == "Charlie" }).isEqualTo(false)
             cancelAndIgnoreRemainingEvents()

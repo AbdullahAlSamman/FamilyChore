@@ -81,6 +81,8 @@
     <string name="pin_title">أدخل رمز PIN</string>
     <string name="pin_instructions">أدخل رمز PIN المكون من 4 أرقام للمتابعة.</string>
     <string name="pin_label">رمز PIN</string>
+    <string name="pin_mandatory">إلزامي</string>
+    <string name="pin_optional">اختياري</string>
 
     <!-- Dashboard -->
     <string name="dashboard_title">لوحة التحكم</string>
@@ -100,7 +102,7 @@
 
     <!-- Family Management -->
     <string name="family_management_title">أفراد العائلة</string>
-    <string name="family_management_add_child">إضافة طفل</string>
+    <string name="family_management_add_member">إضافة عضو</string>
     <string name="family_management_nickname_label">اللقب</string>
     <string name="family_management_require_pin">تطلب رمز PIN</string>
     <string name="family_management_invite_member">دعوة عضو</string>

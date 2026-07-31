@@ -84,6 +84,8 @@
     <string name="pin_title">Enter PIN</string>
     <string name="pin_instructions">Enter your 4-digit PIN to continue.</string>
     <string name="pin_label">PIN</string>
+    <string name="pin_mandatory">Mandatory</string>
+    <string name="pin_optional">Optional</string>
 
     <!-- Dashboard -->
     <string name="dashboard_title">Dashboard</string>
@@ -103,7 +105,7 @@
 
     <!-- Family Management -->
     <string name="family_management_title">Family Members</string>
-    <string name="family_management_add_child">Add Child</string>
+    <string name="family_management_add_member">Add Member</string>
     <string name="family_management_nickname_label">Nickname</string>
     <string name="family_management_require_pin">Require PIN</string>
     <string name="family_management_invite_member">Invite Member</string>

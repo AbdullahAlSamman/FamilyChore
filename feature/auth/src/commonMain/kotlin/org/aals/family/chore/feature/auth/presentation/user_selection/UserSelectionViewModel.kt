@@ -9,10 +9,14 @@ import familychore.core.generated.resources.error_missing_params
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
+import org.aals.family.chore.core.domain.repository.ConnectivityRepository
+import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
 import org.aals.family.chore.core.presentation.UiText
@@ -20,6 +24,8 @@ import org.aals.family.chore.core.presentation.toUiText
 
 class UserSelectionViewModel(
     private val authRepository: AuthRepository,
+    private val connectivityRepository: ConnectivityRepository,
+    private val tokenStorage: TokenStorage,
     private val savedStateHandle: SavedStateHandle,
     private val logger: Logger
 ) : ViewModel() {
@@ -28,14 +34,46 @@ class UserSelectionViewModel(
     private val familyId: String? = savedStateHandle["familyId"]
     private val isFromOnboarding: Boolean = savedStateHandle["isFromOnboarding"] ?: false
 
-    private val _state = MutableStateFlow<UserSelectionState>(UserSelectionState.Loading)
+    private val _state = MutableStateFlow<UserSelectionState>(UserSelectionState.Loading())
     val state = _state.asStateFlow()
 
     private val _events = Channel<UserSelectionEvent>()
     val events = _events.receiveAsFlow()
 
+    private var currentOfflineMode: Boolean = false
+    private var currentServerReachable: Boolean = true
+
     init {
+        observeConnectivity()
         loadUsers()
+    }
+
+    private fun observeConnectivity() {
+        combine(
+            tokenStorage.isOfflineMode,
+            connectivityRepository.isServerReachable
+        ) { offline, reachable ->
+            currentOfflineMode = offline ?: false
+            currentServerReachable = reachable
+            updateConnectivityState()
+        }.launchIn(viewModelScope)
+    }
+
+    private fun updateConnectivityState() {
+        _state.value = when (val currentState = _state.value) {
+            is UserSelectionState.Loading -> currentState.copy(
+                isOfflineMode = currentOfflineMode,
+                isServerReachable = currentServerReachable
+            )
+            is UserSelectionState.Success -> currentState.copy(
+                isOfflineMode = currentOfflineMode,
+                isServerReachable = currentServerReachable
+            )
+            is UserSelectionState.Error -> currentState.copy(
+                isOfflineMode = currentOfflineMode,
+                isServerReachable = currentServerReachable
+            )
+        }
     }
 
     fun onAction(action: UserSelectionAction) {
@@ -58,18 +96,28 @@ class UserSelectionViewModel(
                     }
                 }
             }
+            UserSelectionAction.OnRetryClick -> {
+                loadUsers()
+            }
         }
     }
 
     private fun loadUsers() {
         logger.d { "Loading users for selection (token: ${pairingToken != null}, familyId: $familyId)" }
         viewModelScope.launch {
-            _state.value = UserSelectionState.Loading
+            _state.value = UserSelectionState.Loading(
+                isOfflineMode = currentOfflineMode,
+                isServerReachable = currentServerReachable
+            )
             val result = when {
                 pairingToken != null -> authRepository.getPairingUsers(pairingToken)
                 familyId != null -> authRepository.getFamilyMembers(familyId)
                 else -> {
-                    _state.value = UserSelectionState.Error(UiText.StringResource(Res.string.error_missing_params))
+                    _state.value = UserSelectionState.Error(
+                        message = UiText.StringResource(Res.string.error_missing_params),
+                        isOfflineMode = currentOfflineMode,
+                        isServerReachable = currentServerReachable
+                    )
                     return@launch
                 }
             }
@@ -78,11 +126,17 @@ class UserSelectionViewModel(
                 .onSuccess { users ->
                     _state.value = UserSelectionState.Success(
                         users = users,
-                        isFromDiscovery = isFromOnboarding || pairingToken != null
+                        isFromDiscovery = isFromOnboarding || pairingToken != null,
+                        isOfflineMode = currentOfflineMode,
+                        isServerReachable = currentServerReachable
                     )
                 }
                 .onFailure { error ->
-                    _state.value = UserSelectionState.Error(error.toUiText())
+                    _state.value = UserSelectionState.Error(
+                        message = error.toUiText(),
+                        isOfflineMode = currentOfflineMode,
+                        isServerReachable = currentServerReachable
+                    )
                 }
         }
     }

@@ -16,7 +16,10 @@ import familychore.core.generated.resources.chore_points_negative_error
 import familychore.core.generated.resources.chore_points_too_high_error
 import familychore.core.generated.resources.chore_points_zero_error
 import familychore.core.generated.resources.discovery_error_unreachable
+import familychore.core.generated.resources.error_disk_full
 import familychore.core.generated.resources.error_invalid_number
+import familychore.core.generated.resources.error_local_database
+import familychore.core.generated.resources.error_not_found
 import familychore.core.generated.resources.error_serialization
 import familychore.core.generated.resources.error_server
 import familychore.core.generated.resources.error_unauthorized
@@ -70,14 +73,20 @@ fun Error.toUiText(): UiText {
     return when (this) {
         is DataError.Network -> when (this) {
             DataError.Network.NO_INTERNET -> UiText.StringResource(Res.string.discovery_error_unreachable)
+            DataError.Network.SERVICE_UNAVAILABLE -> UiText.StringResource(Res.string.discovery_error_unreachable)
+            DataError.Network.REQUEST_TIMEOUT -> UiText.StringResource(Res.string.discovery_error_unreachable)
             DataError.Network.UNAUTHORIZED -> UiText.StringResource(Res.string.error_unauthorized)
             DataError.Network.SERIALIZATION -> UiText.StringResource(Res.string.error_serialization)
             DataError.Network.SERVER_ERROR -> UiText.StringResource(Res.string.error_server)
             DataError.Network.VALIDATION_ERROR -> UiText.StringResource(Res.string.auth_pin_invalid_length_error)
             DataError.Network.BAD_REQUEST -> UiText.StringResource(Res.string.error_invalid_number)
-            else -> UiText.StringResource(Res.string.error_unknown)
+            else -> UiText.StringResource(Res.string.discovery_error_unreachable)
         }
-        is DataError.Local -> UiText.StringResource(Res.string.error_unknown)
+        is DataError.Local -> when (this) {
+            DataError.Local.DISK_FULL -> UiText.StringResource(Res.string.error_disk_full)
+            DataError.Local.NOT_FOUND -> UiText.StringResource(Res.string.error_not_found)
+            DataError.Local.UNKNOWN -> UiText.StringResource(Res.string.error_local_database)
+        }
         else -> UiText.StringResource(Res.string.error_unknown)
     }
 }

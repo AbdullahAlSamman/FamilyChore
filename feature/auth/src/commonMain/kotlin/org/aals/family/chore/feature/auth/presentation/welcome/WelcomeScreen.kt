@@ -58,6 +58,7 @@ import familychore.core.generated.resources.welcome_title_to
 import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.Family
 import org.aals.family.chore.core.presentation.ObserveAsEvents
+import org.aals.family.chore.feature.auth.presentation.components.ConnectivityBanner
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -117,33 +118,38 @@ fun WelcomeScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(8.dp)
-            ) {
-                IconButton(
-                    onClick = { onAction(WelcomeAction.OnBackClick) },
-                    modifier = Modifier.align(Alignment.CenterStart)
+            Column {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = null
-                    )
-                }
+                    IconButton(
+                        onClick = { onAction(WelcomeAction.OnBackClick) },
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null
+                        )
+                    }
 
-                IconButton(
-                    onClick = {
-                        val nextLang = if (state.currentLanguage == AppLanguage.ENGLISH) AppLanguage.ARABIC else AppLanguage.ENGLISH
-                        onAction(WelcomeAction.OnChangeLanguage(nextLang))
-                    },
-                    modifier = Modifier.align(Alignment.CenterEnd)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Language,
-                        contentDescription = stringResource(Res.string.welcome_change_language)
-                    )
+                    IconButton(
+                        onClick = {
+                            val nextLang = if (state.currentLanguage == AppLanguage.ENGLISH) AppLanguage.ARABIC else AppLanguage.ENGLISH
+                            onAction(WelcomeAction.OnChangeLanguage(nextLang))
+                        },
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Language,
+                            contentDescription = stringResource(Res.string.welcome_change_language)
+                        )
+                    }
+                }
+                if (!state.isOfflineMode) {
+                    ConnectivityBanner(isReachable = state.isServerReachable)
                 }
             }
         }
@@ -185,6 +191,15 @@ fun WelcomeScreen(
             if (state.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            state.error?.let { err ->
+                Text(
+                    text = err.asString(),
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    textAlign = TextAlign.Center
+                )
             }
 
             if (state.families.isNotEmpty()) {

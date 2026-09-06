@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,10 +42,9 @@ import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun PinEntryRoot(
-// ... (omitted for brevity in thinking, but I'll use the tool correctly below)
     onPinVerified: () -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: PinEntryViewModel = koinViewModel()
+    viewModel: PinEntryViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -59,11 +57,10 @@ fun PinEntryRoot(
 
     PinEntryScreen(
         state = state,
-        onAction = viewModel::onAction
+        onAction = viewModel::onAction,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PinEntryScreen(
     state: PinEntryState,

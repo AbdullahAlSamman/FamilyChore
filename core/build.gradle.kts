@@ -38,8 +38,11 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.jmdns)
         }
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
+        val isMac = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
+        if (isMac) {
+            iosMain.dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

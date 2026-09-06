@@ -31,7 +31,6 @@ class RoomConventionPlugin : Plugin<Project> {
                 val roomCompiler = libs.findLibrary("room.compiler").get()
 
                 dependencies {
-                    add("kspCommonMainMetadata", roomCompiler)
                     add("kspAndroid", roomCompiler)
                     add("kspJvm", roomCompiler)
                     if (isMac) {

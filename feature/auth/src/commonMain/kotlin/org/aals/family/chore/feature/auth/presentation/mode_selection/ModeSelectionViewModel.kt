@@ -17,7 +17,7 @@ class ModeSelectionViewModel(
     private val tokenStorage: TokenStorage
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(ModeSelectionState())
+    private val _state = MutableStateFlow<ModeSelectionState>(ModeSelectionState.Content())
     val state = _state.asStateFlow()
 
     private val _events = Channel<ModeSelectionEvent>()
@@ -53,7 +53,12 @@ class ModeSelectionViewModel(
         tokenStorage.language
             .onEach { langCode ->
                 val currentLang = AppLanguage.entries.find { it.isoCode == langCode } ?: AppLanguage.ENGLISH
-                _state.update { it.copy(currentLanguage = currentLang) }
+                _state.update { currentState ->
+                    when (currentState) {
+                        is ModeSelectionState.Content -> currentState.copy(currentLanguage = currentLang)
+                        is ModeSelectionState.Loading -> currentState.copy(currentLanguage = currentLang)
+                    }
+                }
             }
             .launchIn(viewModelScope)
     }

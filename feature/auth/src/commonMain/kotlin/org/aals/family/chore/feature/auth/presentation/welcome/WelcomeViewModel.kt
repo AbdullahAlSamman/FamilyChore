@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.repository.AuthRepository
-import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
+import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
 import org.aals.family.chore.core.presentation.toUiText
@@ -22,8 +22,8 @@ import org.aals.family.chore.core.presentation.toUiText
 class WelcomeViewModel(
     private val authRepository: AuthRepository,
     private val tokenStorage: TokenStorage,
-    private val connectivityRepository: ConnectivityRepository,
-    private val logger: Logger
+    private val observeConnectivityUseCase: ObserveConnectivityUseCase,
+    private val logger: Logger,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(WelcomeState())
@@ -35,8 +35,7 @@ class WelcomeViewModel(
     init {
         viewModelScope.launch {
             val name = tokenStorage.getServerName()
-            val isOffline = tokenStorage.getOfflineMode() ?: false
-            _state.update { it.copy(serverName = name, isOfflineMode = isOffline) }
+            _state.update { it.copy(serverName = name) }
         }
         observeConnectivity()
         observeLanguage()
@@ -44,9 +43,14 @@ class WelcomeViewModel(
     }
 
     private fun observeConnectivity() {
-        connectivityRepository.isServerReachable
-            .onEach { isReachable ->
-                _state.update { it.copy(isServerReachable = isReachable) }
+        observeConnectivityUseCase()
+            .onEach { status ->
+                _state.update {
+                    it.copy(
+                        isOfflineMode = status.isOfflineMode,
+                        isServerReachable = status.isServerReachable,
+                    )
+                }
             }
             .launchIn(viewModelScope)
     }

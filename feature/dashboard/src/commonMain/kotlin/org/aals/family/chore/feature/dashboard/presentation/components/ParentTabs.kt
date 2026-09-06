@@ -179,8 +179,8 @@ fun ParentTasksContent(
                             onAction(DashboardAction.OnChoreNameChange(it)) 
                         },
                         label = { Text(stringResource(Res.string.task_management_name_label)) },
-                        isError = state.choreNameError != null,
-                        supportingText = { state.choreNameError?.let { Text(it.asString()) } }
+                        isError = state.addChoreForm.nameError != null,
+                        supportingText = { state.addChoreForm.nameError?.let { Text(it.asString()) } }
                     )
                     OutlinedTextField(
                         value = points,
@@ -189,8 +189,8 @@ fun ParentTasksContent(
                             onAction(DashboardAction.OnChorePointsChange(it))
                         },
                         label = { Text(stringResource(Res.string.task_management_points_label)) },
-                        isError = state.chorePointsError != null,
-                        supportingText = { state.chorePointsError?.let { Text(it.asString()) } }
+                        isError = state.addChoreForm.pointsError != null,
+                        supportingText = { state.addChoreForm.pointsError?.let { Text(it.asString()) } }
                     )
                     
                     Text(stringResource(Res.string.task_management_assign_to))
@@ -233,6 +233,7 @@ fun FamilyManagementContent(
     state: DashboardState.Success,
     onAction: (DashboardAction) -> Unit
 ) {
+    val addMemberForm = state.addMemberForm
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
             stringResource(Res.string.family_management_title),
@@ -260,7 +261,7 @@ fun FamilyManagementContent(
                             UserRole.CHILD -> stringResource(Res.string.role_child)
                         }
                         FilterChip(
-                            selected = state.newMemberRole == role,
+                            selected = addMemberForm.role == role,
                             onClick = { onAction(DashboardAction.ChangeNewMemberRole(role)) },
                             label = { Text(label) }
                         )
@@ -268,18 +269,18 @@ fun FamilyManagementContent(
                 }
 
                 OutlinedTextField(
-                    value = state.newMemberNickname,
+                    value = addMemberForm.nickname,
                     onValueChange = { onAction(DashboardAction.OnMemberNicknameChange(it)) },
                     label = { Text(stringResource(Res.string.family_management_nickname_label)) },
                     modifier = Modifier.fillMaxWidth(),
-                    isError = state.memberNicknameError != null,
-                    supportingText = { state.memberNicknameError?.let { Text(it.asString()) } }
+                    isError = addMemberForm.nicknameError != null,
+                    supportingText = { addMemberForm.nicknameError?.let { Text(it.asString()) } }
                 )
                 
                 var pinVisible by remember { mutableStateOf(false) }
-                val isParent = state.newMemberRole == UserRole.PARENT
+                val isParent = addMemberForm.role == UserRole.PARENT
                 OutlinedTextField(
-                    value = state.newMemberPin,
+                    value = addMemberForm.pin,
                     onValueChange = { onAction(DashboardAction.OnNewMemberPinChange(it)) },
                     label = { 
                         val hint = if (isParent) stringResource(Res.string.pin_mandatory) 
@@ -300,18 +301,18 @@ fun FamilyManagementContent(
                 Button(
                     onClick = { 
                         onAction(DashboardAction.AddMember(
-                            state.newMemberNickname, 
-                            state.newMemberRole,
-                            state.newMemberPin.ifBlank { null }
+                            addMemberForm.nickname, 
+                            addMemberForm.role,
+                            addMemberForm.pin.ifBlank { null }
                         )) 
                     },
                     modifier = Modifier.align(Alignment.End),
-                    enabled = !state.isAddingMember && 
-                        state.newMemberNickname.isNotBlank() && 
-                        (!isParent || state.newMemberPin.isNotBlank()) &&
+                    enabled = !addMemberForm.isAdding && 
+                        addMemberForm.nickname.isNotBlank() && 
+                        (!isParent || addMemberForm.pin.isNotBlank()) &&
                         (state.isServerReachable || state.isOfflineMode)
                 ) {
-                    if (state.isAddingMember) {
+                    if (addMemberForm.isAdding) {
                         CircularProgressIndicator(modifier = Modifier.size(16.dp))
                     } else {
                         Text(stringResource(Res.string.save))

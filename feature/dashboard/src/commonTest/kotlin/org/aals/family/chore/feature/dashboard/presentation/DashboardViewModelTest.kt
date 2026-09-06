@@ -13,6 +13,7 @@ import kotlinx.coroutines.test.setMain
 import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
+import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.feature.dashboard.domain.model.BehaviorDefaults
 import org.aals.family.chore.feature.dashboard.presentation.navigation.BehaviorRoute
 import org.aals.family.chore.feature.dashboard.presentation.navigation.ParentOverviewRoute
@@ -29,6 +30,7 @@ class DashboardViewModelTest {
     private lateinit var choreRepository: FakeChoreRepository
     private lateinit var connectivityRepository: FakeConnectivityRepository
     private lateinit var tokenStorage: FakeTokenStorage
+    private lateinit var observeConnectivityUseCase: ObserveConnectivityUseCase
     private lateinit var timeProvider: FakeTimeProvider
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -40,6 +42,7 @@ class DashboardViewModelTest {
         choreRepository = FakeChoreRepository()
         connectivityRepository = FakeConnectivityRepository()
         tokenStorage = FakeTokenStorage()
+        observeConnectivityUseCase = ObserveConnectivityUseCase(tokenStorage, connectivityRepository)
         timeProvider = FakeTimeProvider()
         
         // Default mock setup
@@ -53,7 +56,7 @@ class DashboardViewModelTest {
             authRepository = authRepository,
             transactionRepository = transactionRepository,
             choreRepository = choreRepository,
-            connectivityRepository = connectivityRepository,
+            observeConnectivityUseCase = observeConnectivityUseCase,
             tokenStorage = tokenStorage,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider
@@ -144,7 +147,7 @@ class DashboardViewModelTest {
             viewModel.onAction(action)
             
             val state = awaitItem() as DashboardState.Success
-            assertThat(state.choreNameError != null).isEqualTo(true)
+            assertThat(state.addChoreForm.nameError != null).isEqualTo(true)
             assertThat(choreRepository.createdChores.isEmpty()).isEqualTo(true)
             cancelAndIgnoreRemainingEvents()
         }
@@ -163,7 +166,7 @@ class DashboardViewModelTest {
             viewModel.onAction(action)
             
             val state = awaitItem() as DashboardState.Success
-            assertThat(state.chorePointsError != null).isEqualTo(true)
+            assertThat(state.addChoreForm.pointsError != null).isEqualTo(true)
             assertThat(choreRepository.createdChores.isEmpty()).isEqualTo(true)
             cancelAndIgnoreRemainingEvents()
         }
@@ -181,7 +184,7 @@ class DashboardViewModelTest {
             // Change name
             viewModel.onAction(DashboardAction.OnChoreNameChange("A"))
             val state = awaitItem() as DashboardState.Success
-            assertThat(state.choreNameError).isEqualTo(null)
+            assertThat(state.addChoreForm.nameError).isEqualTo(null)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -287,7 +290,7 @@ class DashboardViewModelTest {
             viewModel.onAction(DashboardAction.AddMember("Charlie", UserRole.CHILD, "1234"))
             
             // Skip until adding is done and members are refreshed
-            while (state !is DashboardState.Success || state.isAddingMember || state.familyMembers.none { it.nickname == "Charlie" }) {
+            while (state !is DashboardState.Success || state.addMemberForm.isAdding || state.familyMembers.none { it.nickname == "Charlie" }) {
                 state = awaitItem()
             }
             
@@ -335,7 +338,7 @@ class DashboardViewModelTest {
             authRepository = authRepository,
             transactionRepository = transactionRepository,
             choreRepository = choreRepository,
-            connectivityRepository = connectivityRepository,
+            observeConnectivityUseCase = observeConnectivityUseCase,
             tokenStorage = tokenStorage,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider

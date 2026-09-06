@@ -9,14 +9,15 @@ import familychore.core.generated.resources.error_missing_params
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
-import org.aals.family.chore.core.domain.repository.ConnectivityRepository
-import org.aals.family.chore.core.domain.repository.TokenStorage
+import org.aals.family.chore.core.domain.usecase.ConnectivityStatus
+import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
 import org.aals.family.chore.core.presentation.UiText
@@ -24,10 +25,9 @@ import org.aals.family.chore.core.presentation.toUiText
 
 class UserSelectionViewModel(
     private val authRepository: AuthRepository,
-    private val connectivityRepository: ConnectivityRepository,
-    private val tokenStorage: TokenStorage,
+    private val observeConnectivityUseCase: ObserveConnectivityUseCase,
     private val savedStateHandle: SavedStateHandle,
-    private val logger: Logger
+    private val logger: Logger,
 ) : ViewModel() {
 
     private val pairingToken: String? = savedStateHandle["pairingToken"]
@@ -40,8 +40,7 @@ class UserSelectionViewModel(
     private val _events = Channel<UserSelectionEvent>()
     val events = _events.receiveAsFlow()
 
-    private var currentOfflineMode: Boolean = false
-    private var currentServerReachable: Boolean = true
+    private var currentConnectivityStatus = ConnectivityStatus()
 
     init {
         observeConnectivity()
@@ -49,31 +48,27 @@ class UserSelectionViewModel(
     }
 
     private fun observeConnectivity() {
-        combine(
-            tokenStorage.isOfflineMode,
-            connectivityRepository.isServerReachable
-        ) { offline, reachable ->
-            currentOfflineMode = offline ?: false
-            currentServerReachable = reachable
-            updateConnectivityState()
-        }.launchIn(viewModelScope)
-    }
-
-    private fun updateConnectivityState() {
-        _state.value = when (val currentState = _state.value) {
-            is UserSelectionState.Loading -> currentState.copy(
-                isOfflineMode = currentOfflineMode,
-                isServerReachable = currentServerReachable
-            )
-            is UserSelectionState.Success -> currentState.copy(
-                isOfflineMode = currentOfflineMode,
-                isServerReachable = currentServerReachable
-            )
-            is UserSelectionState.Error -> currentState.copy(
-                isOfflineMode = currentOfflineMode,
-                isServerReachable = currentServerReachable
-            )
-        }
+        observeConnectivityUseCase()
+            .onEach { status ->
+                currentConnectivityStatus = status
+                _state.update { currentState ->
+                    when (currentState) {
+                        is UserSelectionState.Loading -> currentState.copy(
+                            isOfflineMode = status.isOfflineMode,
+                            isServerReachable = status.isServerReachable,
+                        )
+                        is UserSelectionState.Success -> currentState.copy(
+                            isOfflineMode = status.isOfflineMode,
+                            isServerReachable = status.isServerReachable,
+                        )
+                        is UserSelectionState.Error -> currentState.copy(
+                            isOfflineMode = status.isOfflineMode,
+                            isServerReachable = status.isServerReachable,
+                        )
+                    }
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     fun onAction(action: UserSelectionAction) {
@@ -106,8 +101,8 @@ class UserSelectionViewModel(
         logger.d { "Loading users for selection (token: ${pairingToken != null}, familyId: $familyId)" }
         viewModelScope.launch {
             _state.value = UserSelectionState.Loading(
-                isOfflineMode = currentOfflineMode,
-                isServerReachable = currentServerReachable
+                isOfflineMode = currentConnectivityStatus.isOfflineMode,
+                isServerReachable = currentConnectivityStatus.isServerReachable,
             )
             val result = when {
                 pairingToken != null -> authRepository.getPairingUsers(pairingToken)
@@ -115,8 +110,8 @@ class UserSelectionViewModel(
                 else -> {
                     _state.value = UserSelectionState.Error(
                         message = UiText.StringResource(Res.string.error_missing_params),
-                        isOfflineMode = currentOfflineMode,
-                        isServerReachable = currentServerReachable
+                        isOfflineMode = currentConnectivityStatus.isOfflineMode,
+                        isServerReachable = currentConnectivityStatus.isServerReachable,
                     )
                     return@launch
                 }
@@ -127,15 +122,15 @@ class UserSelectionViewModel(
                     _state.value = UserSelectionState.Success(
                         users = users,
                         isFromDiscovery = isFirstTimeOnboarding || pairingToken != null,
-                        isOfflineMode = currentOfflineMode,
-                        isServerReachable = currentServerReachable
+                        isOfflineMode = currentConnectivityStatus.isOfflineMode,
+                        isServerReachable = currentConnectivityStatus.isServerReachable,
                     )
                 }
                 .onFailure { error ->
                     _state.value = UserSelectionState.Error(
                         message = error.toUiText(),
-                        isOfflineMode = currentOfflineMode,
-                        isServerReachable = currentServerReachable
+                        isOfflineMode = currentConnectivityStatus.isOfflineMode,
+                        isServerReachable = currentConnectivityStatus.isServerReachable,
                     )
                 }
         }

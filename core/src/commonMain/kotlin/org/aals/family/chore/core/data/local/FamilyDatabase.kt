@@ -4,6 +4,7 @@ import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
+import androidx.room.TypeConverters
 import org.aals.family.chore.core.data.local.dao.ChoreDao
 import org.aals.family.chore.core.data.local.dao.FamilyDao
 import org.aals.family.chore.core.data.local.dao.TransactionDao
@@ -17,6 +18,7 @@ import org.aals.family.chore.core.data.local.entity.UserEntity
     entities = [ChoreEntity::class, UserEntity::class, TransactionEntity::class, FamilyEntity::class],
     version = 4
 )
+@TypeConverters(TransactionTypeConverters::class)
 @ConstructedBy(FamilyDatabaseConstructor::class)
 abstract class FamilyDatabase : RoomDatabase() {
     abstract fun choreDao(): ChoreDao
@@ -25,7 +27,7 @@ abstract class FamilyDatabase : RoomDatabase() {
     abstract fun familyDao(): FamilyDao
 }
 
-@Suppress("NO_ACTUAL_FOR_EXPECT")
+@Suppress("KotlinNoActualForExpect")
 expect object FamilyDatabaseConstructor : RoomDatabaseConstructor<FamilyDatabase> {
     override fun initialize(): FamilyDatabase
 }

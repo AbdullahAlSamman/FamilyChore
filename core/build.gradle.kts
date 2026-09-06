@@ -56,13 +56,4 @@ kotlin {
     }
 }
 
-dependencies {
-    // Room KSP for targets
-    val roomCompiler = libs.room.compiler
-    add("kspAndroid", roomCompiler)
-    add("kspJvm", roomCompiler)
-    if (isMac) {
-        add("kspIosArm64", roomCompiler)
-        add("kspIosSimulatorArm64", roomCompiler)
-    }
-}
+

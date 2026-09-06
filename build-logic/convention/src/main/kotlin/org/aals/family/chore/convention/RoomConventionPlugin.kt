@@ -5,7 +5,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
@@ -25,18 +24,6 @@ class RoomConventionPlugin : Plugin<Project> {
                 kmpExtension.sourceSets.getByName("commonMain").dependencies {
                     implementation(libs.findLibrary("room.runtime").get())
                     implementation(libs.findLibrary("sqlite.bundled").get())
-                }
-
-                val isMac = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
-                val roomCompiler = libs.findLibrary("room.compiler").get()
-
-                dependencies {
-                    add("kspAndroid", roomCompiler)
-                    add("kspJvm", roomCompiler)
-                    if (isMac) {
-                        add("kspIosArm64", roomCompiler)
-                        add("kspIosSimulatorArm64", roomCompiler)
-                    }
                 }
             }
         }

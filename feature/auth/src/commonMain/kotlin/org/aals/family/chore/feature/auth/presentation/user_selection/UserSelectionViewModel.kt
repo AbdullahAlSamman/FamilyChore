@@ -32,7 +32,7 @@ class UserSelectionViewModel(
 
     private val pairingToken: String? = savedStateHandle["pairingToken"]
     private val familyId: String? = savedStateHandle["familyId"]
-    private val isFromOnboarding: Boolean = savedStateHandle["isFromOnboarding"] ?: false
+    private val isFirstTimeOnboarding: Boolean = savedStateHandle["isFirstTimeOnboarding"] ?: false
 
     private val _state = MutableStateFlow<UserSelectionState>(UserSelectionState.Loading())
     val state = _state.asStateFlow()
@@ -126,7 +126,7 @@ class UserSelectionViewModel(
                 .onSuccess { users ->
                     _state.value = UserSelectionState.Success(
                         users = users,
-                        isFromDiscovery = isFromOnboarding || pairingToken != null,
+                        isFromDiscovery = isFirstTimeOnboarding || pairingToken != null,
                         isOfflineMode = currentOfflineMode,
                         isServerReachable = currentServerReachable
                     )

@@ -1,0 +1,39 @@
+name: Manual iOS Checks
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ios-checks:
+    name: Run iOS Tests & Builds
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run KMP iOS Simulator Tests
+        run: ./gradlew iosSimulatorArm64Test --continue --stacktrace
+
+      - name: Upload Build Reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-reports
+          retention-days: 7
+          path: |
+            **/build/reports/
+            **/build/test-results/

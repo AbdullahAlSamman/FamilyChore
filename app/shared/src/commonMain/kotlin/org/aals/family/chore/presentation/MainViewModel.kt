@@ -43,27 +43,27 @@ class MainViewModel(
             val familyId = tokenStorage.getFamilyId()
             val token = tokenStorage.getToken()
 
-            val destination = if (token != null || familyId != null) {
-                UserSelectionRoute(familyId = familyId)
-            } else if (isOffline == null) {
-                ModeSelectionRoute
-            } else if (isOffline) {
-                WelcomeRoute
-            } else if (serverUrl != null) {
-                val result = connectivityRepository.checkHealth()
-                if (result is Result.Success) {
-                    WelcomeRoute
-                } else {
-                    ServerDiscoveryRoute(isErrorMode = true)
-                }
-            } else {
-                ServerDiscoveryRoute()
+            val destination = when {
+                token != null || familyId != null -> UserSelectionRoute(familyId = familyId)
+                isOffline == null -> ModeSelectionRoute
+                isOffline -> WelcomeRoute
+                serverUrl != null -> checkServerHealthRoute()
+                else -> ServerDiscoveryRoute()
             }
 
             _state.value = MainState.Success(
                 startDestination = destination,
                 language = AppLanguage.entries.find { it.isoCode == tokenStorage.getLanguage() } ?: AppLanguage.ENGLISH
             )
+        }
+    }
+
+    private suspend fun checkServerHealthRoute(): Any {
+        val result = connectivityRepository.checkHealth()
+        return if (result is Result.Success) {
+            WelcomeRoute
+        } else {
+            ServerDiscoveryRoute(isErrorMode = true)
         }
     }
 

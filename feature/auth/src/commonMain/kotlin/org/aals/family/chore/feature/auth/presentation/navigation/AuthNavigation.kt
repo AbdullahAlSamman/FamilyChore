@@ -23,7 +23,7 @@ import org.aals.family.chore.feature.auth.presentation.welcome.WelcomeRoot
 @Serializable data class UserSelectionRoute(
     val pairingToken: String? = null,
     val familyId: String? = null,
-    val isFromOnboarding: Boolean = false
+    val isFirstTimeOnboarding: Boolean = false,
 )
 @Serializable data class PinEntryRoute(val userId: String, val isSetupMode: Boolean = false)
 
@@ -71,7 +71,7 @@ fun NavGraphBuilder.authGraph(
                     navController.navigate(QrScannerRoute)
                 },
                 onNavigateToUserSelection = { familyId ->
-                    navController.navigate(UserSelectionRoute(familyId = familyId, isFromOnboarding = true))
+                    navController.navigate(UserSelectionRoute(familyId = familyId, isFirstTimeOnboarding = true))
                 },
                 onNavigateBack = {
                     if (!navController.popBackStack()) {

@@ -14,6 +14,8 @@ import kotlinx.coroutines.test.setMain
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.feature.auth.presentation.FakeAuthRepository
+import org.aals.family.chore.feature.auth.presentation.FakeConnectivityRepository
+import org.aals.family.chore.feature.auth.presentation.FakeTokenStorage
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -24,12 +26,16 @@ class UserSelectionViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: UserSelectionViewModel
     private lateinit var authRepository: FakeAuthRepository
+    private lateinit var connectivityRepository: FakeConnectivityRepository
+    private lateinit var tokenStorage: FakeTokenStorage
     private val pairingToken = "test_pairing_token"
 
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         authRepository = FakeAuthRepository()
+        connectivityRepository = FakeConnectivityRepository()
+        tokenStorage = FakeTokenStorage()
     }
 
     @AfterTest
@@ -44,6 +50,8 @@ class UserSelectionViewModelTest {
         
         viewModel = UserSelectionViewModel(
             authRepository,
+            connectivityRepository,
+            tokenStorage,
             SavedStateHandle(mapOf("pairingToken" to pairingToken)),
             Logger.withTag("Test")
         )
@@ -61,6 +69,8 @@ class UserSelectionViewModelTest {
         authRepository.users.add(user)
         viewModel = UserSelectionViewModel(
             authRepository,
+            connectivityRepository,
+            tokenStorage,
             SavedStateHandle(mapOf("pairingToken" to pairingToken)),
             Logger.withTag("Test")
         )

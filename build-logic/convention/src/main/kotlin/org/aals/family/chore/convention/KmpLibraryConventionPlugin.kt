@@ -33,13 +33,17 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
                 }
             }
 
+            val isMac = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
+
             extensions.configure(KotlinMultiplatformExtension::class.java) {
                 androidTarget {
                     publishLibraryVariants("release")
                 }
-                iosArm64()
-                iosSimulatorArm64()
                 jvm()
+                if (isMac) {
+                    iosArm64()
+                    iosSimulatorArm64()
+                }
             }
         }
     }

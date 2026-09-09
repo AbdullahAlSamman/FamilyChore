@@ -7,6 +7,7 @@ import androidx.navigation.navigation
 import kotlinx.serialization.Serializable
 import org.aals.family.chore.feature.auth.presentation.create_family.CreateFamilyRoot
 import org.aals.family.chore.feature.auth.presentation.discovery.ServerDiscoveryRoot
+import org.aals.family.chore.feature.auth.presentation.mode_selection.ModeSelectionRoot
 import org.aals.family.chore.feature.auth.presentation.pin_entry.PinEntryRoot
 import org.aals.family.chore.feature.auth.presentation.qr_scanner.QrScannerRoot
 import org.aals.family.chore.feature.auth.presentation.user_selection.UserSelectionRoot
@@ -14,13 +15,15 @@ import org.aals.family.chore.feature.auth.presentation.welcome.WelcomeRoot
 
 @Serializable object AuthGraph
 
+@Serializable object ModeSelectionRoute
 @Serializable data class ServerDiscoveryRoute(val isErrorMode: Boolean = false)
 @Serializable object WelcomeRoute
 @Serializable object CreateFamilyRoute
 @Serializable object QrScannerRoute
 @Serializable data class UserSelectionRoute(
     val pairingToken: String? = null,
-    val familyId: String? = null
+    val familyId: String? = null,
+    val isFirstTimeOnboarding: Boolean = false,
 )
 @Serializable data class PinEntryRoute(val userId: String, val isSetupMode: Boolean = false)
 
@@ -33,16 +36,29 @@ import org.aals.family.chore.feature.auth.presentation.welcome.WelcomeRoot
  */
 fun NavGraphBuilder.authGraph(
     navController: NavController,
-    startDestination: Any = ServerDiscoveryRoute,
+    startDestination: Any = ModeSelectionRoute,
     onOnboardingComplete: () -> Unit
 ) {
     navigation<AuthGraph>(
         startDestination = startDestination
     ) {
+        composable<ModeSelectionRoute> {
+            ModeSelectionRoot(
+                onNavigateToWelcome = {
+                    navController.navigate(WelcomeRoute)
+                },
+                onNavigateToDiscovery = {
+                    navController.navigate(ServerDiscoveryRoute())
+                }
+            )
+        }
         composable<ServerDiscoveryRoute> {
             ServerDiscoveryRoot(
                 onNavigateToWelcome = {
                     navController.navigate(WelcomeRoute)
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -55,7 +71,14 @@ fun NavGraphBuilder.authGraph(
                     navController.navigate(QrScannerRoute)
                 },
                 onNavigateToUserSelection = { familyId ->
-                    navController.navigate(UserSelectionRoute(familyId = familyId))
+                    navController.navigate(UserSelectionRoute(familyId = familyId, isFirstTimeOnboarding = true))
+                },
+                onNavigateBack = {
+                    if (!navController.popBackStack()) {
+                        navController.navigate(ModeSelectionRoute) {
+                            popUpTo(AuthGraph) { inclusive = true }
+                        }
+                    }
                 }
             )
         }
@@ -79,12 +102,23 @@ fun NavGraphBuilder.authGraph(
             UserSelectionRoot(
                 onPairingConfirmed = { userId ->
                     navController.navigate(PinEntryRoute(userId))
+                },
+                onPinVerified = onOnboardingComplete,
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }
         composable<PinEntryRoute> {
             PinEntryRoot(
-                onPinVerified = onOnboardingComplete
+                onPinVerified = onOnboardingComplete,
+                onNavigateBack = {
+                    if (!navController.popBackStack()) {
+                        navController.navigate(ModeSelectionRoute) {
+                            popUpTo(AuthGraph) { inclusive = true }
+                        }
+                    }
+                }
             )
         }
     }

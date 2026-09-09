@@ -2,6 +2,7 @@ package org.aals.family.chore.feature.auth.presentation
 
 import org.aals.family.chore.core.domain.model.Family
 import org.aals.family.chore.core.domain.model.User
+import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
@@ -44,12 +45,14 @@ class FakeAuthRepository : AuthRepository {
         return error?.let { Result.Error(it) } ?: Result.Success(Unit)
     }
 
-    override suspend fun addChildUser(
+    override suspend fun addFamilyMember(
         familyId: String,
         nickname: String,
+        role: UserRole,
+        pin: String?,
         requiresPin: Boolean
     ): Result<User, DataError.Network> {
-        val user = User("new", familyId, nickname, org.aals.family.chore.core.domain.model.UserRole.CHILD, 0, requiresPin)
+        val user = User("new", familyId, nickname, role, 0, requiresPin)
         users.add(user)
         return error?.let { Result.Error(it) } ?: Result.Success(user)
     }
@@ -64,6 +67,10 @@ class FakeAuthRepository : AuthRepository {
     override suspend fun getUser(userId: String): Result<User, DataError.Network> {
         val user = users.find { it.id == userId } ?: User(userId, "family1", "User", org.aals.family.chore.core.domain.model.UserRole.CHILD, 0)
         return error?.let { Result.Error(it) } ?: Result.Success(user)
+    }
+
+    override suspend fun selectUser(userId: String): Result<Unit, DataError.Network> {
+        return error?.let { Result.Error(it) } ?: Result.Success(Unit)
     }
 
     override suspend fun getCurrentUser(): Result<User, DataError.Network> {

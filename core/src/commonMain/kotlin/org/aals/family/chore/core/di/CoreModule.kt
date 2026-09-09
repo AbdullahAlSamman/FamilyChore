@@ -22,9 +22,11 @@ import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.repository.TransactionRepository
+import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.core.domain.util.LoggingInitializer
 import org.aals.family.chore.core.domain.util.TimeProvider
 import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.parameter.parametersOf
 import org.koin.dsl.module
@@ -45,4 +47,5 @@ val coreModule = module {
     singleOf(::ChoreRepositoryImpl) { bind<ChoreRepository>() }
     singleOf(::ConnectivityRepositoryImpl) { bind<ConnectivityRepository>() }
     singleOf(::DataStoreTokenStorage) { bind<TokenStorage>() }
+    factoryOf(::ObserveConnectivityUseCase)
 }

@@ -13,6 +13,7 @@ import kotlinx.coroutines.test.setMain
 import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
+import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.feature.dashboard.domain.model.BehaviorDefaults
 import org.aals.family.chore.feature.dashboard.presentation.navigation.BehaviorRoute
 import org.aals.family.chore.feature.dashboard.presentation.navigation.ParentOverviewRoute
@@ -29,6 +30,7 @@ class DashboardViewModelTest {
     private lateinit var choreRepository: FakeChoreRepository
     private lateinit var connectivityRepository: FakeConnectivityRepository
     private lateinit var tokenStorage: FakeTokenStorage
+    private lateinit var observeConnectivityUseCase: ObserveConnectivityUseCase
     private lateinit var timeProvider: FakeTimeProvider
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -40,6 +42,7 @@ class DashboardViewModelTest {
         choreRepository = FakeChoreRepository()
         connectivityRepository = FakeConnectivityRepository()
         tokenStorage = FakeTokenStorage()
+        observeConnectivityUseCase = ObserveConnectivityUseCase(tokenStorage, connectivityRepository)
         timeProvider = FakeTimeProvider()
         
         // Default mock setup
@@ -53,7 +56,7 @@ class DashboardViewModelTest {
             authRepository = authRepository,
             transactionRepository = transactionRepository,
             choreRepository = choreRepository,
-            connectivityRepository = connectivityRepository,
+            observeConnectivityUseCase = observeConnectivityUseCase,
             tokenStorage = tokenStorage,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider
@@ -144,7 +147,7 @@ class DashboardViewModelTest {
             viewModel.onAction(action)
             
             val state = awaitItem() as DashboardState.Success
-            assertThat(state.choreNameError != null).isEqualTo(true)
+            assertThat(state.addChoreForm.nameError != null).isEqualTo(true)
             assertThat(choreRepository.createdChores.isEmpty()).isEqualTo(true)
             cancelAndIgnoreRemainingEvents()
         }
@@ -163,7 +166,7 @@ class DashboardViewModelTest {
             viewModel.onAction(action)
             
             val state = awaitItem() as DashboardState.Success
-            assertThat(state.chorePointsError != null).isEqualTo(true)
+            assertThat(state.addChoreForm.pointsError != null).isEqualTo(true)
             assertThat(choreRepository.createdChores.isEmpty()).isEqualTo(true)
             cancelAndIgnoreRemainingEvents()
         }
@@ -181,7 +184,7 @@ class DashboardViewModelTest {
             // Change name
             viewModel.onAction(DashboardAction.OnChoreNameChange("A"))
             val state = awaitItem() as DashboardState.Success
-            assertThat(state.choreNameError).isEqualTo(null)
+            assertThat(state.addChoreForm.nameError).isEqualTo(null)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -199,15 +202,32 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun `AddChild success adds user and shows QR`() = runTest {
+    fun `AddMember success adds user and shows QR`() = runTest {
         viewModel.state.test {
             awaitItem() // Initial Success
-            viewModel.onAction(DashboardAction.AddChild("Charlie", true))
+            viewModel.onAction(DashboardAction.AddMember("Charlie", UserRole.CHILD, "1234"))
             
             // Should show loading state/flag if implemented, but here it's fast
             val stateAfterAdd = awaitItem() as DashboardState.Success
             assertThat(stateAfterAdd.inviteQrContent != null).isEqualTo(true)
             assertThat(authRepository.familyMembers.any { it.nickname == "Charlie" }).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `AddMember parent enforces PIN and shows QR`() = runTest {
+        viewModel.state.test {
+            awaitItem() // Initial Success
+            // Attempt to add parent with PIN
+            viewModel.onAction(DashboardAction.AddMember("NewParent", UserRole.PARENT, "1234"))
+            
+            val stateAfterAdd = awaitItem() as DashboardState.Success
+            val newParent = authRepository.familyMembers.find { it.nickname == "NewParent" }
+            assertThat(newParent != null).isEqualTo(true)
+            assertThat(newParent!!.role).isEqualTo(UserRole.PARENT)
+            assertThat(newParent.requiresPin).isEqualTo(true)
+            assertThat(stateAfterAdd.inviteQrContent != null).isEqualTo(true)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -255,6 +275,52 @@ class DashboardViewModelTest {
     }
 
     @Test
+    fun `AddMember in offline mode adds user and does NOT show QR`() = runTest {
+        tokenStorage.setOfflineMode(true)
+        
+        viewModel.onAction(DashboardAction.Refresh)
+
+        viewModel.state.test {
+            // Skip until we get Success with offline mode
+            var state = awaitItem()
+            while (state !is DashboardState.Success || !state.isOfflineMode) {
+                state = awaitItem()
+            }
+            
+            viewModel.onAction(DashboardAction.AddMember("Charlie", UserRole.CHILD, "1234"))
+            
+            // Skip until adding is done and members are refreshed
+            while (state !is DashboardState.Success || state.addMemberForm.isAdding || state.familyMembers.none { it.nickname == "Charlie" }) {
+                state = awaitItem()
+            }
+            
+            val finalState = state as DashboardState.Success
+            assertThat(finalState.inviteQrContent).isEqualTo(null)
+            assertThat(authRepository.familyMembers.any { it.nickname == "Charlie" }).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `AddMember when server unreachable and NOT offline is blocked`() = runTest {
+        connectivityRepository.isServerReachable.value = false
+        tokenStorage.setOfflineMode(false)
+        
+        viewModel.state.test {
+            awaitItem() // Skip initial Success
+            
+            viewModel.onAction(DashboardAction.AddMember("Charlie", UserRole.CHILD, "1234"))
+            
+            // authRepository.addFamilyMember should NOT be called
+            // Actually, in the current implementation, it just returns without doing anything.
+            // So the state won't even change to "isAddingMember = true".
+            
+            assertThat(authRepository.familyMembers.any { it.nickname == "Charlie" }).isEqualTo(false)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `Connectivity changes update state`() = runTest {
         viewModel.state.test {
             awaitItem()
@@ -272,7 +338,7 @@ class DashboardViewModelTest {
             authRepository = authRepository,
             transactionRepository = transactionRepository,
             choreRepository = choreRepository,
-            connectivityRepository = connectivityRepository,
+            observeConnectivityUseCase = observeConnectivityUseCase,
             tokenStorage = tokenStorage,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider

@@ -10,7 +10,9 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.feature.auth.presentation.FakeAuthRepository
+import org.aals.family.chore.feature.auth.presentation.FakeConnectivityRepository
 import org.aals.family.chore.feature.auth.presentation.FakeTokenStorage
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -21,6 +23,8 @@ class WelcomeViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var authRepository: FakeAuthRepository
     private lateinit var tokenStorage: FakeTokenStorage
+    private lateinit var connectivityRepository: FakeConnectivityRepository
+    private lateinit var observeConnectivityUseCase: ObserveConnectivityUseCase
     private lateinit var viewModel: WelcomeViewModel
 
     @BeforeTest
@@ -28,10 +32,12 @@ class WelcomeViewModelTest {
         Dispatchers.setMain(testDispatcher)
         authRepository = FakeAuthRepository()
         tokenStorage = FakeTokenStorage()
+        connectivityRepository = FakeConnectivityRepository()
+        observeConnectivityUseCase = ObserveConnectivityUseCase(tokenStorage, connectivityRepository)
     }
 
     private fun createViewModel() {
-        viewModel = WelcomeViewModel(authRepository, tokenStorage, Logger.withTag("Test"))
+        viewModel = WelcomeViewModel(authRepository, tokenStorage, observeConnectivityUseCase, Logger.withTag("Test"))
     }
 
     @AfterTest

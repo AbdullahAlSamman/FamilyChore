@@ -28,10 +28,12 @@ sealed interface ServerDiscoveryAction {
     data object OnScanAgainClick : ServerDiscoveryAction
     data class OnManualUrlChange(val url: String) : ServerDiscoveryAction
     data object OnConnectManualClick : ServerDiscoveryAction
+    data object OnBackClick : ServerDiscoveryAction
 }
 
 sealed interface ServerDiscoveryEvent {
     data object NavigateToWelcome : ServerDiscoveryEvent
+    data object NavigateBack : ServerDiscoveryEvent
 }
 
 class ServerDiscoveryViewModel(
@@ -73,6 +75,11 @@ class ServerDiscoveryViewModel(
 
     fun onAction(action: ServerDiscoveryAction) {
         when (action) {
+            ServerDiscoveryAction.OnBackClick -> {
+                viewModelScope.launch {
+                    _events.send(ServerDiscoveryEvent.NavigateBack)
+                }
+            }
             is ServerDiscoveryAction.OnServerSelected -> {
                 logger.d { "Server selected: ${action.server.name} (${action.server.url})" }
                 viewModelScope.launch {

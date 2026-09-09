@@ -14,13 +14,16 @@ import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
+import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
+import org.aals.family.chore.core.presentation.toUiText
 
 class WelcomeViewModel(
     private val authRepository: AuthRepository,
     private val tokenStorage: TokenStorage,
-    private val logger: Logger
+    private val observeConnectivityUseCase: ObserveConnectivityUseCase,
+    private val logger: Logger,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(WelcomeState())
@@ -34,8 +37,22 @@ class WelcomeViewModel(
             val name = tokenStorage.getServerName()
             _state.update { it.copy(serverName = name) }
         }
+        observeConnectivity()
         observeLanguage()
         loadFamilies()
+    }
+
+    private fun observeConnectivity() {
+        observeConnectivityUseCase()
+            .onEach { status ->
+                _state.update {
+                    it.copy(
+                        isOfflineMode = status.isOfflineMode,
+                        isServerReachable = status.isServerReachable,
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     fun onAction(action: WelcomeAction) {
@@ -50,6 +67,12 @@ class WelcomeViewModel(
                 logger.d { "User chose: Join Existing Family" }
                 viewModelScope.launch {
                     _events.send(WelcomeEvent.NavigateToJoinFamily)
+                }
+            }
+            WelcomeAction.OnBackClick -> {
+                viewModelScope.launch {
+                    tokenStorage.setOfflineMode(null)
+                    _events.send(WelcomeEvent.NavigateToModeSelection)
                 }
             }
             is WelcomeAction.OnFamilyClick -> {
@@ -84,7 +107,7 @@ class WelcomeViewModel(
                     _state.update { it.copy(families = families, isLoading = false) }
                 }
                 .onFailure { error ->
-                    _state.update { it.copy(isLoading = false, error = error.toString()) }
+                    _state.update { it.copy(isLoading = false, error = error.toUiText()) }
                 }
         }
     }

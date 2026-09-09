@@ -20,7 +20,13 @@
     <!-- Errors -->
     <string name="error_unknown">Unknown error occurred</string>
     <string name="error_invalid_number">Invalid number</string>
+    <string name="error_unauthorized">Invalid PIN or unauthorized access</string>
+    <string name="error_serialization">Server response error. Please try again.</string>
+    <string name="error_server">Server error. Please try again later.</string>
     <string name="error_missing_params">Missing identification parameters</string>
+    <string name="error_disk_full">Storage is full. Please free up space and try again.</string>
+    <string name="error_not_found">Requested item or profile was not found on this device.</string>
+    <string name="error_local_database">Local storage database error. Please try again.</string>
     <string name="dashboard_load_failed_error">Failed to load profile. Please login again.</string>
 
     <!-- Validation Errors - Auth -->
@@ -81,6 +87,8 @@
     <string name="pin_title">Enter PIN</string>
     <string name="pin_instructions">Enter your 4-digit PIN to continue.</string>
     <string name="pin_label">PIN</string>
+    <string name="pin_mandatory">Mandatory</string>
+    <string name="pin_optional">Optional</string>
 
     <!-- Dashboard -->
     <string name="dashboard_title">Dashboard</string>
@@ -100,7 +108,7 @@
 
     <!-- Family Management -->
     <string name="family_management_title">Family Members</string>
-    <string name="family_management_add_child">Add Child</string>
+    <string name="family_management_add_member">Add Member</string>
     <string name="family_management_nickname_label">Nickname</string>
     <string name="family_management_require_pin">Require PIN</string>
     <string name="family_management_invite_member">Invite Member</string>
@@ -142,4 +150,11 @@
 
     <!-- Pairing -->
     <string name="family_default_name">Family</string>
+
+    <!-- Mode Selection -->
+    <string name="mode_selection_title">Choose Your Setup</string>
+    <string name="mode_selection_single_device">Single Device</string>
+    <string name="mode_selection_single_device_desc">Keep everything on this device. No internet required. Best for one-phone households.</string>
+    <string name="mode_selection_multiple_devices">Multiple Devices</string>
+    <string name="mode_selection_multiple_devices_desc">Sync chores across multiple phones and tablets. Requires a FamilyChore server.</string>
 </resources>

@@ -12,7 +12,7 @@ androidx-testExt = "1.3.0"
 compose-material = "1.7.3"
 composeMultiplatform = "1.11.1"
 junit = "4.13.2"
-kotlin = "2.4.0"
+kotlin = "2.1.10"
 junit5 = "5.11.0"
 assertk = "0.28.1"
 turbine = "1.2.0"
@@ -24,9 +24,9 @@ logback = "1.5.34"
 material3 = "1.11.0-alpha07"
 koin = "4.1.0-Beta5"
 kermit = "2.1.0"
-room = "2.7.0-alpha13"
-sqlite = "2.5.0-alpha13"
-ksp = "2.3.9"
+room = "2.7.0"
+sqlite = "2.5.0"
+ksp = "2.3.11"
 okio = "3.10.2"
 camerax = "1.6.1"
 barcode-scanning = "17.3.0"
@@ -92,6 +92,7 @@ androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.r
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "camerax" }
 google-mlkit-barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcode-scanning" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 qrose = { module = "io.github.alexzhirkevich:qrose", version = "1.1.2" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore" }

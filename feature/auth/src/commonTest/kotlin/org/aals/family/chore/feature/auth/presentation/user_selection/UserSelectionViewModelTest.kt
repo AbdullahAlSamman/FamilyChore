@@ -13,7 +13,10 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
+import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.feature.auth.presentation.FakeAuthRepository
+import org.aals.family.chore.feature.auth.presentation.FakeConnectivityRepository
+import org.aals.family.chore.feature.auth.presentation.FakeTokenStorage
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -24,12 +27,18 @@ class UserSelectionViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var viewModel: UserSelectionViewModel
     private lateinit var authRepository: FakeAuthRepository
+    private lateinit var connectivityRepository: FakeConnectivityRepository
+    private lateinit var tokenStorage: FakeTokenStorage
+    private lateinit var observeConnectivityUseCase: ObserveConnectivityUseCase
     private val pairingToken = "test_pairing_token"
 
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         authRepository = FakeAuthRepository()
+        connectivityRepository = FakeConnectivityRepository()
+        tokenStorage = FakeTokenStorage()
+        observeConnectivityUseCase = ObserveConnectivityUseCase(tokenStorage, connectivityRepository)
     }
 
     @AfterTest
@@ -44,6 +53,7 @@ class UserSelectionViewModelTest {
         
         viewModel = UserSelectionViewModel(
             authRepository,
+            observeConnectivityUseCase,
             SavedStateHandle(mapOf("pairingToken" to pairingToken)),
             Logger.withTag("Test")
         )
@@ -51,7 +61,7 @@ class UserSelectionViewModelTest {
         viewModel.state.test {
             // With UnconfinedTestDispatcher, the init block runs immediately.
             // We expect the final Success state.
-            assertThat(awaitItem()).isEqualTo(UserSelectionState.Success(users))
+            assertThat(awaitItem()).isEqualTo(UserSelectionState.Success(users, isFromDiscovery = true))
         }
     }
 
@@ -61,6 +71,7 @@ class UserSelectionViewModelTest {
         authRepository.users.add(user)
         viewModel = UserSelectionViewModel(
             authRepository,
+            observeConnectivityUseCase,
             SavedStateHandle(mapOf("pairingToken" to pairingToken)),
             Logger.withTag("Test")
         )

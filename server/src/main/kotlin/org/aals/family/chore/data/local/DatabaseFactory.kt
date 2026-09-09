@@ -58,7 +58,7 @@ object UsersTable : Table("users") {
 
 object PinsTable : Table("pins") {
     val userId = varchar("user_id", 50) references UsersTable.id
-    val pin = varchar("pin", 4)
+    val pin = varchar("pin", 64)
 
     override val primaryKey = PrimaryKey(userId)
 }

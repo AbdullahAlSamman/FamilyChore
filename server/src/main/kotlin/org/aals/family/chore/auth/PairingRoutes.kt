@@ -50,7 +50,7 @@ fun Route.pairingRoutes(
 
             Logger.d { "API: Creating family ${request.familyName}" }
             val family = familyRepository.createFamily(request.familyName)
-            val parent = familyRepository.addUserToFamily(family.id, request.parentNickname, UserRole.PARENT)
+            val parent = familyRepository.addUserToFamily(family.id, request.parentNickname, UserRole.PARENT, true)
             
             // For now, "token" is just a dummy JWT
             call.respond(
@@ -178,11 +178,11 @@ fun Route.pairingRoutes(
         post("/pin/setup") {
             val request = call.receive<SetupPinRequest>()
             
-            val pinError = AuthValidator.validatePin(request.pin)
+            val pinError = AuthValidator.validateHashedPin(request.pin)
             if (pinError != null) {
                 return@post call.respond(
                     HttpStatusCode.BadRequest,
-                    ErrorResponse("Invalid PIN", validationErrors = listOf(ValidationErrorDto("pin", pinError.name, "Invalid PIN")))
+                    ErrorResponse("Invalid PIN format", validationErrors = listOf(ValidationErrorDto("pin", pinError.name, "Invalid PIN format")))
                 )
             }
 
@@ -194,11 +194,11 @@ fun Route.pairingRoutes(
         post("/pin/verify") {
             val request = call.receive<VerifyPinRequest>()
             
-            val pinError = AuthValidator.validatePin(request.pin)
+            val pinError = AuthValidator.validateHashedPin(request.pin)
             if (pinError != null) {
                 return@post call.respond(
                     HttpStatusCode.BadRequest,
-                    ErrorResponse("Invalid PIN", validationErrors = listOf(ValidationErrorDto("pin", pinError.name, "Invalid PIN")))
+                    ErrorResponse("Invalid PIN format", validationErrors = listOf(ValidationErrorDto("pin", pinError.name, "Invalid PIN format")))
                 )
             }
 

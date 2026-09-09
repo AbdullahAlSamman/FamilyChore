@@ -20,19 +20,21 @@ class RoomConventionPlugin : Plugin<Project> {
                 schemaDirectory("$projectDir/schemas")
             }
 
+            val roomCompiler = libs.findLibrary("room.compiler").get()
+            val isMac = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
+
+            dependencies.add("kspAndroid", roomCompiler)
+            dependencies.add("kspJvm", roomCompiler)
+            if (isMac) {
+                dependencies.add("kspIosArm64", roomCompiler)
+                dependencies.add("kspIosSimulatorArm64", roomCompiler)
+            }
+
             extensions.findByType(KotlinMultiplatformExtension::class.java)?.let { kmpExtension ->
                 kmpExtension.sourceSets.getByName("commonMain").dependencies {
-                    implementation(libs.findLibrary("room.runtime").get())
-                    implementation(libs.findLibrary("sqlite.bundled").get())
+                    api(libs.findLibrary("room.runtime").get())
+                    api(libs.findLibrary("sqlite.bundled").get())
                 }
-                
-                // KSP needs to be applied to specific targets in KMP
-                // For Room, we usually add ksp to the project and it handles it,
-                // but in KMP we often need:
-                // dependencies { add("kspAndroid", ...) }
-                // etc.
-                
-                // For now, let's keep it simple and see if the module can handle ksp dependencies
             }
         }
     }

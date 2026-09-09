@@ -15,6 +15,8 @@ android {
     namespace = "org.aals.family.chore.core"
 }
 
+val isMac = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
+
 kotlin {
     sourceSets {
         commonMain.dependencies {
@@ -29,6 +31,7 @@ kotlin {
             implementation(libs.ktor.client.auth)
             implementation(libs.datastore.preferences)
             implementation(libs.kermit)
+            implementation(libs.okio)
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
@@ -37,8 +40,10 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.jmdns)
         }
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
+        if (isMac) {
+            iosMain.dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
@@ -51,11 +56,4 @@ kotlin {
     }
 }
 
-dependencies {
-    // Room KSP for all targets
-    val roomCompiler = libs.room.compiler
-    add("kspAndroid", roomCompiler)
-    add("kspJvm", roomCompiler)
-    add("kspIosArm64", roomCompiler)
-    add("kspIosSimulatorArm64", roomCompiler)
-}
+

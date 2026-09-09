@@ -50,4 +50,13 @@ object AuthValidator {
             else -> null
         }
     }
+
+    fun validateHashedPin(hash: String): AuthValidationError.PinError? {
+        val hexChars = "0123456789abcdefABCDEF"
+        return when {
+            hash.length != 64 -> AuthValidationError.PinError.INVALID_LENGTH
+            !hash.all { it in hexChars } -> AuthValidationError.PinError.NOT_DIGITS
+            else -> null
+        }
+    }
 }

@@ -62,6 +62,7 @@ data class VerifyPinRequest(
 data class AddUserRequest(
     val nickname: String,
     val role: UserRole,
+    val pin: String? = null,
     val requiresPin: Boolean = true
 )
 

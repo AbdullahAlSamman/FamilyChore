@@ -2,6 +2,7 @@ package org.aals.family.chore.feature.dashboard.presentation
 
 import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.BehaviorItem
+import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.feature.dashboard.presentation.navigation.DashboardTabRoute
 
 sealed interface DashboardAction {
@@ -20,9 +21,10 @@ sealed interface DashboardAction {
     data class OnChorePointsChange(val points: String) : DashboardAction
 
     // Family Management
-    data class OnChildNicknameChange(val nickname: String) : DashboardAction
-    data object TogglePinRequirement : DashboardAction
-    data class AddChild(val nickname: String, val requiresPin: Boolean) : DashboardAction
+    data class OnMemberNicknameChange(val nickname: String) : DashboardAction
+    data class ChangeNewMemberRole(val role: UserRole) : DashboardAction
+    data class OnNewMemberPinChange(val pin: String) : DashboardAction
+    data class AddMember(val nickname: String, val role: UserRole, val pin: String?) : DashboardAction
     data class UpdateUserPinRequirement(val userId: String, val requiresPin: Boolean) : DashboardAction
     data class ShowInviteQr(val userId: String? = null) : DashboardAction
     data object DismissInviteQr : DashboardAction

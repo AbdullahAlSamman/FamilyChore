@@ -23,13 +23,15 @@ class TransactionRepositoryImplTest {
     private lateinit var repository: TransactionRepositoryImpl
     private lateinit var dao: FakeTransactionDao
     private lateinit var dataSource: FakeTransactionDataSource
+    private lateinit var tokenStorage: FakeTokenStorage
     private val logger = Logger.withTag("Test")
 
     @BeforeTest
     fun setup() {
         dao = FakeTransactionDao()
         dataSource = FakeTransactionDataSource()
-        repository = TransactionRepositoryImpl(dao, dataSource, logger)
+        tokenStorage = FakeTokenStorage()
+        repository = TransactionRepositoryImpl(dao, dataSource, tokenStorage, logger)
     }
 
     @Test

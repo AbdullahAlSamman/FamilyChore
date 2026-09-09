@@ -25,9 +25,9 @@ import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.ChoreRepository
-import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.repository.TransactionRepository
+import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.core.domain.util.TimeProvider
 import org.aals.family.chore.core.domain.util.getOrElse
 import org.aals.family.chore.core.domain.util.onFailure
@@ -49,7 +49,7 @@ class DashboardViewModel(
     private val authRepository: AuthRepository,
     private val transactionRepository: TransactionRepository,
     private val choreRepository: ChoreRepository,
-    private val connectivityRepository: ConnectivityRepository,
+    private val observeConnectivityUseCase: ObserveConnectivityUseCase,
     private val tokenStorage: TokenStorage,
     private val logger: Logger,
     private val timeProvider: TimeProvider,
@@ -87,18 +87,21 @@ class DashboardViewModel(
             is DashboardAction.AwardPoints -> awardPoints(action.targetUserId, action.item)
             is DashboardAction.CreateChore -> createChore(action)
             is DashboardAction.OnChoreNameChange -> {
-                updateSuccessState { it.copy(choreNameError = null) }
+                updateSuccessState { it.copy(addChoreForm = it.addChoreForm.copy(nameError = null)) }
             }
             is DashboardAction.OnChorePointsChange -> {
-                updateSuccessState { it.copy(chorePointsError = null) }
+                updateSuccessState { it.copy(addChoreForm = it.addChoreForm.copy(pointsError = null)) }
             }
-            is DashboardAction.OnChildNicknameChange -> {
-                updateSuccessState { it.copy(newChildNickname = action.nickname, childNicknameError = null) }
+            is DashboardAction.OnMemberNicknameChange -> {
+                updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(nickname = action.nickname, nicknameError = null)) }
             }
-            DashboardAction.TogglePinRequirement -> {
-                updateSuccessState { it.copy(requiresPinForNewChild = !it.requiresPinForNewChild) }
+            is DashboardAction.ChangeNewMemberRole -> {
+                updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(role = action.role)) }
             }
-            is DashboardAction.AddChild -> addChild(action.nickname, action.requiresPin)
+            is DashboardAction.OnNewMemberPinChange -> {
+                updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(pin = action.pin)) }
+            }
+            is DashboardAction.AddMember -> addMember(action.nickname, action.role, action.pin)
             is DashboardAction.UpdateUserPinRequirement -> updateUserPinRequirement(action.userId, action.requiresPin)
             is DashboardAction.ShowInviteQr -> showInviteQr(action.userId)
             DashboardAction.DismissInviteQr -> updateSuccessState { it.copy(inviteQrContent = null) }
@@ -115,27 +118,38 @@ class DashboardViewModel(
         }
     }
 
-    private fun addChild(nickname: String, requiresPin: Boolean) {
+    private fun addMember(nickname: String, role: UserRole, pin: String?) {
         val currentState = _state.value as? DashboardState.Success ?: return
-        if (!currentState.isServerReachable) return
+        if (!currentState.isServerReachable && !currentState.isOfflineMode) return
 
         val error = AuthValidator.validateNickname(nickname)
         if (error != null) {
-            updateSuccessState { it.copy(childNicknameError = error.toUiText()) }
+            updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(nicknameError = error.toUiText())) }
             return
         }
 
+        // For Parent, PIN is mandatory
+        if (role == UserRole.PARENT && pin.isNullOrBlank()) {
+            // Should show PIN error, but for now just log
+            logger.e { "Parent requires a PIN" }
+            return
+        }
+
+        val requiresPin = role == UserRole.PARENT || !pin.isNullOrBlank()
+
         viewModelScope.launch {
-            updateSuccessState { it.copy(isAddingChild = true) }
-            authRepository.addChildUser(currentState.user.familyId, nickname, requiresPin)
+            updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(isAdding = true)) }
+            authRepository.addFamilyMember(currentState.user.familyId, nickname, role, pin, requiresPin)
                 .onSuccess { newUser ->
-                    updateSuccessState { it.copy(isAddingChild = false, newChildNickname = "") }
+                    updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(isAdding = false, nickname = "", pin = "")) }
                     loadDashboardData(isRefreshing = true) // Refresh members
-                    showInviteQr(newUser.id)
+                    if (!currentState.isOfflineMode) {
+                        showInviteQr(newUser.id)
+                    }
                 }
                 .onFailure { e ->
-                    logger.e { "Failed to add child: $e" }
-                    updateSuccessState { it.copy(isAddingChild = false) }
+                    logger.e { "Failed to add member: $e" }
+                    updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(isAdding = false)) }
                 }
         }
     }
@@ -154,6 +168,8 @@ class DashboardViewModel(
 
     private fun showInviteQr(userId: String?) {
         val currentState = _state.value as? DashboardState.Success ?: return
+        if (currentState.isOfflineMode || !currentState.isServerReachable) return
+        
         viewModelScope.launch {
             authRepository.generatePairingToken(currentState.user.familyId)
                 .onSuccess { token ->
@@ -184,8 +200,10 @@ class DashboardViewModel(
         if (nameError != null || pointsError != null || assigneeError != null) {
             updateSuccessState {
                 it.copy(
-                    choreNameError = nameError?.toUiText(),
-                    chorePointsError = pointsError?.toUiText()
+                    addChoreForm = it.addChoreForm.copy(
+                        nameError = nameError?.toUiText(),
+                        pointsError = pointsError?.toUiText(),
+                    )
                 )
             }
             return
@@ -206,7 +224,14 @@ class DashboardViewModel(
                 updatedAt = now
             )
             // Clear errors before attempting to save
-            updateSuccessState { it.copy(choreNameError = null, chorePointsError = null) }
+            updateSuccessState {
+                it.copy(
+                    addChoreForm = it.addChoreForm.copy(
+                        nameError = null,
+                        pointsError = null,
+                    )
+                )
+            }
             
             choreRepository.createChore(chore)
                 .onFailure { error ->
@@ -256,6 +281,7 @@ class DashboardViewModel(
                     val familyMembers = membersResult.getOrElse { emptyList<User>() }
                     val langCode = tokenStorage.getLanguage()
                     val currentLang = AppLanguage.entries.find { it.isoCode == langCode } ?: AppLanguage.ENGLISH
+                    val isOffline = tokenStorage.getOfflineMode() ?: false
 
                     // Initial state setup
                     _state.value = DashboardState.Success(
@@ -268,6 +294,7 @@ class DashboardViewModel(
                         chores = emptyList(),
                         behaviorItems = if (user.role == UserRole.PARENT) BehaviorDefaults.defaultItems else emptyList(),
                         currentTab = if (user.role == UserRole.PARENT) ParentOverviewRoute else ChildTodayRoute,
+                        isOfflineMode = isOffline,
                         isRefreshing = false
                     )
 
@@ -307,9 +334,14 @@ class DashboardViewModel(
     }
 
     private fun observeConnectivity() {
-        connectivityRepository.isServerReachable
-            .onEach { isReachable ->
-                updateSuccessState { it.copy(isServerReachable = isReachable) }
+        observeConnectivityUseCase()
+            .onEach { status ->
+                updateSuccessState {
+                    it.copy(
+                        isOfflineMode = status.isOfflineMode,
+                        isServerReachable = status.isServerReachable,
+                    )
+                }
             }
             .launchIn(viewModelScope)
     }

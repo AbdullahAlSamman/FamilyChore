@@ -17,6 +17,7 @@ import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
+import org.aals.family.chore.feature.auth.presentation.navigation.ModeSelectionRoute
 import org.aals.family.chore.feature.auth.presentation.navigation.ServerDiscoveryRoute
 import org.aals.family.chore.feature.auth.presentation.navigation.UserSelectionRoute
 import org.aals.family.chore.feature.auth.presentation.navigation.WelcomeRoute
@@ -55,14 +56,14 @@ class MainViewModelTest {
     }
 
     @Test
-    fun `navigates to Discovery when no server URL`() = runTest {
+    fun `navigates to ModeSelection when no mode chosen`() = runTest {
         tokenStorage.clear()
         
         createViewModel()
         advanceUntilIdle()
 
         viewModel.state.test {
-            assertThat(awaitItem()).isEqualTo(MainState.Success(ServerDiscoveryRoute(isErrorMode = false)))
+            assertThat(awaitItem()).isEqualTo(MainState.Success(ModeSelectionRoute))
         }
     }
 
@@ -80,10 +81,8 @@ class MainViewModelTest {
     }
 
     @Test
-    fun `navigates to Welcome when server exists but no token`() = runTest {
-        tokenStorage.saveServerUrl("http://localhost")
-        tokenStorage.saveFamilyId("family_123")
-        connectivityRepository.healthResult = Result.Success(Unit)
+    fun `navigates to Welcome when offline mode chosen`() = runTest {
+        tokenStorage.setOfflineMode(true)
         
         createViewModel()
         advanceUntilIdle()
@@ -95,6 +94,7 @@ class MainViewModelTest {
 
     @Test
     fun `navigates to Discovery Error when server unreachable`() = runTest {
+        tokenStorage.setOfflineMode(false)
         tokenStorage.saveServerUrl("http://localhost")
         connectivityRepository.healthResult = Result.Error(DataError.Network.SERVER_ERROR)
         
@@ -113,6 +113,7 @@ class MainViewModelTest {
         private val _serverUrl = MutableStateFlow<String?>(null)
         private val _serverName = MutableStateFlow<String?>(null)
         private val _language = MutableStateFlow<String?>(null)
+        private val _isOfflineMode = MutableStateFlow<Boolean?>(null)
 
         override val token: Flow<String?> = _token
         override val familyId: Flow<String?> = _familyId
@@ -120,6 +121,7 @@ class MainViewModelTest {
         override val serverUrl: Flow<String?> = _serverUrl
         override val serverName: Flow<String?> = _serverName
         override val language: Flow<String?> = _language
+        override val isOfflineMode: Flow<Boolean?> = _isOfflineMode
 
         override suspend fun saveToken(token: String) { _token.value = token }
         override suspend fun getToken(): String? = _token.value
@@ -133,6 +135,8 @@ class MainViewModelTest {
         override suspend fun getServerName(): String? = _serverName.value
         override suspend fun saveLanguage(languageCode: String) { _language.value = languageCode }
         override suspend fun getLanguage(): String? = _language.value
+        override suspend fun setOfflineMode(enabled: Boolean?) { _isOfflineMode.value = enabled }
+        override suspend fun getOfflineMode(): Boolean? = _isOfflineMode.value
         override suspend fun clear() {
             _token.value = null
             _familyId.value = null

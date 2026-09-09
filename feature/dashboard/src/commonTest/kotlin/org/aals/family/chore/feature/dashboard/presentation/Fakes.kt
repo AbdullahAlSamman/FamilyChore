@@ -7,6 +7,7 @@ import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.model.Family
 import org.aals.family.chore.core.domain.model.Transaction
 import org.aals.family.chore.core.domain.model.User
+import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
@@ -38,13 +39,15 @@ class FakeAuthRepository : AuthRepository {
     override suspend fun setupPin(userId: String, pin: String): Result<Unit, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
     override suspend fun verifyPin(userId: String, pin: String): Result<Unit, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
 
-    override suspend fun addChildUser(
+    override suspend fun addFamilyMember(
         familyId: String,
         nickname: String,
+        role: UserRole,
+        pin: String?,
         requiresPin: Boolean
     ): Result<User, DataError.Network> {
         return nextError?.let { Result.Error(it) } ?: run {
-            val user = User("new", familyId, nickname, org.aals.family.chore.core.domain.model.UserRole.CHILD, 0, requiresPin)
+            val user = User("new", familyId, nickname, role, 0, requiresPin)
             familyMembers.add(user)
             Result.Success(user)
         }
@@ -54,6 +57,8 @@ class FakeAuthRepository : AuthRepository {
         userId: String,
         requiresPin: Boolean
     ): Result<Unit, DataError.Network> = Result.Success(Unit)
+
+    override suspend fun selectUser(userId: String): Result<Unit, DataError.Network> = Result.Success(Unit)
 
     override suspend fun getUser(userId: String): Result<User, DataError.Network> {
         val user = familyMembers.find { it.id == userId } ?: User(userId, "family1", "User", org.aals.family.chore.core.domain.model.UserRole.CHILD, 0)
@@ -102,10 +107,13 @@ class FakeTokenStorage : org.aals.family.chore.core.domain.repository.TokenStora
     override val token = MutableStateFlow<String?>(null)
     override val familyId = MutableStateFlow<String?>(null)
     override val userId = MutableStateFlow<String?>(null)
+    override val isOfflineMode = MutableStateFlow<Boolean?>(null)
     override val serverUrl = MutableStateFlow<String?>(null)
     override val serverName = MutableStateFlow<String?>(null)
     override val language = MutableStateFlow<String?>(null)
 
+    override suspend fun setOfflineMode(enabled: Boolean?) { this.isOfflineMode.value = enabled }
+    override suspend fun getOfflineMode(): Boolean? = isOfflineMode.value
     override suspend fun saveToken(token: String) { this.token.value = token }
     override suspend fun getToken(): String? = token.value
     override suspend fun saveFamilyId(familyId: String) { this.familyId.value = familyId }

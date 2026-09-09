@@ -20,7 +20,13 @@
     <!-- Errors -->
     <string name="error_unknown">حدث خطأ غير معروف</string>
     <string name="error_invalid_number">رقم غير صالح</string>
+    <string name="error_unauthorized">رمز PIN غير صحيح أو دخول غير مصرح به</string>
+    <string name="error_serialization">خطأ في استجابة الخادم. يرجى المحاولة مرة أخرى.</string>
+    <string name="error_server">خطأ في الخادم. يرجى المحاولة لاحقاً.</string>
     <string name="error_missing_params">المعلمات التعريفية مفقودة</string>
+    <string name="error_disk_full">مساحة التخزين ممتلئة. يرجى إخلاء بعض المساحة وإعادة المحاولة.</string>
+    <string name="error_not_found">العنصر أو الملف الشخصي المطلوب غير موجود على هذا الجهاز.</string>
+    <string name="error_local_database">حدث خطأ في قاعدة البيانات المحلية. يرجى المحاولة مرة أخرى.</string>
     <string name="dashboard_load_failed_error">فشل تحميل الملف الشخصي. يرجى تسجيل الدخول مرة أخرى.</string>
 
     <!-- Validation Errors - Auth -->
@@ -81,6 +87,8 @@
     <string name="pin_title">أدخل رمز PIN</string>
     <string name="pin_instructions">أدخل رمز PIN المكون من 4 أرقام للمتابعة.</string>
     <string name="pin_label">رمز PIN</string>
+    <string name="pin_mandatory">إلزامي</string>
+    <string name="pin_optional">اختياري</string>
 
     <!-- Dashboard -->
     <string name="dashboard_title">لوحة التحكم</string>
@@ -100,7 +108,7 @@
 
     <!-- Family Management -->
     <string name="family_management_title">أفراد العائلة</string>
-    <string name="family_management_add_child">إضافة طفل</string>
+    <string name="family_management_add_member">إضافة عضو</string>
     <string name="family_management_nickname_label">اللقب</string>
     <string name="family_management_require_pin">تطلب رمز PIN</string>
     <string name="family_management_invite_member">دعوة عضو</string>
@@ -142,4 +150,11 @@
 
     <!-- Pairing -->
     <string name="family_default_name">العائلة</string>
+
+    <!-- Mode Selection -->
+    <string name="mode_selection_title">اختر طريقة الإعداد</string>
+    <string name="mode_selection_single_device">جهاز واحد</string>
+    <string name="mode_selection_single_device_desc">احتفظ بكل شيء على هذا الجهاز. لا يتطلب إنترنت. الأفضل للعائلات التي تستخدم هاتفاً واحداً.</string>
+    <string name="mode_selection_multiple_devices">أجهزة متعددة</string>
+    <string name="mode_selection_multiple_devices_desc">مزامنة المهام عبر عدة هواتف وأجهزة لوحية. يتطلب خادم FamilyChore.</string>
 </resources>

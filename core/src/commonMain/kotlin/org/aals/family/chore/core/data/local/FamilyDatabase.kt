@@ -27,7 +27,7 @@ abstract class FamilyDatabase : RoomDatabase() {
     abstract fun familyDao(): FamilyDao
 }
 
-@Suppress("KotlinNoActualForExpect")
+@Suppress("NO_ACTUAL_FOR_EXPECT")
 expect object FamilyDatabaseConstructor : RoomDatabaseConstructor<FamilyDatabase> {
     override fun initialize(): FamilyDatabase
 }

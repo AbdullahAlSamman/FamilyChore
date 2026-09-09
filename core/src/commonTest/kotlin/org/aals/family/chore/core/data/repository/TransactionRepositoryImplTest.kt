@@ -16,10 +16,8 @@ import org.aals.family.chore.core.domain.model.Transaction
 import org.aals.family.chore.core.domain.model.TransactionType
 import org.aals.family.chore.core.domain.util.Result
 import kotlin.test.BeforeTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 
-@Ignore
 class TransactionRepositoryImplTest {
 
     private lateinit var repository: TransactionRepositoryImpl

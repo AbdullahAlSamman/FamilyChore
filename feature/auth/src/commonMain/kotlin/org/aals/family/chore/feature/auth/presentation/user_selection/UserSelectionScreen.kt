@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -44,7 +43,7 @@ fun UserSelectionRoot(
     onPairingConfirmed: (String) -> Unit,
     onPinVerified: () -> Unit,
     onNavigateBack: () -> Unit,
-    viewModel: UserSelectionViewModel = koinViewModel()
+    viewModel: UserSelectionViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -58,16 +57,15 @@ fun UserSelectionRoot(
     UserSelectionScreen(
         state = state,
         onAction = viewModel::onAction,
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserSelectionScreen(
     state: UserSelectionState,
     onAction: (UserSelectionAction) -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -75,27 +73,27 @@ fun UserSelectionScreen(
                 TopAppBar(
                     title = { Text(stringResource(Res.string.user_selection_screen_title)) },
                     navigationIcon = {
-                        if (state is UserSelectionState.Success && state.isFromDiscovery) {
+                        if ((state is UserSelectionState.Success) && state.isFromDiscovery) {
                             IconButton(onClick = onNavigateBack) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = null
+                                    contentDescription = null,
                                 )
                             }
                         }
-                    }
+                    },
                 )
                 if (!state.isOfflineMode) {
                     ConnectivityBanner(isReachable = state.isServerReachable)
                 }
             }
-        }
+        },
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             when (state) {
                 is UserSelectionState.Loading -> {
@@ -106,7 +104,7 @@ fun UserSelectionScreen(
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             items(state.users) { user ->
                                 ListItem(
@@ -120,7 +118,7 @@ fun UserSelectionScreen(
                                     },
                                     modifier = Modifier.clickable(enabled = !state.isConfirming) {
                                         onAction(UserSelectionAction.OnUserClick(user))
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -133,7 +131,7 @@ fun UserSelectionScreen(
                             Text(
                                 text = it.asString(),
                                 color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)
+                                modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
                             )
                         }
                     }
@@ -142,12 +140,12 @@ fun UserSelectionScreen(
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(16.dp),
                     ) {
                         Text(
                             text = state.message.asString(),
                             color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
                         )
                         Button(onClick = { onAction(UserSelectionAction.OnRetryClick) }) {
                             Text(stringResource(Res.string.refresh))

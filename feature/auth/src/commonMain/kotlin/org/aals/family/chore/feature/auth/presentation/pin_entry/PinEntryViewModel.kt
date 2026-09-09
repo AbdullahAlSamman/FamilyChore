@@ -86,6 +86,7 @@ class PinEntryViewModel(
                     _state.value = currentState.copy(error = UiText.StringResource(Res.string.auth_pin_invalid_length_error))
                 }
             }
+            PinEntryAction.OnBackClick -> Unit
         }
     }
 

@@ -30,10 +30,8 @@ import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.core.domain.util.toSha256
 import kotlin.test.BeforeTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 
-@Ignore
 class AuthRepositoryImplTest {
 
     private lateinit var repository: AuthRepositoryImpl

@@ -1,8 +1,12 @@
 plugins {
     id("familychore.kmp.library")
-    alias(libs.plugins.composeMultiplatform)
-    alias(libs.plugins.composeCompiler)
+    id("familychore.compose")
     alias(libs.plugins.kotlinSerialization)
+}
+
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "familychore.app.shared.generated.resources"
 }
 
 android {

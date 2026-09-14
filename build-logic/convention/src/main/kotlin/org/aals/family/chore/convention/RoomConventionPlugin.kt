@@ -21,7 +21,7 @@ class RoomConventionPlugin : Plugin<Project> {
             }
 
             val roomCompiler = libs.findLibrary("room.compiler").get()
-            val isMac = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
+            val isMac = System.getProperty("os.name").contains("Mac")
 
             dependencies.add("kspAndroid", roomCompiler)
             dependencies.add("kspJvm", roomCompiler)

@@ -33,7 +33,7 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
                 }
             }
 
-            val isMac = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
+            val isMac = System.getProperty("os.name").contains("Mac")
 
             extensions.configure(KotlinMultiplatformExtension::class.java) {
                 androidTarget {

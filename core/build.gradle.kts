@@ -15,7 +15,7 @@ android {
     namespace = "org.aals.family.chore.core"
 }
 
-val isMac = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
+val isMac = System.getProperty("os.name").contains("Mac")
 
 kotlin {
     sourceSets {
@@ -24,6 +24,8 @@ kotlin {
             api(libs.compose.components.resources)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             api(libs.kotlinx.datetime)
+            api(libs.kotlinx.coroutines.core)
+            api(libs.kotlinx.serialization.core)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)

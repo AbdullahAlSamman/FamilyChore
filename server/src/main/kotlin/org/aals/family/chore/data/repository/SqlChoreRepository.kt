@@ -8,18 +8,18 @@ import org.aals.family.chore.domain.repository.ChoreRepository
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.update
 
 class SqlChoreRepository : ChoreRepository {
     
     override suspend fun getChoresByFamily(familyId: String): List<Chore> = dbQuery {
-        ChoresTable.select { ChoresTable.familyId eq familyId }
+        ChoresTable.selectAll().where { ChoresTable.familyId eq familyId }
             .map { it.toChore() }
     }
 
     override suspend fun getChoresByUser(userId: String): List<Chore> = dbQuery {
-        ChoresTable.select { ChoresTable.assignedTo eq userId }
+        ChoresTable.selectAll().where { ChoresTable.assignedTo eq userId }
             .map { it.toChore() }
     }
 

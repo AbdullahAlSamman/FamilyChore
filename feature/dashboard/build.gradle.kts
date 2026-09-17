@@ -27,6 +27,12 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kermit)
         }
+        androidMain.dependencies {
+            implementation(libs.compose.uiToolingPreview)
+        }
+        jvmMain.dependencies {
+            implementation(libs.compose.uiToolingPreview)
+        }
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.assertk)

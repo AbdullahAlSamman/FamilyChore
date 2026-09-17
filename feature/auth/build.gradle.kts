@@ -10,6 +10,9 @@ android {
 }
 
 kotlin {
+    compilerOptions {
+        optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
+    }
     sourceSets {
         commonMain.dependencies {
             implementation(projects.core)
@@ -26,11 +29,15 @@ kotlin {
             implementation(libs.kermit)
         }
         androidMain.dependencies {
+            implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.camera.core)
             implementation(libs.androidx.camera.camera2)
             implementation(libs.androidx.camera.lifecycle)
             implementation(libs.androidx.camera.view)
             implementation(libs.google.mlkit.barcode.scanning)
+        }
+        jvmMain.dependencies {
+            implementation(libs.compose.uiToolingPreview)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

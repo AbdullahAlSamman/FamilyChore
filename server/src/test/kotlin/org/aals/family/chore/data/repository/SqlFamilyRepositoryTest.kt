@@ -2,15 +2,19 @@ package org.aals.family.chore.data.repository
 
 import kotlinx.coroutines.runBlocking
 import org.aals.family.chore.core.domain.model.UserRole
-import org.aals.family.chore.data.local.DatabaseFactory
 import org.aals.family.chore.data.local.FamiliesTable
-import org.aals.family.chore.data.local.UsersTable
 import org.aals.family.chore.data.local.PinsTable
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.transactions.transaction
-import kotlin.test.*
+import org.aals.family.chore.data.local.UsersTable
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.io.File
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class SqlFamilyRepositoryTest {
 

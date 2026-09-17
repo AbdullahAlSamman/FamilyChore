@@ -11,13 +11,13 @@ compose.resources {
     packageOfResClass = "familychore.core.generated.resources"
 }
 
-android {
-    namespace = "org.aals.family.chore.core"
-}
-
 val isMac = System.getProperty("os.name").contains("Mac")
 
 kotlin {
+    android {
+        namespace = "org.aals.family.chore.core"
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -58,5 +58,3 @@ kotlin {
         }
     }
 }
-
-

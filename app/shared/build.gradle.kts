@@ -9,11 +9,10 @@ compose.resources {
     packageOfResClass = "familychore.app.shared.generated.resources"
 }
 
-android {
-    namespace = "org.aals.family.chore.app.shared"
-}
-
 kotlin {
+    android {
+        namespace = "org.aals.family.chore.shared"
+    }
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)

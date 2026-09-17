@@ -5,11 +5,11 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
-android {
-    namespace = "org.aals.family.chore.feature.auth"
-}
-
 kotlin {
+    android {
+        namespace = "org.aals.family.chore.feature.auth"
+    }
+
     compilerOptions {
         optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
     }

@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.dashboard_tab_store
@@ -40,6 +39,7 @@ import org.aals.family.chore.feature.dashboard.presentation.navigation.ParentOve
 import org.aals.family.chore.feature.dashboard.presentation.navigation.ParentRewardsRoute
 import org.aals.family.chore.feature.dashboard.presentation.navigation.ParentTasksRoute
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable

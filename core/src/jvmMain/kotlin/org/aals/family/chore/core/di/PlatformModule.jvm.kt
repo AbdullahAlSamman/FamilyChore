@@ -5,6 +5,7 @@ import io.ktor.client.engine.okhttp.OkHttp
 import org.aals.family.chore.core.data.local.DataStoreFactory
 import org.aals.family.chore.core.data.local.DatabaseFactory
 import org.aals.family.chore.core.data.local.FamilyDatabase
+import org.aals.family.chore.core.data.local.FamilyDatabaseConstructor
 import org.aals.family.chore.core.domain.discovery.JvmServerDiscovery
 import org.aals.family.chore.core.domain.discovery.ServerDiscovery
 import org.koin.core.module.Module
@@ -29,7 +30,8 @@ actual val platformModule: Module = module {
             dbFile.parentFile.mkdirs()
         }
         val builder = Room.databaseBuilder<FamilyDatabase>(
-            name = dbFile.absolutePath
+            name = dbFile.absolutePath,
+            factory = { FamilyDatabaseConstructor.initialize() }
         )
         DatabaseFactory.create(builder)
     }

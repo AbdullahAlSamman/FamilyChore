@@ -7,12 +7,13 @@ import org.aals.family.chore.data.local.DatabaseFactory.dbQuery
 import org.aals.family.chore.data.local.TransactionsTable
 import org.aals.family.chore.data.local.UsersTable
 import org.aals.family.chore.domain.repository.TransactionRepository
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.plus
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.update
 
 class SqlTransactionRepository : TransactionRepository {
 
@@ -43,9 +44,7 @@ class SqlTransactionRepository : TransactionRepository {
         
         // Update user's total points
         UsersTable.update({ UsersTable.id eq transaction.userId }) {
-            with(SqlExpressionBuilder) {
-                it[points] = points + transaction.amount
-            }
+            it[points] = points + transaction.amount
         }
     }
 

@@ -1,17 +1,10 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import com.android.build.api.dsl.ApplicationExtension
 
 plugins {
-    alias(libs.plugins.androidApplication)
-    alias(libs.plugins.kotlinAndroid)
-    alias(libs.plugins.composeMultiplatform)
-    alias(libs.plugins.composeCompiler)
+    id("familychore.android.application")
+    id("familychore.compose")
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget = JvmTarget.JVM_21
-    }
-}
 dependencies {
     implementation(projects.app.shared)
     implementation(projects.core)
@@ -26,7 +19,7 @@ dependencies {
     debugImplementation(libs.compose.uiTooling)
 }
 
-android {
+extensions.configure<ApplicationExtension> {
     namespace = "org.aals.family.chore"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
@@ -46,6 +39,9 @@ android {
         getByName("release") {
             isMinifyEnabled = false
         }
+    }
+    buildFeatures {
+        compose = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21

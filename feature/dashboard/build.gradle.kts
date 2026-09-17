@@ -5,11 +5,11 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
 }
 
-android {
-    namespace = "org.aals.family.chore.feature.dashboard"
-}
-
 kotlin {
+    android {
+        namespace = "org.aals.family.chore.feature.dashboard"
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(projects.core)

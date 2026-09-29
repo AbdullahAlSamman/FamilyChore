@@ -349,4 +349,50 @@ class DashboardViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test
+    fun `enabling requiresPin for child opens pin setup dialog`() = runTest {
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.onAction(DashboardAction.UpdateUserPinRequirement("child1", true))
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.pinSetupTarget?.id).isEqualTo("child1")
+            // The flag should NOT be toggled until a PIN is set
+            assertThat(authRepository.updatePinRequirementCalls.isEmpty()).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `confirming child pin setup calls setupPin and enables requirement`() = runTest {
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.onAction(DashboardAction.UpdateUserPinRequirement("child1", true))
+            awaitItem() // dialog opened
+            viewModel.onAction(DashboardAction.ConfirmChildPinSetup("child1", "12345"))
+
+            assertThat(authRepository.setupPinCalls.size).isEqualTo(1)
+            assertThat(authRepository.setupPinCalls[0].second).isEqualTo("12345")
+            assertThat(authRepository.updatePinRequirementCalls.contains("child1" to true)).isEqualTo(true)
+
+            val state = viewModel.state.value as DashboardState.Success
+            assertThat(state.pinSetupTarget).isEqualTo(null)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `confirming child pin setup with invalid length sets error`() = runTest {
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.onAction(DashboardAction.UpdateUserPinRequirement("child1", true))
+            awaitItem() // dialog opened
+            viewModel.onAction(DashboardAction.ConfirmChildPinSetup("child1", "123"))
+
+            val state = viewModel.state.value as DashboardState.Success
+            assertThat(state.pinSetupError != null).isEqualTo(true)
+            assertThat(authRepository.setupPinCalls.isEmpty()).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
 }

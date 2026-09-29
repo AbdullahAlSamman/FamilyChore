@@ -25,6 +25,9 @@ class FakeAuthRepository : AuthRepository {
     var familyMembers = mutableListOf<User>()
     var nextError: DataError.Network? = null
     var nextPairingToken: String = "token123"
+    val setupPinCalls = mutableListOf<Pair<String, String>>()
+    val updatePinRequirementCalls = mutableListOf<Pair<String, Boolean>>()
+    var setupPinResult: Result<Unit, DataError.Network> = Result.Success(Unit)
     
     override suspend fun createFamily(familyName: String, parentNickname: String): Result<User, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
     override suspend fun getFamilies(): Result<List<Family>, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
@@ -36,7 +39,10 @@ class FakeAuthRepository : AuthRepository {
         return Result.Success(familyMembers)
     }
     override suspend fun confirmPairing(pairingToken: String, userId: String): Result<User, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
-    override suspend fun setupPin(userId: String, pin: String): Result<Unit, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
+    override suspend fun setupPin(userId: String, pin: String): Result<Unit, DataError.Network> {
+        setupPinCalls.add(userId to pin)
+        return setupPinResult
+    }
     override suspend fun verifyPin(userId: String, pin: String): Result<Unit, DataError.Network> = Result.Error(DataError.Network.UNKNOWN)
 
     override suspend fun addFamilyMember(
@@ -56,7 +62,10 @@ class FakeAuthRepository : AuthRepository {
     override suspend fun updateUserPinRequirement(
         userId: String,
         requiresPin: Boolean
-    ): Result<Unit, DataError.Network> = Result.Success(Unit)
+    ): Result<Unit, DataError.Network> {
+        updatePinRequirementCalls.add(userId to requiresPin)
+        return Result.Success(Unit)
+    }
 
     override suspend fun selectUser(userId: String): Result<Unit, DataError.Network> = Result.Success(Unit)
 

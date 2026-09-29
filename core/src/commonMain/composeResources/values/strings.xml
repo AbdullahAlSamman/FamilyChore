@@ -36,7 +36,7 @@
     <string name="auth_nickname_empty_error">Nickname cannot be empty</string>
     <string name="auth_nickname_too_short_error">Nickname is too short (min 2 chars)</string>
     <string name="auth_nickname_invalid_error">Nickname must contain letters and only alphanumeric characters</string>
-    <string name="auth_pin_invalid_length_error">PIN must be 4 digits</string>
+    <string name="auth_pin_invalid_length_error">PIN must be between 4 and 8 digits</string>
     <string name="auth_pin_not_digits_error">PIN must contain only digits</string>
 
     <!-- Validation Errors - Chore -->
@@ -85,7 +85,7 @@
 
     <!-- PIN Entry -->
     <string name="pin_title">Enter PIN</string>
-    <string name="pin_instructions">Enter your 4-digit PIN to continue.</string>
+    <string name="pin_instructions">Enter a 4 to 8 digit PIN to continue.</string>
     <string name="pin_label">PIN</string>
     <string name="pin_mandatory">Mandatory</string>
     <string name="pin_optional">Optional</string>
@@ -111,6 +111,9 @@
     <string name="family_management_add_member">Add Member</string>
     <string name="family_management_nickname_label">Nickname</string>
     <string name="family_management_require_pin">Require PIN</string>
+    <string name="child_pin_setup_title">Set PIN for %1$s</string>
+    <string name="child_pin_setup_instructions">Enter a 4 to 8 digit PIN for the child.</string>
+    <string name="child_pin_set_success">PIN set successfully.</string>
     <string name="family_management_invite_member">Invite Member</string>
     <string name="family_management_invite_qr_desc">Invite QR Code</string>
     <string name="family_management_quick_join">Quick Join</string>

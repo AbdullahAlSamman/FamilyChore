@@ -75,12 +75,12 @@ class PinEntryViewModel(
 
         when (action) {
             is PinEntryAction.OnPinChange -> {
-                if (action.pin.length <= 4) {
+                if (action.pin.length <= 8) {
                     _state.value = currentState.copy(pin = action.pin, error = null)
                 }
             }
             PinEntryAction.OnSubmit -> {
-                if (currentState.pin.length == 4) {
+                if (currentState.pin.length in 4..8) {
                     submitPin()
                 } else {
                     _state.value = currentState.copy(error = UiText.StringResource(Res.string.auth_pin_invalid_length_error))

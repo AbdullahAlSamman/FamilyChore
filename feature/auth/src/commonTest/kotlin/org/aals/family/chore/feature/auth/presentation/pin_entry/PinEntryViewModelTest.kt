@@ -55,6 +55,39 @@ class PinEntryViewModelTest {
     }
 
     @Test
+    fun `submitting 8 digit pin in setup mode calls setupPin`() = runTest {
+        viewModel = PinEntryViewModel(
+            authRepository,
+            SavedStateHandle(mapOf("userId" to userId, "isSetupMode" to true)),
+            Logger.withTag("Test")
+        )
+
+        viewModel.events.test {
+            viewModel.onAction(PinEntryAction.OnPinChange("12345678"))
+            viewModel.onAction(PinEntryAction.OnSubmit)
+            assertThat(awaitItem()).isEqualTo(PinEntryEvent.PinVerified)
+        }
+    }
+
+    @Test
+    fun `pin input is capped at 8 digits`() = runTest {
+        viewModel = PinEntryViewModel(
+            authRepository,
+            SavedStateHandle(mapOf("userId" to userId, "isSetupMode" to true)),
+            Logger.withTag("Test")
+        )
+
+        viewModel.state.test {
+            assertThat(awaitItem().pin).isEqualTo("")
+            viewModel.onAction(PinEntryAction.OnPinChange("12345678"))
+            assertThat(awaitItem().pin).isEqualTo("12345678")
+            // Typing a 9th digit is rejected; pin stays at 8 digits
+            viewModel.onAction(PinEntryAction.OnPinChange("123456789"))
+            assertThat(viewModel.state.value.pin).isEqualTo("12345678")
+        }
+    }
+
+    @Test
     fun `submitting short pin sets error`() = runTest {
         authRepository.users.add(User(userId, "f1", "Parent", UserRole.PARENT, 0, true))
         viewModel = PinEntryViewModel(

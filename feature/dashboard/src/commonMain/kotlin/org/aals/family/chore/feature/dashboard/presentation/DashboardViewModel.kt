@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.child_pin_set_success
 import familychore.core.generated.resources.dashboard_load_failed_error
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +45,7 @@ import org.aals.family.chore.feature.dashboard.presentation.navigation.ParentOve
 sealed interface DashboardEvent {
     data class Logout(val isServerOnline: Boolean, val familyId: String?) : DashboardEvent
     data object NavigateToSettings : DashboardEvent
+    data class ShowMessage(val message: UiText) : DashboardEvent
 }
 
 class DashboardViewModel(
@@ -103,7 +105,20 @@ class DashboardViewModel(
                 updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(pin = action.pin)) }
             }
             is DashboardAction.AddMember -> addMember(action.nickname, action.role, action.pin)
-            is DashboardAction.UpdateUserPinRequirement -> updateUserPinRequirement(action.userId, action.requiresPin)
+            is DashboardAction.UpdateUserPinRequirement -> {
+                if (action.requiresPin) {
+                    // Enabling PIN requirement for a child -> prompt to set a PIN first
+                    val target = (_state.value as? DashboardState.Success)
+                        ?.familyMembers?.find { it.id == action.userId }
+                    if (target != null) {
+                        updateSuccessState { it.copy(pinSetupTarget = target, pinSetupError = null) }
+                    }
+                } else {
+                    updateUserPinRequirement(action.userId, false)
+                }
+            }
+            is DashboardAction.ConfirmChildPinSetup -> confirmChildPinSetup(action.userId, action.pin)
+            DashboardAction.DismissChildPinSetup -> updateSuccessState { it.copy(pinSetupTarget = null, pinSetupError = null) }
             is DashboardAction.ShowInviteQr -> showInviteQr(action.userId)
             DashboardAction.DismissInviteQr -> updateSuccessState { it.copy(inviteQrContent = null) }
             is DashboardAction.ChangeLanguage -> {
@@ -163,6 +178,35 @@ class DashboardViewModel(
                 }
                 .onFailure { e ->
                     logger.e { "Failed to update PIN requirement: $e" }
+                }
+        }
+    }
+
+    private fun confirmChildPinSetup(userId: String, pin: String) {
+        val validationError = AuthValidator.validatePin(pin)
+        if (validationError != null) {
+            updateSuccessState { it.copy(pinSetupError = validationError.toUiText()) }
+            return
+        }
+
+        viewModelScope.launch {
+            updateSuccessState { it.copy(pinSetupError = null, pinSetupSaving = true) }
+            authRepository.setupPin(userId, pin)
+                .onSuccess {
+                    authRepository.updateUserPinRequirement(userId, true)
+                        .onSuccess {
+                            updateSuccessState { it.copy(pinSetupTarget = null, pinSetupError = null, pinSetupSaving = false) }
+                            _events.send(DashboardEvent.ShowMessage(UiText.StringResource(Res.string.child_pin_set_success)))
+                            loadDashboardData(isRefreshing = true)
+                        }
+                        .onFailure { e ->
+                            logger.e { "Failed to enable PIN requirement for $userId: $e" }
+                            updateSuccessState { it.copy(pinSetupError = e.toUiText(), pinSetupSaving = false) }
+                        }
+                }
+                .onFailure { e ->
+                    logger.e { "Failed to set child PIN for $userId: $e" }
+                    updateSuccessState { it.copy(pinSetupError = e.toUiText(), pinSetupSaving = false) }
                 }
         }
     }
@@ -284,19 +328,31 @@ class DashboardViewModel(
                     val currentLang = AppLanguage.entries.find { it.isoCode == langCode } ?: AppLanguage.ENGLISH
                     val isOffline = tokenStorage.getOfflineMode() ?: false
 
+                    val previousSuccessState = _state.value as? DashboardState.Success
+                    val currentTab = previousSuccessState?.currentTab
+                        ?: if (user.role == UserRole.PARENT) ParentOverviewRoute else ChildTodayRoute
+                    val currentAssigneeId = previousSuccessState?.selectedAssigneeId
+                        ?: familyMembers.firstOrNull { it.role == UserRole.CHILD }?.id 
+                        ?: familyMembers.firstOrNull()?.id
+
                     // Initial state setup
                     _state.value = DashboardState.Success(
                         user = user,
                         language = currentLang,
                         familyMembers = familyMembers,
-                        selectedAssigneeId = familyMembers.firstOrNull { it.role == UserRole.CHILD }?.id 
-                            ?: familyMembers.firstOrNull()?.id,
-                        transactions = emptyList(),
-                        chores = emptyList(),
+                        selectedAssigneeId = currentAssigneeId,
+                        transactions = previousSuccessState?.transactions ?: emptyList(),
+                        chores = previousSuccessState?.chores ?: emptyList(),
                         behaviorItems = if (user.role == UserRole.PARENT) BehaviorDefaults.defaultItems else emptyList(),
-                        currentTab = if (user.role == UserRole.PARENT) ParentOverviewRoute else ChildTodayRoute,
+                        currentTab = currentTab,
                         isOfflineMode = isOffline,
-                        isRefreshing = false
+                        isRefreshing = false,
+                        addChoreForm = previousSuccessState?.addChoreForm ?: AddChoreFormState(),
+                        addMemberForm = previousSuccessState?.addMemberForm ?: AddMemberFormState(),
+                        inviteQrContent = previousSuccessState?.inviteQrContent,
+                        pinSetupTarget = previousSuccessState?.pinSetupTarget,
+                        pinSetupError = previousSuccessState?.pinSetupError,
+                        pinSetupSaving = previousSuccessState?.pinSetupSaving ?: false
                     )
 
                     // Restart observations for the new user

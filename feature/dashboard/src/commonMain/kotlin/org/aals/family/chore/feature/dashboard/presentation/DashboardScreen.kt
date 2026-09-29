@@ -7,12 +7,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.aals.family.chore.core.presentation.UiText
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.dashboard_tab_store
 import familychore.core.generated.resources.error_unknown
@@ -22,6 +29,7 @@ import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.presentation.ObserveAsEvents
 import org.aals.family.chore.feature.dashboard.presentation.components.BehaviorTabContent
 import org.aals.family.chore.feature.dashboard.presentation.components.ChildTodayContent
+import org.aals.family.chore.feature.dashboard.presentation.components.ChildPinSetupDialog
 import org.aals.family.chore.feature.dashboard.presentation.components.ConnectivityBanner
 import org.aals.family.chore.feature.dashboard.presentation.components.DashboardBottomBar
 import org.aals.family.chore.feature.dashboard.presentation.components.DashboardTopBar
@@ -49,24 +57,37 @@ fun DashboardRoot(
     viewModel: DashboardViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var pendingMessage by remember { mutableStateOf<UiText?>(null) }
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is DashboardEvent.Logout -> onLogout(event.isServerOnline, event.familyId)
             DashboardEvent.NavigateToSettings -> onNavigateToSettings()
+            is DashboardEvent.ShowMessage -> pendingMessage = event.message
+        }
+    }
+
+    pendingMessage?.let { msg ->
+        val text = msg.asString()
+        LaunchedEffect(text) {
+            snackbarHostState.showSnackbar(text)
+            pendingMessage = null
         }
     }
 
     DashboardScreen(
         state = state,
-        onAction = viewModel::onAction
+        onAction = viewModel::onAction,
+        snackbarHostState = snackbarHostState
     )
 }
 
 @Composable
 fun DashboardScreen(
     state: DashboardState,
-    onAction: (DashboardAction) -> Unit
+    onAction: (DashboardAction) -> Unit,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     Scaffold(
         topBar = {
@@ -78,6 +99,7 @@ fun DashboardScreen(
                 }
             }
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (state is DashboardState.Success) {
                 DashboardBottomBar(state, onAction)
@@ -129,6 +151,16 @@ fun DashboardContent(
             InviteQrDialog(
                 qrContent = content,
                 onDismiss = { onAction(DashboardAction.DismissInviteQr) }
+            )
+        }
+
+        state.pinSetupTarget?.let { target ->
+            ChildPinSetupDialog(
+                childName = target.nickname,
+                error = state.pinSetupError,
+                isSaving = state.pinSetupSaving,
+                onConfirm = { pin -> onAction(DashboardAction.ConfirmChildPinSetup(target.id, pin)) },
+                onDismiss = { onAction(DashboardAction.DismissChildPinSetup) }
             )
         }
     }

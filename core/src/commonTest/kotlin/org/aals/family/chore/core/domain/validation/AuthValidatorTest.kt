@@ -33,8 +33,23 @@ class AuthValidatorTest {
     }
 
     @Test
+    fun `validatePin returns null for 5 digit pin`() {
+        assertThat(AuthValidator.validatePin("12345")).isNull()
+    }
+
+    @Test
+    fun `validatePin returns null for 8 digit pin`() {
+        assertThat(AuthValidator.validatePin("12345678")).isNull()
+    }
+
+    @Test
     fun `validatePin returns INVALID_LENGTH for 3 digit pin`() {
         assertThat(AuthValidator.validatePin("123")).isEqualTo(AuthValidationError.PinError.INVALID_LENGTH)
+    }
+
+    @Test
+    fun `validatePin returns INVALID_LENGTH for 9 digit pin`() {
+        assertThat(AuthValidator.validatePin("123456789")).isEqualTo(AuthValidationError.PinError.INVALID_LENGTH)
     }
 
     @Test

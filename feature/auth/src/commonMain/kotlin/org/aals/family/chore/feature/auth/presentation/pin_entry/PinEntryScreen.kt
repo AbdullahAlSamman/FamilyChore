@@ -123,7 +123,7 @@ fun PinEntryScreen(
 
             Button(
                 onClick = { onAction(PinEntryAction.OnSubmit) },
-                enabled = state.pin.length == 4 && !isLoading,
+                enabled = state.pin.length in 4..8 && !isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 if (isLoading) {

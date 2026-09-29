@@ -45,7 +45,7 @@ object AuthValidator {
     
     fun validatePin(pin: String): AuthValidationError.PinError? {
         return when {
-            pin.length != 4 -> AuthValidationError.PinError.INVALID_LENGTH
+            pin.length !in 4..8 -> AuthValidationError.PinError.INVALID_LENGTH
             !pin.all { it.isDigit() } -> AuthValidationError.PinError.NOT_DIGITS
             else -> null
         }

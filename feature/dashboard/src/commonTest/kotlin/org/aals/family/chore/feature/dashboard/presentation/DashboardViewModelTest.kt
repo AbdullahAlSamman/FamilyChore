@@ -369,7 +369,7 @@ class DashboardViewModelTest {
             awaitItem() // initial
             viewModel.onAction(DashboardAction.UpdateUserPinRequirement("child1", true))
             awaitItem() // dialog opened
-            viewModel.onAction(DashboardAction.ConfirmChildPinSetup("child1", "12345"))
+            viewModel.onAction(DashboardAction.ConfirmChildPinSetup("child1", "12345", enableRequiresPin = true))
 
             assertThat(authRepository.setupPinCalls.size).isEqualTo(1)
             assertThat(authRepository.setupPinCalls[0].second).isEqualTo("12345")
@@ -387,12 +387,98 @@ class DashboardViewModelTest {
             awaitItem() // initial
             viewModel.onAction(DashboardAction.UpdateUserPinRequirement("child1", true))
             awaitItem() // dialog opened
-            viewModel.onAction(DashboardAction.ConfirmChildPinSetup("child1", "123"))
+            viewModel.onAction(DashboardAction.ConfirmChildPinSetup("child1", "123", enableRequiresPin = true))
 
             val state = viewModel.state.value as DashboardState.Success
             assertThat(state.pinSetupError != null).isEqualTo(true)
             assertThat(authRepository.setupPinCalls.isEmpty()).isEqualTo(true)
             cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `ChangeMemberPin opens dialog in change mode`() = runTest {
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.onAction(DashboardAction.ChangeMemberPin("child1"))
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.pinSetupTarget?.id).isEqualTo("child1")
+            assertThat(state.isPinChangeMode).isEqualTo(true)
+            assertThat(authRepository.updatePinRequirementCalls.isEmpty()).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `ChangeMemberPin for parent member opens dialog`() = runTest {
+        authRepository.familyMembers.add(User("parent1", "family1", "Parent", UserRole.PARENT))
+        authRepository.familyMembers.add(User("parent2", "family1", "OtherParent", UserRole.PARENT))
+        val newViewModel = DashboardViewModel(
+            authRepository = authRepository,
+            transactionRepository = transactionRepository,
+            choreRepository = choreRepository,
+            observeConnectivityUseCase = observeConnectivityUseCase,
+            tokenStorage = tokenStorage,
+            logger = Logger.withTag("DashboardViewModelTest"),
+            timeProvider = timeProvider
+        )
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        newViewModel.onAction(DashboardAction.ChangeMemberPin("parent1"))
+
+        val state = newViewModel.state.value as DashboardState.Success
+        assertThat(state.pinSetupTarget?.id).isEqualTo("parent1")
+        assertThat(state.isPinChangeMode).isEqualTo(true)
+    }
+
+    @Test
+    fun `confirming pin change for another parent does not emit Logout event`() = runTest {
+        authRepository.familyMembers.add(User("parent2", "family1", "OtherParent", UserRole.PARENT))
+        viewModel.onAction(DashboardAction.Refresh)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.events.test {
+            viewModel.onAction(DashboardAction.ChangeMemberPin("parent2"))
+            viewModel.onAction(DashboardAction.ConfirmChildPinSetup("parent2", "5678", enableRequiresPin = false))
+
+            val event = awaitItem()
+            assertThat(event is DashboardEvent.ShowMessage).isEqualTo(true)
+        }
+    }
+
+    @Test
+    fun `confirming pin change for another user does not enable requirement and shows message`() = runTest {
+        viewModel.events.test {
+            viewModel.onAction(DashboardAction.ChangeMemberPin("child1"))
+            viewModel.onAction(DashboardAction.ConfirmChildPinSetup("child1", "5678", enableRequiresPin = false))
+
+            assertThat(authRepository.setupPinCalls.size).isEqualTo(1)
+            assertThat(authRepository.setupPinCalls[0].second).isEqualTo("5678")
+            // Reset must NOT touch requiresPin
+            assertThat(authRepository.updatePinRequirementCalls.isEmpty()).isEqualTo(true)
+
+            val event = awaitItem()
+            assertThat(event is DashboardEvent.ShowMessage).isEqualTo(true)
+        }
+        val state = viewModel.state.value as DashboardState.Success
+        assertThat(state.pinSetupTarget).isEqualTo(null)
+        assertThat(state.isPinChangeMode).isEqualTo(false)
+    }
+
+    @Test
+    fun `confirming pin change for own user emits Logout event`() = runTest {
+        viewModel.events.test {
+            viewModel.onAction(DashboardAction.ChangeMemberPin("parent1"))
+            viewModel.onAction(DashboardAction.ConfirmChildPinSetup("parent1", "9999", enableRequiresPin = false))
+
+            assertThat(authRepository.setupPinCalls.size).isEqualTo(1)
+            assertThat(authRepository.setupPinCalls[0].second).isEqualTo("9999")
+
+            val event = awaitItem()
+            assertThat(event is DashboardEvent.Logout).isEqualTo(true)
+            val logoutEvent = event as DashboardEvent.Logout
+            assertThat(logoutEvent.familyId).isEqualTo("family1")
+            assertThat(logoutEvent.isServerOnline).isEqualTo(true)
         }
     }
 }

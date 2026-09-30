@@ -159,7 +159,16 @@ fun DashboardContent(
                 childName = target.nickname,
                 error = state.pinSetupError,
                 isSaving = state.pinSetupSaving,
-                onConfirm = { pin -> onAction(DashboardAction.ConfirmChildPinSetup(target.id, pin)) },
+                isChangeMode = state.isPinChangeMode,
+                onConfirm = { pin ->
+                    onAction(
+                        DashboardAction.ConfirmChildPinSetup(
+                            userId = target.id,
+                            pin = pin,
+                            enableRequiresPin = !state.isPinChangeMode
+                        )
+                    )
+                },
                 onDismiss = { onAction(DashboardAction.DismissChildPinSetup) }
             )
         }

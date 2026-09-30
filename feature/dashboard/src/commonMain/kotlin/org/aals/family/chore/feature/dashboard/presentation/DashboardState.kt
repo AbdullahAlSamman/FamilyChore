@@ -47,6 +47,7 @@ sealed interface DashboardState {
         val pinSetupTarget: User? = null,
         val pinSetupError: UiText? = null,
         val pinSetupSaving: Boolean = false,
+        val isPinChangeMode: Boolean = false,
     ) : DashboardState
 
     data class Error(val message: UiText) : DashboardState

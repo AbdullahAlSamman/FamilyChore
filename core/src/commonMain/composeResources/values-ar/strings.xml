@@ -114,6 +114,10 @@
     <string name="child_pin_setup_title">قم بتعيين رمز PIN لـ %1$s</string>
     <string name="child_pin_setup_instructions">أدخل رمز PIN المكون من 4 إلى 8 أرقام للطفل.</string>
     <string name="child_pin_set_success">تم تعيين رمز PIN بنجاح.</string>
+    <string name="member_pin_change_title">تغيير رمز PIN لـ %1$s</string>
+    <string name="member_pin_change_instructions">أدخل رمز PIN جديد مكون من 4 إلى 8 أرقام.</string>
+    <string name="member_pin_change_success">تم تحديث رمز PIN بنجاح.</string>
+    <string name="change_pin">تغيير رمز PIN</string>
     <string name="family_management_invite_member">دعوة عضو</string>
     <string name="family_management_invite_qr_desc">رمز QR للدعوة</string>
     <string name="family_management_quick_join">انضمام سريع</string>

@@ -114,6 +114,10 @@
     <string name="child_pin_setup_title">Set PIN for %1$s</string>
     <string name="child_pin_setup_instructions">Enter a 4 to 8 digit PIN for the child.</string>
     <string name="child_pin_set_success">PIN set successfully.</string>
+    <string name="member_pin_change_title">Change PIN for %1$s</string>
+    <string name="member_pin_change_instructions">Enter a new 4 to 8 digit PIN.</string>
+    <string name="member_pin_change_success">PIN updated successfully.</string>
+    <string name="change_pin">Change PIN</string>
     <string name="family_management_invite_member">Invite Member</string>
     <string name="family_management_invite_qr_desc">Invite QR Code</string>
     <string name="family_management_quick_join">Quick Join</string>

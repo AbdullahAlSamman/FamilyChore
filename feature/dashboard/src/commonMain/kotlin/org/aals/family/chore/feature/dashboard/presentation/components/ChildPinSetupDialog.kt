@@ -35,6 +35,8 @@ import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.cancel
 import familychore.core.generated.resources.child_pin_setup_instructions
 import familychore.core.generated.resources.child_pin_setup_title
+import familychore.core.generated.resources.member_pin_change_instructions
+import familychore.core.generated.resources.member_pin_change_title
 import familychore.core.generated.resources.pin_label
 import familychore.core.generated.resources.save
 import org.aals.family.chore.core.presentation.UiText
@@ -45,6 +47,7 @@ fun ChildPinSetupDialog(
     childName: String,
     error: UiText?,
     isSaving: Boolean,
+    isChangeMode: Boolean = false,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -63,12 +66,20 @@ fun ChildPinSetupDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = stringResource(Res.string.child_pin_setup_title, childName),
+                    text = if (isChangeMode) {
+                        stringResource(Res.string.member_pin_change_title, childName)
+                    } else {
+                        stringResource(Res.string.child_pin_setup_title, childName)
+                    },
                     style = MaterialTheme.typography.headlineSmall
                 )
 
                 Text(
-                    text = stringResource(Res.string.child_pin_setup_instructions),
+                    text = if (isChangeMode) {
+                        stringResource(Res.string.member_pin_change_instructions)
+                    } else {
+                        stringResource(Res.string.child_pin_setup_instructions)
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

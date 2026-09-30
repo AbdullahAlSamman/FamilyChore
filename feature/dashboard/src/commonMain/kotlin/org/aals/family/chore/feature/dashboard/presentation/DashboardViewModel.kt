@@ -6,6 +6,7 @@ import co.touchlab.kermit.Logger
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.child_pin_set_success
 import familychore.core.generated.resources.dashboard_load_failed_error
+import familychore.core.generated.resources.member_pin_change_success
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -111,14 +112,21 @@ class DashboardViewModel(
                     val target = (_state.value as? DashboardState.Success)
                         ?.familyMembers?.find { it.id == action.userId }
                     if (target != null) {
-                        updateSuccessState { it.copy(pinSetupTarget = target, pinSetupError = null) }
+                        updateSuccessState { it.copy(pinSetupTarget = target, pinSetupError = null, isPinChangeMode = false) }
                     }
                 } else {
                     updateUserPinRequirement(action.userId, false)
                 }
             }
-            is DashboardAction.ConfirmChildPinSetup -> confirmChildPinSetup(action.userId, action.pin)
-            DashboardAction.DismissChildPinSetup -> updateSuccessState { it.copy(pinSetupTarget = null, pinSetupError = null) }
+            is DashboardAction.ChangeMemberPin -> openChangePinDialog(action.userId)
+            is DashboardAction.ConfirmChildPinSetup -> confirmChildPinSetup(
+                userId = action.userId,
+                pin = action.pin,
+                enableRequiresPin = action.enableRequiresPin
+            )
+            DashboardAction.DismissChildPinSetup -> updateSuccessState {
+                it.copy(pinSetupTarget = null, pinSetupError = null, isPinChangeMode = false)
+            }
             is DashboardAction.ShowInviteQr -> showInviteQr(action.userId)
             DashboardAction.DismissInviteQr -> updateSuccessState { it.copy(inviteQrContent = null) }
             is DashboardAction.ChangeLanguage -> {
@@ -182,7 +190,15 @@ class DashboardViewModel(
         }
     }
 
-    private fun confirmChildPinSetup(userId: String, pin: String) {
+    private fun openChangePinDialog(userId: String) {
+        val target = (_state.value as? DashboardState.Success)
+            ?.familyMembers?.find { it.id == userId }
+        if (target != null) {
+            updateSuccessState { it.copy(pinSetupTarget = target, pinSetupError = null, isPinChangeMode = true) }
+        }
+    }
+
+    private fun confirmChildPinSetup(userId: String, pin: String, enableRequiresPin: Boolean) {
         val validationError = AuthValidator.validatePin(pin)
         if (validationError != null) {
             updateSuccessState { it.copy(pinSetupError = validationError.toUiText()) }
@@ -193,19 +209,53 @@ class DashboardViewModel(
             updateSuccessState { it.copy(pinSetupError = null, pinSetupSaving = true) }
             authRepository.setupPin(userId, pin)
                 .onSuccess {
-                    authRepository.updateUserPinRequirement(userId, true)
-                        .onSuccess {
-                            updateSuccessState { it.copy(pinSetupTarget = null, pinSetupError = null, pinSetupSaving = false) }
-                            _events.send(DashboardEvent.ShowMessage(UiText.StringResource(Res.string.child_pin_set_success)))
-                            loadDashboardData(isRefreshing = true)
+                    val currentState = _state.value as? DashboardState.Success
+                    val isOwnPin = currentState?.user?.id == userId
+
+                    if (enableRequiresPin) {
+                        authRepository.updateUserPinRequirement(userId, true)
+                            .onSuccess {
+                                updateSuccessState {
+                                    it.copy(
+                                        pinSetupTarget = null,
+                                        pinSetupError = null,
+                                        pinSetupSaving = false,
+                                        isPinChangeMode = false
+                                    )
+                                }
+                                _events.send(DashboardEvent.ShowMessage(UiText.StringResource(Res.string.child_pin_set_success)))
+                                loadDashboardData(isRefreshing = true)
+                            }
+                            .onFailure { e ->
+                                logger.e { "Failed to enable PIN requirement for $userId: $e" }
+                                updateSuccessState { it.copy(pinSetupError = e.toUiText(), pinSetupSaving = false) }
+                            }
+                    } else {
+                        // Direct PIN override (admin reset / change). Does not touch requiresPin.
+                        updateSuccessState {
+                            it.copy(
+                                pinSetupTarget = null,
+                                pinSetupError = null,
+                                pinSetupSaving = false,
+                                isPinChangeMode = false
+                            )
                         }
-                        .onFailure { e ->
-                            logger.e { "Failed to enable PIN requirement for $userId: $e" }
-                            updateSuccessState { it.copy(pinSetupError = e.toUiText(), pinSetupSaving = false) }
+                        loadDashboardData(isRefreshing = true)
+                        if (isOwnPin) {
+                            // Security: force re-auth with the new PIN via User Selection
+                            _events.send(
+                                DashboardEvent.Logout(
+                                    isServerOnline = currentState.isServerReachable,
+                                    familyId = currentState.user.familyId
+                                )
+                            )
+                        } else {
+                            _events.send(DashboardEvent.ShowMessage(UiText.StringResource(Res.string.member_pin_change_success)))
                         }
+                    }
                 }
                 .onFailure { e ->
-                    logger.e { "Failed to set child PIN for $userId: $e" }
+                    logger.e { "Failed to set PIN for $userId: $e" }
                     updateSuccessState { it.copy(pinSetupError = e.toUiText(), pinSetupSaving = false) }
                 }
         }

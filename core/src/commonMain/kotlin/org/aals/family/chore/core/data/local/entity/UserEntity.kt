@@ -9,5 +9,6 @@ data class UserEntity(
     val name: String,
     val role: String,
     val pin: String?,
-    val requiresPin: Boolean
+    val requiresPin: Boolean,
+    val profilePicture: String? = null
 )

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 4,
-    "identityHash": "8e1917f3b5245ef0a5c268169ec8ee65",
+    "identityHash": "043739982322afa1d37c829b1ceced17",
     "entities": [
       {
         "tableName": "ChoreEntity",
@@ -78,7 +78,7 @@
       },
       {
         "tableName": "UserEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `familyId` TEXT NOT NULL, `name` TEXT NOT NULL, `role` TEXT NOT NULL, `pin` TEXT, `requiresPin` INTEGER NOT NULL, PRIMARY KEY(`id`, `familyId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `familyId` TEXT NOT NULL, `name` TEXT NOT NULL, `role` TEXT NOT NULL, `pin` TEXT, `requiresPin` INTEGER NOT NULL, `profilePicture` TEXT, PRIMARY KEY(`id`, `familyId`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -114,6 +114,11 @@
             "columnName": "requiresPin",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "profilePicture",
+            "columnName": "profilePicture",
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -209,7 +214,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8e1917f3b5245ef0a5c268169ec8ee65')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '043739982322afa1d37c829b1ceced17')"
     ]
   }
 }

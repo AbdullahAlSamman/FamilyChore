@@ -7,6 +7,7 @@ import org.aals.family.chore.core.data.local.DataStoreFactory
 import org.aals.family.chore.core.data.local.DatabaseFactory
 import org.aals.family.chore.core.data.local.FamilyDatabase
 import org.aals.family.chore.core.data.local.FamilyDatabaseConstructor
+import org.aals.family.chore.core.data.local.ProfilePictureStorage
 import org.aals.family.chore.core.domain.discovery.IosServerDiscovery
 import org.aals.family.chore.core.domain.discovery.ServerDiscovery
 import org.koin.core.module.Module
@@ -55,4 +56,14 @@ actual val platformModule: Module = module {
     single { get<FamilyDatabase>().choreDao() }
     single { get<FamilyDatabase>().transactionDao() }
     single { get<FamilyDatabase>().familyDao() }
+    single {
+        val documentDirectory: NSURL? = NSFileManager.defaultManager.URLForDirectory(
+            directory = NSDocumentDirectory,
+            inDomain = NSUserDomainMask,
+            appropriateForURL = null,
+            create = false,
+            error = null
+        )
+        ProfilePictureStorage(requireNotNull(documentDirectory).path!!)
+    }
 }

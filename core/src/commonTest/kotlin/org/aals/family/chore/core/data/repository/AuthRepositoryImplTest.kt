@@ -253,6 +253,14 @@ class FakeUserDao : UserDao {
     }
 
     override suspend fun getUserById(userId: String): UserEntity? = users[userId]
+
+    override suspend fun getProfilePicture(userId: String): String? = users[userId]?.profilePicture
+
+    override suspend fun updateProfilePicture(userId: String, profilePicture: String?) {
+        users[userId]?.let { user ->
+            users[userId] = user.copy(profilePicture = profilePicture)
+        }
+    }
 }
 
 class FakeFamilyDao : FamilyDao {

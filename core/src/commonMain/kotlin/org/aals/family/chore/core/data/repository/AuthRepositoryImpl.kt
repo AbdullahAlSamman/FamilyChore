@@ -207,7 +207,8 @@ fun User.toEntity(): UserEntity = UserEntity(
     name = nickname,
     role = role.name,
     pin = null,
-    requiresPin = requiresPin
+    requiresPin = requiresPin,
+    profilePicture = profilePicture
 )
 
 fun UserEntity.toUser(): User = User(
@@ -215,7 +216,8 @@ fun UserEntity.toUser(): User = User(
     familyId = familyId,
     nickname = name,
     role = UserRole.valueOf(role),
-    requiresPin = requiresPin
+    requiresPin = requiresPin,
+    profilePicture = profilePicture
 )
 
 fun FamilyEntity.toDomain(): Family = Family(

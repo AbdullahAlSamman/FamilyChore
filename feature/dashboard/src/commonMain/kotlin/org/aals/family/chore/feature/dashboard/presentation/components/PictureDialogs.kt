@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.Card
@@ -21,20 +22,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.camera
 import familychore.core.generated.resources.cancel
 import familychore.core.generated.resources.choose_preset
 import familychore.core.generated.resources.pick_from_gallery
 import familychore.core.generated.resources.picture_source_title
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerType
+import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.presentation.components.MemberAvatarPresets
 import org.aals.family.chore.core.presentation.components.PresetAvatar
+import org.aals.family.chore.core.presentation.permissions.rememberCameraAvailability
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
 import org.jetbrains.compose.resources.stringResource
 
@@ -48,16 +53,24 @@ fun PictureSourceDialog(
     target: User,
     onAction: (DashboardAction) -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
     val picker = rememberFilePickerLauncher(
         type = PickerType.Image,
         title = "Gallery",
         onResult = { file ->
-            val path = file?.path
-            if (path != null) {
-                onAction(DashboardAction.OnPickedImage(target.id, path))
+            if (file != null) {
+                scope.launch {
+                    try {
+                        val bytes = file.readBytes()
+                        onAction(DashboardAction.OnPickedImage(target.id, bytes))
+                    } catch (e: Exception) {
+                        co.touchlab.kermit.Logger.e(e) { "Gallery readBytes failed for ${file.name}" }
+                    }
+                }
             }
         },
     )
+    val isCameraAvailable = rememberCameraAvailability()
 
     Dialog(onDismissRequest = { onAction(DashboardAction.DismissPictureSourceDialog) }) {
         Card {
@@ -67,6 +80,15 @@ fun PictureSourceDialog(
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Spacer(modifier = Modifier.size(8.dp))
+
+                if (isCameraAvailable) {
+                    SourceRow(
+                        icon = { Icon(Icons.Default.CameraAlt, contentDescription = null) },
+                        label = stringResource(Res.string.camera),
+                        onClick = { onAction(DashboardAction.StartCameraCapture) },
+                    )
+                    HorizontalDivider()
+                }
 
                 SourceRow(
                     icon = { Icon(Icons.Default.Collections, contentDescription = null) },

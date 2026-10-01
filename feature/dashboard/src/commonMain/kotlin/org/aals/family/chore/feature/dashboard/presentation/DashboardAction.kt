@@ -41,5 +41,8 @@ sealed interface DashboardAction {
     data object ShowPresetPicker : DashboardAction
     data object DismissPresetPicker : DashboardAction
     data class SelectPresetAvatar(val userId: String, val preset: String) : DashboardAction
-    data class OnPickedImage(val userId: String, val path: String) : DashboardAction
+    data class OnPickedImage(val userId: String, val imageBytes: ByteArray) : DashboardAction
+    data class OnCameraPermissionResult(val granted: Boolean) : DashboardAction
+    data object StartCameraCapture : DashboardAction
+    data object CancelCameraCapture : DashboardAction
 }

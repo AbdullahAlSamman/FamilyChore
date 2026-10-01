@@ -35,6 +35,7 @@ import familychore.core.generated.resources.refresh
 import org.aals.family.chore.core.presentation.ObserveAsEvents
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import org.aals.family.chore.core.presentation.permissions.RequestCameraPermission
 
 @Composable
 fun QrScannerRoot(
@@ -67,11 +68,6 @@ fun QrScannerRoot(
     )
 }
 
-@Composable
-expect fun RequestCameraPermission(
-    trigger: Any,
-    onResult: (Boolean) -> Unit
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

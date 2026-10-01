@@ -92,6 +92,6 @@ class UserSelectionViewModelTest {
 
 private class FakeProfilePictureRepository : ProfilePictureRepository {
     override suspend fun getProfilePicture(userId: String): String? = null
-    override suspend fun saveCustomPicture(userId: String, sourcePath: String): EmptyResult<DataError.Local> = Result.Success(Unit)
+    override suspend fun saveCustomPicture(userId: String, imageBytes: ByteArray): EmptyResult<DataError.Local> = Result.Success(Unit)
     override suspend fun savePreset(userId: String, presetKey: String): EmptyResult<DataError.Local> = Result.Success(Unit)
 }

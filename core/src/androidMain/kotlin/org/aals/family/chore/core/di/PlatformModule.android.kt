@@ -26,7 +26,6 @@ actual val platformModule: Module = module {
             }
         )
     }
-    single { ProfilePictureStorage(androidContext().filesDir.absolutePath) }
     single {
         val dbFile = androidContext().getDatabasePath("familychore.db")
         val builder = Room.databaseBuilder<FamilyDatabase>(

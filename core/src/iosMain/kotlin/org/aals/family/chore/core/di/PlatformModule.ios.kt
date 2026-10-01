@@ -45,16 +45,6 @@ actual val platformModule: Module = module {
             create = false,
             error = null
         )
-        ProfilePictureStorage(requireNotNull(requireNotNull(documentDirectory).path))
-    }
-    single {
-        val documentDirectory: NSURL? = NSFileManager.defaultManager.URLForDirectory(
-            directory = NSDocumentDirectory,
-            inDomain = NSUserDomainMask,
-            appropriateForURL = null,
-            create = false,
-            error = null
-        )
         val path = requireNotNull(documentDirectory).path + "/familychore.db"
         val builder = Room.databaseBuilder<FamilyDatabase>(
             name = path,

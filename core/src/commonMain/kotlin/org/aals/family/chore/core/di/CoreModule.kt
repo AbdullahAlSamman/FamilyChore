@@ -50,5 +50,6 @@ val coreModule = module {
     singleOf(::ConnectivityRepositoryImpl) { bind<ConnectivityRepository>() }
     singleOf(::ProfilePictureRepositoryImpl) { bind<ProfilePictureRepository>() }
     singleOf(::DataStoreTokenStorage) { bind<TokenStorage>() }
+    singleOf(::ProfilePictureRepositoryImpl) { bind<ProfilePictureRepository>() }
     factoryOf(::ObserveConnectivityUseCase)
 }

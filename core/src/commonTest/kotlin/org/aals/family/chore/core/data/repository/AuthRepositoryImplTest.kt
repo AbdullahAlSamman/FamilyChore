@@ -259,7 +259,7 @@ class FakeUserDao : UserDao {
     override suspend fun updateProfilePicture(userId: String, profilePicture: String?) {
         users[userId]?.let { user ->
             users[userId] = user.copy(profilePicture = profilePicture)
-        }
+
     }
 }
 

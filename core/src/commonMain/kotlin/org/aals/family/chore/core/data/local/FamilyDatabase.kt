@@ -16,7 +16,7 @@ import org.aals.family.chore.core.data.local.entity.UserEntity
 
 @Database(
     entities = [ChoreEntity::class, UserEntity::class, TransactionEntity::class, FamilyEntity::class],
-    version = 4
+    version = 5
 )
 @TypeConverters(TransactionTypeConverters::class)
 @ConstructedBy(FamilyDatabaseConstructor::class)

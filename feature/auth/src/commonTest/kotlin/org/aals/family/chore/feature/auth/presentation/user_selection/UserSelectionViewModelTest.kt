@@ -13,7 +13,11 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
+import org.aals.family.chore.core.domain.repository.ProfilePictureRepository
 import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
+import org.aals.family.chore.core.domain.util.DataError
+import org.aals.family.chore.core.domain.util.EmptyResult
+import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.feature.auth.presentation.FakeAuthRepository
 import org.aals.family.chore.feature.auth.presentation.FakeConnectivityRepository
 import org.aals.family.chore.feature.auth.presentation.FakeTokenStorage
@@ -30,6 +34,7 @@ class UserSelectionViewModelTest {
     private lateinit var connectivityRepository: FakeConnectivityRepository
     private lateinit var tokenStorage: FakeTokenStorage
     private lateinit var observeConnectivityUseCase: ObserveConnectivityUseCase
+    private val profilePictureRepository = FakeProfilePictureRepository()
     private val pairingToken = "test_pairing_token"
 
     @BeforeTest
@@ -55,6 +60,7 @@ class UserSelectionViewModelTest {
             authRepository,
             observeConnectivityUseCase,
             SavedStateHandle(mapOf("pairingToken" to pairingToken)),
+            profilePictureRepository,
             Logger.withTag("Test")
         )
 
@@ -73,6 +79,7 @@ class UserSelectionViewModelTest {
             authRepository,
             observeConnectivityUseCase,
             SavedStateHandle(mapOf("pairingToken" to pairingToken)),
+            profilePictureRepository,
             Logger.withTag("Test")
         )
 
@@ -81,4 +88,10 @@ class UserSelectionViewModelTest {
             assertThat(awaitItem()).isEqualTo(UserSelectionEvent.PairingConfirmed(user.id))
         }
     }
+}
+
+private class FakeProfilePictureRepository : ProfilePictureRepository {
+    override suspend fun getProfilePicture(userId: String): String? = null
+    override suspend fun saveCustomPicture(userId: String, sourcePath: String): EmptyResult<DataError.Local> = Result.Success(Unit)
+    override suspend fun savePreset(userId: String, presetKey: String): EmptyResult<DataError.Local> = Result.Success(Unit)
 }

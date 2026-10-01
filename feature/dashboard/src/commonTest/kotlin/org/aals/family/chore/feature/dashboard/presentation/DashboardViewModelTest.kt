@@ -555,10 +555,12 @@ class DashboardViewModelTest {
         viewModel.state.test {
             awaitItem() // initial
             viewModel.events.test {
-                viewModel.onAction(DashboardAction.OnPickedImage("child1", "/tmp/photo.jpg"))
+                val fakeImageBytes = byteArrayOf(1, 2, 3)
+                viewModel.onAction(DashboardAction.OnPickedImage("child1", fakeImageBytes))
 
                 assertThat(profilePictureRepository.customSaves.size).isEqualTo(1)
-                assertThat(profilePictureRepository.customSaves[0]).isEqualTo("child1" to "/tmp/photo.jpg")
+                assertThat(profilePictureRepository.customSaves[0].first).isEqualTo("child1")
+                assertThat(profilePictureRepository.customSaves[0].second).isEqualTo(fakeImageBytes)
 
                 val event = awaitItem()
                 assertThat(event is DashboardEvent.ShowMessage).isEqualTo(true)
@@ -566,7 +568,7 @@ class DashboardViewModelTest {
 
             val state = viewModel.state.value as DashboardState.Success
             assertThat(state.pictureTarget).isEqualTo(null)
-            assertThat(state.memberPictures["child1"]).isEqualTo("/tmp/photo.jpg")
+            assertThat(state.memberPictures["child1"]).isEqualTo("/fake/path/for/child1.jpg")
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -575,13 +577,15 @@ class DashboardViewModelTest {
 private class FakeProfilePictureRepository : ProfilePictureRepository {
     val pictures = mutableMapOf<String, String>()
     val presetSaves = mutableListOf<Pair<String, String>>()
-    val customSaves = mutableListOf<Pair<String, String>>()
+    val customSaves = mutableListOf<Pair<String, ByteArray>>()
 
     override suspend fun getProfilePicture(userId: String): String? = pictures[userId]
 
-    override suspend fun saveCustomPicture(userId: String, sourcePath: String): EmptyResult<DataError.Local> {
-        customSaves.add(userId to sourcePath)
-        pictures[userId] = sourcePath
+    override suspend fun saveCustomPicture(userId: String, imageBytes: ByteArray): EmptyResult<DataError.Local> {
+        customSaves.add(userId to imageBytes)
+        // Store a fake path to represent the saved bytes in tests
+        val fakePath = "/fake/path/for/${userId}.jpg"
+        pictures[userId] = fakePath
         return Result.Success(Unit)
     }
 

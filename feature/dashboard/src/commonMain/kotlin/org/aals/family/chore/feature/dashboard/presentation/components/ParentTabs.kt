@@ -66,7 +66,9 @@ import familychore.core.generated.resources.task_management_title
 import familychore.core.generated.resources.task_unknown_user
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
+import org.aals.family.chore.core.presentation.components.CameraCaptureView
 import org.aals.family.chore.core.presentation.components.MemberAvatar
+import org.aals.family.chore.core.presentation.permissions.RequestCameraPermission
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
 import org.aals.family.chore.feature.dashboard.presentation.DashboardState
 import org.jetbrains.compose.resources.stringResource
@@ -343,9 +345,23 @@ fun FamilyManagementContent(
     state.pictureTarget?.let { target ->
         if (state.showPresetPicker) {
             PresetPickerDialog(target = target, onAction = onAction)
-        } else {
+        } else if (!state.showCameraCapture) {
             PictureSourceDialog(target = target, onAction = onAction)
         }
+    }
+
+    if (state.cameraPermissionRequestCount > 0) {
+        RequestCameraPermission(
+            trigger = state.cameraPermissionRequestCount,
+            onResult = { granted -> onAction(DashboardAction.OnCameraPermissionResult(granted)) }
+        )
+    }
+
+    if (state.showCameraCapture && state.pictureTarget != null) {
+        CameraCaptureView(
+            onImageCaptured = { bytes -> onAction(DashboardAction.OnPickedImage(state.pictureTarget.id, bytes)) },
+            onCancel = { onAction(DashboardAction.CancelCameraCapture) }
+        )
     }
 }
 

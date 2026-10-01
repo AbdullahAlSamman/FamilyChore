@@ -25,6 +25,7 @@ actual val platformModule: Module = module {
             }
         )
     }
+    single { ProfilePictureStorage(File(System.getProperty("user.home"), ".familychore").absolutePath) }
     single {
         val dbFile = File(System.getProperty("user.home"), ".familychore/familychore.db")
         if (!dbFile.parentFile.exists()) {

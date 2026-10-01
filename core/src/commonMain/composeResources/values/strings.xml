@@ -164,4 +164,18 @@
     <string name="mode_selection_single_device_desc">Keep everything on this device. No internet required. Best for one-phone households.</string>
     <string name="mode_selection_multiple_devices">Multiple Devices</string>
     <string name="mode_selection_multiple_devices_desc">Sync chores across multiple phones and tablets. Requires a FamilyChore server.</string>
+
+    <!-- Profile Pictures -->
+    <string name="change_picture">Change Picture</string>
+    <string name="profile_picture">Profile picture</string>
+    <string name="picture_source_title">Change Profile Picture</string>
+    <string name="pick_from_gallery">Pick from Gallery</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="choose_preset">Choose a Preset</string>
+    <string name="preset_avatar">Preset %1$s</string>
+    <string name="picture_updated_success">Profile picture updated</string>
+    <string name="gallery">Gallery</string>
+    <string name="presets">Presets</string>
+    <string name="camera">Camera</string>
+    <string name="picture_picker_gallery">Gallery</string>
 </resources>

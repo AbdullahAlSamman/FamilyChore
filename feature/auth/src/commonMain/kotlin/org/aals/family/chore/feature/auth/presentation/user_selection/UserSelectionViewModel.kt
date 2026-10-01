@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
+import org.aals.family.chore.core.domain.repository.ProfilePictureRepository
 import org.aals.family.chore.core.domain.usecase.ConnectivityStatus
 import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.core.domain.util.onFailure
@@ -27,6 +28,7 @@ class UserSelectionViewModel(
     private val authRepository: AuthRepository,
     private val observeConnectivityUseCase: ObserveConnectivityUseCase,
     private val savedStateHandle: SavedStateHandle,
+    private val profilePictureRepository: ProfilePictureRepository,
     private val logger: Logger,
 ) : ViewModel() {
 
@@ -119,8 +121,15 @@ class UserSelectionViewModel(
 
             result
                 .onSuccess { users ->
+                    val pictures = mutableMapOf<String, String>()
+                    users.forEach { user ->
+                        profilePictureRepository.getProfilePicture(user.id)?.let { path ->
+                            pictures[user.id] = path
+                        }
+                    }
                     _state.value = UserSelectionState.Success(
                         users = users,
+                        picturePaths = pictures,
                         isFromDiscovery = isFirstTimeOnboarding || pairingToken != null,
                         isOfflineMode = currentConnectivityStatus.isOfflineMode,
                         isServerReachable = currentConnectivityStatus.isServerReachable,

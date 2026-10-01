@@ -34,6 +34,7 @@ import familychore.core.generated.resources.role_parent
 import familychore.core.generated.resources.user_selection_screen_title
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.presentation.ObserveAsEvents
+import org.aals.family.chore.core.presentation.components.MemberAvatar
 import org.aals.family.chore.feature.auth.presentation.components.ConnectivityBanner
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -108,6 +109,13 @@ fun UserSelectionScreen(
                         ) {
                             items(state.users) { user ->
                                 ListItem(
+                                    leadingContent = {
+                                        MemberAvatar(
+                                            user = user,
+                                            picturePath = state.picturePaths[user.id],
+                                            size = 40.dp,
+                                        )
+                                    },
                                     headlineContent = { Text(user.nickname) },
                                     supportingContent = {
                                         val roleText = when (user.role) {

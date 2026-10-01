@@ -20,6 +20,7 @@ sealed interface UserSelectionState {
     /** Successfully fetched the list of users. */
     data class Success(
         val users: List<User>,
+        val picturePaths: Map<String, String> = emptyMap(),
         val isConfirming: Boolean = false,
         val isFromDiscovery: Boolean = false,
         override val isOfflineMode: Boolean = false,

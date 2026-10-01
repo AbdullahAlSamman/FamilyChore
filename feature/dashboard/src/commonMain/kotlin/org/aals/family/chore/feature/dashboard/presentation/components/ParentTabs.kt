@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Visibility
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.change_pin
+import familychore.core.generated.resources.change_picture
 import familychore.core.generated.resources.dashboard_overview_title
 import familychore.core.generated.resources.family_management_add_member
 import familychore.core.generated.resources.family_management_invite_member
@@ -64,6 +66,7 @@ import familychore.core.generated.resources.task_management_title
 import familychore.core.generated.resources.task_unknown_user
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
+import org.aals.family.chore.core.presentation.components.MemberAvatar
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
 import org.aals.family.chore.feature.dashboard.presentation.DashboardState
 import org.jetbrains.compose.resources.stringResource
@@ -327,8 +330,21 @@ fun FamilyManagementContent(
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(state.familyMembers) { member ->
-                FamilyMemberCard(member, onAction, state.isServerReachable)
+                FamilyMemberCard(
+                    user = member,
+                    picturePath = state.memberPictures[member.id],
+                    onAction = onAction,
+                    isOnline = state.isServerReachable,
+                )
             }
+        }
+    }
+
+    state.pictureTarget?.let { target ->
+        if (state.showPresetPicker) {
+            PresetPickerDialog(target = target, onAction = onAction)
+        } else {
+            PictureSourceDialog(target = target, onAction = onAction)
         }
     }
 }
@@ -336,6 +352,7 @@ fun FamilyManagementContent(
 @Composable
 fun FamilyMemberCard(
     user: User,
+    picturePath: String?,
     onAction: (DashboardAction) -> Unit,
     isOnline: Boolean
 ) {
@@ -344,6 +361,12 @@ fun FamilyMemberCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            MemberAvatar(
+                user = user,
+                picturePath = picturePath,
+                size = 48.dp,
+            )
+            Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(user.nickname, style = MaterialTheme.typography.titleMedium)
                 val roleText = when (user.role) {
@@ -370,6 +393,15 @@ fun FamilyMemberCard(
                     Icon(
                         Icons.Default.Password,
                         contentDescription = stringResource(Res.string.change_pin)
+                    )
+                }
+                IconButton(
+                    onClick = { onAction(DashboardAction.ShowPictureSourceDialog(user.id)) },
+                    enabled = isOnline
+                ) {
+                    Icon(
+                        Icons.Default.AddPhotoAlternate,
+                        contentDescription = stringResource(Res.string.change_picture)
                     )
                 }
                 IconButton(onClick = { onAction(DashboardAction.ShowInviteQr(user.id)) }) {

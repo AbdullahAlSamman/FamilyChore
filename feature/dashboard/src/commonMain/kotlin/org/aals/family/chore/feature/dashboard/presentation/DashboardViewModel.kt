@@ -153,7 +153,18 @@ class DashboardViewModel(
                 it.copy(showPresetPicker = false)
             }
             is DashboardAction.SelectPresetAvatar -> savePresetAvatar(action.userId, action.preset)
-            is DashboardAction.OnPickedImage -> savePickedImage(action.userId, action.path)
+            is DashboardAction.OnPickedImage -> savePickedImage(action.userId, action.imageBytes)
+            DashboardAction.StartCameraCapture -> {
+                updateSuccessState { it.copy(cameraPermissionRequestCount = it.cameraPermissionRequestCount + 1) }
+            }
+            is DashboardAction.OnCameraPermissionResult -> {
+                if (action.granted) {
+                    updateSuccessState { it.copy(showCameraCapture = true, pictureTarget = it.pictureTarget) }
+                }
+            }
+            DashboardAction.CancelCameraCapture -> {
+                updateSuccessState { it.copy(showCameraCapture = false) }
+            }
         }
     }
 
@@ -187,10 +198,10 @@ class DashboardViewModel(
         }
     }
 
-    private fun savePickedImage(userId: String, path: String) {
+    private fun savePickedImage(userId: String, imageBytes: ByteArray) {
         viewModelScope.launch {
-            updateSuccessState { it.copy(isSavingPicture = true) }
-            profilePictureRepository.saveCustomPicture(userId, path)
+            updateSuccessState { it.copy(isSavingPicture = true, showCameraCapture = false) }
+            profilePictureRepository.saveCustomPicture(userId, imageBytes)
                 .onSuccess {
                     updateSuccessState {
                         it.copy(

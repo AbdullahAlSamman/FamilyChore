@@ -17,6 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.avatar_preset_1
 import familychore.core.generated.resources.avatar_preset_2
@@ -67,8 +70,15 @@ fun MemberAvatar(
         }
 
         resolved != null -> {
+            // Disable Coil caching so overwriting the same picture path refreshes the avatar
+            // immediately (allows a new image to replace the previous one in the same session).
+            val request = ImageRequest.Builder(LocalPlatformContext.current)
+                .data(resolved)
+                .memoryCachePolicy(CachePolicy.DISABLED)
+                .diskCachePolicy(CachePolicy.DISABLED)
+                .build()
             AsyncImage(
-                model = resolved,
+                model = request,
                 contentDescription = null,
                 modifier = avatarModifier.clip(CircleShape),
                 contentScale = ContentScale.Crop,

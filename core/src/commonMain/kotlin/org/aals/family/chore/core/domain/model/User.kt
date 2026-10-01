@@ -9,7 +9,8 @@ data class User(
     val nickname: String,
     val role: UserRole,
     val points: Int = 0,
-    val requiresPin: Boolean = true
+    val requiresPin: Boolean = true,
+    val profilePicture: String? = null
 )
 
 @Serializable

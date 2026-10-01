@@ -16,4 +16,10 @@ interface UserDao {
 
     @Query("SELECT * FROM UserEntity WHERE id = :userId")
     suspend fun getUserById(userId: String): UserEntity?
+
+    @Query("SELECT profilePicture FROM UserEntity WHERE id = :userId")
+    suspend fun getProfilePicture(userId: String): String?
+
+    @Query("UPDATE UserEntity SET profilePicture = :profilePicture WHERE id = :userId")
+    suspend fun updateProfilePicture(userId: String, profilePicture: String?)
 }

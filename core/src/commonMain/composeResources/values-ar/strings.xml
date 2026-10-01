@@ -36,7 +36,7 @@
     <string name="auth_nickname_empty_error">اللقب لا يمكن أن يكون فارغاً</string>
     <string name="auth_nickname_too_short_error">اللقب قصير جداً (حرفان على الأقل)</string>
     <string name="auth_nickname_invalid_error">يجب أن يحتوي اللقب على أحرف وأرقام فقط</string>
-    <string name="auth_pin_invalid_length_error">يجب أن يتكون رمز PIN من 4 أرقام</string>
+    <string name="auth_pin_invalid_length_error">يجب أن يتكون رمز PIN من 4 إلى 8 أرقام</string>
     <string name="auth_pin_not_digits_error">يجب أن يحتوي رمز PIN على أرقام فقط</string>
 
     <!-- Validation Errors - Chore -->
@@ -85,7 +85,7 @@
 
     <!-- PIN Entry -->
     <string name="pin_title">أدخل رمز PIN</string>
-    <string name="pin_instructions">أدخل رمز PIN المكون من 4 أرقام للمتابعة.</string>
+    <string name="pin_instructions">أدخل رمز PIN المكون من 4 إلى 8 أرقام للمتابعة.</string>
     <string name="pin_label">رمز PIN</string>
     <string name="pin_mandatory">إلزامي</string>
     <string name="pin_optional">اختياري</string>
@@ -111,6 +111,13 @@
     <string name="family_management_add_member">إضافة عضو</string>
     <string name="family_management_nickname_label">اللقب</string>
     <string name="family_management_require_pin">تطلب رمز PIN</string>
+    <string name="child_pin_setup_title">قم بتعيين رمز PIN لـ %1$s</string>
+    <string name="child_pin_setup_instructions">أدخل رمز PIN المكون من 4 إلى 8 أرقام للطفل.</string>
+    <string name="child_pin_set_success">تم تعيين رمز PIN بنجاح.</string>
+    <string name="member_pin_change_title">تغيير رمز PIN لـ %1$s</string>
+    <string name="member_pin_change_instructions">أدخل رمز PIN جديد مكون من 4 إلى 8 أرقام.</string>
+    <string name="member_pin_change_success">تم تحديث رمز PIN بنجاح.</string>
+    <string name="change_pin">تغيير رمز PIN</string>
     <string name="family_management_invite_member">دعوة عضو</string>
     <string name="family_management_invite_qr_desc">رمز QR للدعوة</string>
     <string name="family_management_quick_join">انضمام سريع</string>

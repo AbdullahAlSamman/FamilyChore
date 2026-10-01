@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -39,6 +40,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.change_pin
 import familychore.core.generated.resources.dashboard_overview_title
 import familychore.core.generated.resources.family_management_add_member
 import familychore.core.generated.resources.family_management_invite_member
@@ -360,14 +362,14 @@ fun FamilyMemberCard(
                         modifier = Modifier.layoutScale(0.7f),
                         enabled = isOnline
                     )
-                } else {
-                    // Show that PIN is required for parents (just a label or icon)
-                    Text(stringResource(Res.string.pin_label), style = MaterialTheme.typography.labelSmall)
-                    Switch(
-                        checked = true,
-                        onCheckedChange = {},
-                        modifier = Modifier.layoutScale(0.7f),
-                        enabled = false
+                }
+                IconButton(
+                    onClick = { onAction(DashboardAction.ChangeMemberPin(user.id)) },
+                    enabled = isOnline
+                ) {
+                    Icon(
+                        Icons.Default.Password,
+                        contentDescription = stringResource(Res.string.change_pin)
                     )
                 }
                 IconButton(onClick = { onAction(DashboardAction.ShowInviteQr(user.id)) }) {

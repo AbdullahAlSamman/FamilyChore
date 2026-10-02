@@ -13,6 +13,9 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(projects.core)
+            implementation(libs.coil.compose)
+            implementation(libs.filekit.compose)
+            implementation(libs.filekit.core)
             implementation(libs.kotlinx.datetime)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)

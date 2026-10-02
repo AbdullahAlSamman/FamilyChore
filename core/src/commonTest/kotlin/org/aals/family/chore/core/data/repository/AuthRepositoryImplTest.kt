@@ -52,9 +52,16 @@ class AuthRepositoryImplTest {
     }
 
     private fun createRepository(engine: MockEngine): AuthRepositoryImpl {
-        val httpClient = HttpClientFactory.create(engine, baseUrlProvider, tokenStorage, Logger.withTag("Test"))
+        val httpClient =
+            HttpClientFactory.create(engine, baseUrlProvider, tokenStorage, Logger.withTag("Test"))
         val dataSource = PairingDataSource(httpClient)
-        return AuthRepositoryImpl(dataSource, tokenStorage, userDao, familyDao, Logger.withTag("Test"))
+        return AuthRepositoryImpl(
+            dataSource,
+            tokenStorage,
+            userDao,
+            familyDao,
+            Logger.withTag("Test")
+        )
     }
 
     @Test
@@ -68,7 +75,10 @@ class AuthRepositoryImplTest {
             respond(
                 content = Json.encodeToString(expectedResponse),
                 status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                headers = headersOf(
+                    HttpHeaders.ContentType,
+                    ContentType.Application.Json.toString()
+                )
             )
         }
         repository = createRepository(engine)
@@ -85,7 +95,7 @@ class AuthRepositoryImplTest {
 
     @Test
     fun `createFamily returns error on server error`() = runTest {
-        val engine = MockEngine { 
+        val engine = MockEngine {
             respond(
                 content = "Internal Server Error",
                 status = HttpStatusCode.InternalServerError
@@ -100,11 +110,14 @@ class AuthRepositoryImplTest {
 
     @Test
     fun `generatePairingToken returns token on success`() = runTest {
-        val engine = MockEngine { 
+        val engine = MockEngine {
             respond(
                 content = "{\"pairingToken\": \"token123\"}",
                 status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                headers = headersOf(
+                    HttpHeaders.ContentType,
+                    ContentType.Application.Json.toString()
+                )
             )
         }
         repository = createRepository(engine)
@@ -119,13 +132,16 @@ class AuthRepositoryImplTest {
     @Test
     fun `confirmPairing saves familyId and token on success`() = runTest {
         val user = User("user123", "family123", "Kid", UserRole.CHILD, 10)
-        val engine = MockEngine { 
+        val engine = MockEngine {
             respond(
                 content = Json.encodeToString(
                     ConfirmPairingResponse("family123", user, "token")
                 ),
                 status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                headers = headersOf(
+                    HttpHeaders.ContentType,
+                    ContentType.Application.Json.toString()
+                )
             )
         }
         repository = createRepository(engine)
@@ -142,11 +158,14 @@ class AuthRepositoryImplTest {
     fun `getFamilyMembers returns users on success`() = runTest {
         val users = listOf(User("1", "family123", "User", UserRole.CHILD, 0))
         val response = PairingUsersResponse("The Smiths", users)
-        val engine = MockEngine { 
+        val engine = MockEngine {
             respond(
                 content = Json.encodeToString(response),
                 status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                headers = headersOf(
+                    HttpHeaders.ContentType,
+                    ContentType.Application.Json.toString()
+                )
             )
         }
         repository = createRepository(engine)
@@ -178,7 +197,7 @@ class AuthRepositoryImplTest {
         val userId = "user123"
         val pin = "1234"
         val expectedHash = pin.toSha256()
-        
+
         val engine = MockEngine { _ ->
             // If we reach here, the call was made. 
             // The logic to verify hashing is in the repo itself.
@@ -247,7 +266,7 @@ class FakeUserDao : UserDao {
     val users = mutableMapOf<String, UserEntity>()
     override fun getUsers(familyId: String): Flow<List<UserEntity>> =
         flowOf(users.values.filter { it.familyId == familyId })
-    
+
     override suspend fun upsertUser(user: UserEntity) {
         users[user.id] = user
     }
@@ -266,7 +285,7 @@ class FakeUserDao : UserDao {
 class FakeFamilyDao : FamilyDao {
     override fun getFamilies(): Flow<List<FamilyEntity>> =
         flowOf(emptyList())
-    
+
     override suspend fun upsertFamily(family: FamilyEntity) {}
     override suspend fun getFamilyById(id: String): FamilyEntity? = null
 }

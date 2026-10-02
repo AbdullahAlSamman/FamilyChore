@@ -13,7 +13,11 @@ import kotlinx.coroutines.test.setMain
 import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
+import org.aals.family.chore.core.domain.repository.ProfilePictureRepository
 import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
+import org.aals.family.chore.core.domain.util.DataError
+import org.aals.family.chore.core.domain.util.EmptyResult
+import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.feature.dashboard.domain.model.BehaviorDefaults
 import org.aals.family.chore.feature.dashboard.presentation.navigation.BehaviorRoute
 import org.aals.family.chore.feature.dashboard.presentation.navigation.ParentOverviewRoute
@@ -32,6 +36,7 @@ class DashboardViewModelTest {
     private lateinit var tokenStorage: FakeTokenStorage
     private lateinit var observeConnectivityUseCase: ObserveConnectivityUseCase
     private lateinit var timeProvider: FakeTimeProvider
+    private lateinit var profilePictureRepository: FakeProfilePictureRepository
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @BeforeTest
@@ -44,6 +49,7 @@ class DashboardViewModelTest {
         tokenStorage = FakeTokenStorage()
         observeConnectivityUseCase = ObserveConnectivityUseCase(tokenStorage, connectivityRepository)
         timeProvider = FakeTimeProvider()
+        profilePictureRepository = FakeProfilePictureRepository()
         
         // Default mock setup
         authRepository.currentUser = User("parent1", "family1", "Parent", UserRole.PARENT)
@@ -58,6 +64,7 @@ class DashboardViewModelTest {
             choreRepository = choreRepository,
             observeConnectivityUseCase = observeConnectivityUseCase,
             tokenStorage = tokenStorage,
+            profilePictureRepository = profilePictureRepository,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider
         )
@@ -340,6 +347,7 @@ class DashboardViewModelTest {
             choreRepository = choreRepository,
             observeConnectivityUseCase = observeConnectivityUseCase,
             tokenStorage = tokenStorage,
+            profilePictureRepository = profilePictureRepository,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider
         )
@@ -419,6 +427,7 @@ class DashboardViewModelTest {
             choreRepository = choreRepository,
             observeConnectivityUseCase = observeConnectivityUseCase,
             tokenStorage = tokenStorage,
+            profilePictureRepository = profilePictureRepository,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider
         )
@@ -480,5 +489,109 @@ class DashboardViewModelTest {
             assertThat(logoutEvent.familyId).isEqualTo("family1")
             assertThat(logoutEvent.isServerOnline).isEqualTo(true)
         }
+    }
+
+    @Test
+    fun `ShowPictureSourceDialog sets pictureTarget`() = runTest {
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.onAction(DashboardAction.ShowPictureSourceDialog("child1"))
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.pictureTarget?.id).isEqualTo("child1")
+            assertThat(state.showPresetPicker).isEqualTo(false)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `DismissPictureSourceDialog clears pictureTarget`() = runTest {
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.onAction(DashboardAction.ShowPictureSourceDialog("child1"))
+            awaitItem()
+            viewModel.onAction(DashboardAction.DismissPictureSourceDialog)
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.pictureTarget).isEqualTo(null)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `ShowPresetPicker after source dialog opens preset picker`() = runTest {
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.onAction(DashboardAction.ShowPictureSourceDialog("child1"))
+            awaitItem()
+            viewModel.onAction(DashboardAction.ShowPresetPicker)
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.showPresetPicker).isEqualTo(true)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `SelectPresetAvatar saves preset and updates member pictures`() = runTest {
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.events.test {
+                viewModel.onAction(DashboardAction.SelectPresetAvatar("child1", "1"))
+
+                assertThat(profilePictureRepository.presetSaves.size).isEqualTo(1)
+                assertThat(profilePictureRepository.presetSaves[0]).isEqualTo("child1" to "1")
+
+                val event = awaitItem()
+                assertThat(event is DashboardEvent.ShowMessage).isEqualTo(true)
+            }
+
+            val state = viewModel.state.value as DashboardState.Success
+            assertThat(state.pictureTarget).isEqualTo(null)
+            assertThat(state.memberPictures["child1"]).isEqualTo("bundled:1")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `OnPickedImage saves custom picture and updates member pictures`() = runTest {
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.events.test {
+                val fakeImageBytes = byteArrayOf(1, 2, 3)
+                viewModel.onAction(DashboardAction.OnPickedImage("child1", fakeImageBytes))
+
+                assertThat(profilePictureRepository.customSaves.size).isEqualTo(1)
+                assertThat(profilePictureRepository.customSaves[0].first).isEqualTo("child1")
+                assertThat(profilePictureRepository.customSaves[0].second).isEqualTo(fakeImageBytes)
+
+                val event = awaitItem()
+                assertThat(event is DashboardEvent.ShowMessage).isEqualTo(true)
+            }
+
+            val state = viewModel.state.value as DashboardState.Success
+            assertThat(state.pictureTarget).isEqualTo(null)
+            assertThat(state.memberPictures["child1"]).isEqualTo("/fake/path/for/child1.jpg")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+}
+
+private class FakeProfilePictureRepository : ProfilePictureRepository {
+    val pictures = mutableMapOf<String, String>()
+    val presetSaves = mutableListOf<Pair<String, String>>()
+    val customSaves = mutableListOf<Pair<String, ByteArray>>()
+
+    override suspend fun getProfilePicture(userId: String): String? = pictures[userId]
+
+    override suspend fun saveCustomPicture(userId: String, imageBytes: ByteArray): EmptyResult<DataError.Local> {
+        customSaves.add(userId to imageBytes)
+        // Store a fake path to represent the saved bytes in tests
+        val fakePath = "/fake/path/for/${userId}.jpg"
+        pictures[userId] = fakePath
+        return Result.Success(Unit)
+    }
+
+    override suspend fun savePreset(userId: String, presetKey: String): EmptyResult<DataError.Local> {
+        presetSaves.add(userId to presetKey)
+        pictures[userId] = "bundled:$presetKey"
+        return Result.Success(Unit)
     }
 }

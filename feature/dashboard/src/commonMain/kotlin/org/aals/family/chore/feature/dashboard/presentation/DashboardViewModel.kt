@@ -7,6 +7,7 @@ import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.child_pin_set_success
 import familychore.core.generated.resources.dashboard_load_failed_error
 import familychore.core.generated.resources.member_pin_change_success
+import familychore.core.generated.resources.picture_updated_success
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,6 +29,7 @@ import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.ChoreRepository
+import org.aals.family.chore.core.domain.repository.ProfilePictureRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.repository.TransactionRepository
 import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
@@ -55,6 +57,7 @@ class DashboardViewModel(
     private val choreRepository: ChoreRepository,
     private val observeConnectivityUseCase: ObserveConnectivityUseCase,
     private val tokenStorage: TokenStorage,
+    private val profilePictureRepository: ProfilePictureRepository,
     private val logger: Logger,
     private val timeProvider: TimeProvider,
 ) : ViewModel() {
@@ -139,6 +142,94 @@ class DashboardViewModel(
                     _events.send(DashboardEvent.NavigateToSettings)
                 }
             }
+            is DashboardAction.ShowPictureSourceDialog -> openPictureSourceDialog(action.userId)
+            DashboardAction.DismissPictureSourceDialog -> updateSuccessState {
+                it.copy(pictureTarget = null, showPresetPicker = false)
+            }
+            DashboardAction.ShowPresetPicker -> updateSuccessState {
+                it.copy(showPresetPicker = true)
+            }
+            DashboardAction.DismissPresetPicker -> updateSuccessState {
+                it.copy(showPresetPicker = false)
+            }
+            is DashboardAction.SelectPresetAvatar -> savePresetAvatar(action.userId, action.preset)
+            is DashboardAction.OnPickedImage -> savePickedImage(action.userId, action.imageBytes)
+            DashboardAction.StartCameraCapture -> {
+                updateSuccessState { it.copy(cameraPermissionRequestCount = it.cameraPermissionRequestCount + 1) }
+            }
+            is DashboardAction.OnCameraPermissionResult -> {
+                if (action.granted) {
+                    updateSuccessState { it.copy(showCameraCapture = true, pictureTarget = it.pictureTarget) }
+                }
+            }
+            DashboardAction.CancelCameraCapture -> {
+                updateSuccessState { it.copy(showCameraCapture = false) }
+            }
+        }
+    }
+
+    private fun openPictureSourceDialog(userId: String) {
+        val target = (_state.value as? DashboardState.Success)
+            ?.familyMembers?.find { it.id == userId }
+        if (target != null) {
+            updateSuccessState { it.copy(pictureTarget = target, showPresetPicker = false, isSavingPicture = false) }
+        }
+    }
+
+    private fun savePresetAvatar(userId: String, preset: String) {
+        viewModelScope.launch {
+            updateSuccessState { it.copy(isSavingPicture = true) }
+            profilePictureRepository.savePreset(userId, preset)
+                .onSuccess {
+                    updateSuccessState {
+                        it.copy(
+                            pictureTarget = null,
+                            showPresetPicker = false,
+                            isSavingPicture = false,
+                        )
+                    }
+                    _events.send(DashboardEvent.ShowMessage(UiText.StringResource(Res.string.picture_updated_success)))
+                    loadMemberPictures()
+                }
+                .onFailure { e ->
+                    logger.e { "Failed to save preset avatar for $userId: $e" }
+                    updateSuccessState { it.copy(isSavingPicture = false) }
+                }
+        }
+    }
+
+    private fun savePickedImage(userId: String, imageBytes: ByteArray) {
+        viewModelScope.launch {
+            updateSuccessState { it.copy(isSavingPicture = true, showCameraCapture = false) }
+            profilePictureRepository.saveCustomPicture(userId, imageBytes)
+                .onSuccess {
+                    updateSuccessState {
+                        it.copy(
+                            pictureTarget = null,
+                            showPresetPicker = false,
+                            isSavingPicture = false,
+                        )
+                    }
+                    _events.send(DashboardEvent.ShowMessage(UiText.StringResource(Res.string.picture_updated_success)))
+                    loadMemberPictures()
+                }
+                .onFailure { e ->
+                    logger.e { "Failed to save picked image for $userId: $e" }
+                    updateSuccessState { it.copy(isSavingPicture = false) }
+                }
+        }
+    }
+
+    private fun loadMemberPictures() {
+        val members = (_state.value as? DashboardState.Success)?.familyMembers ?: return
+        viewModelScope.launch {
+            val pictures = mutableMapOf<String, String>()
+            members.forEach { member ->
+                profilePictureRepository.getProfilePicture(member.id)?.let { path ->
+                    pictures[member.id] = path
+                }
+            }
+            updateSuccessState { it.copy(memberPictures = pictures) }
         }
     }
 
@@ -402,8 +493,12 @@ class DashboardViewModel(
                         inviteQrContent = previousSuccessState?.inviteQrContent,
                         pinSetupTarget = previousSuccessState?.pinSetupTarget,
                         pinSetupError = previousSuccessState?.pinSetupError,
-                        pinSetupSaving = previousSuccessState?.pinSetupSaving ?: false
+                        pinSetupSaving = previousSuccessState?.pinSetupSaving ?: false,
+                        memberPictures = previousSuccessState?.memberPictures ?: emptyMap()
                     )
+
+                    // Refresh local profile pictures (local-only, not on the server model)
+                    loadMemberPictures()
 
                     // Restart observations for the new user
                     observationsJob?.cancel()

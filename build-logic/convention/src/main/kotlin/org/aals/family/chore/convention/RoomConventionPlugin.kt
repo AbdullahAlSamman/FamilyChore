@@ -20,14 +20,10 @@ class RoomConventionPlugin : Plugin<Project> {
             }
 
             val roomCompiler = libs.findLibrary("room.compiler").get()
-            val isMac = System.getProperty("os.name").contains("Mac")
-
             dependencies.add("kspAndroid", roomCompiler)
             dependencies.add("kspJvm", roomCompiler)
-            if (isMac) {
-                dependencies.add("kspIosArm64", roomCompiler)
-                dependencies.add("kspIosSimulatorArm64", roomCompiler)
-            }
+            dependencies.add("kspIosArm64", roomCompiler)
+            dependencies.add("kspIosSimulatorArm64", roomCompiler)
 
             extensions.findByType(KotlinMultiplatformExtension::class.java)?.let { kmpExtension ->
                 kmpExtension.sourceSets.getByName("commonMain").dependencies {

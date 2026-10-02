@@ -164,4 +164,18 @@
     <string name="mode_selection_single_device_desc">احتفظ بكل شيء على هذا الجهاز. لا يتطلب إنترنت. الأفضل للعائلات التي تستخدم هاتفاً واحداً.</string>
     <string name="mode_selection_multiple_devices">أجهزة متعددة</string>
     <string name="mode_selection_multiple_devices_desc">مزامنة المهام عبر عدة هواتف وأجهزة لوحية. يتطلب خادم FamilyChore.</string>
+
+    <!-- Profile Pictures -->
+    <string name="change_picture">تغيير الصورة</string>
+    <string name="profile_picture">صورة الملف الشخصي</string>
+    <string name="picture_source_title">تغيير صورة الملف الشخصي</string>
+    <string name="pick_from_gallery">اختيار من المعرض</string>
+    <string name="take_photo">التقاط صورة</string>
+    <string name="choose_preset">اختر صورة جاهزة</string>
+    <string name="preset_avatar">صورة جاهزة %1$s</string>
+    <string name="picture_updated_success">تم تحديث صورة الملف الشخصي</string>
+    <string name="gallery">المعرض</string>
+    <string name="presets">صور جاهزة</string>
+    <string name="camera">الكاميرا</string>
+    <string name="picture_picker_gallery">المعرض</string>
 </resources>

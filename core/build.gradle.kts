@@ -21,6 +21,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.compose.runtime)
+            implementation(libs.compose.material3)
             api(libs.compose.components.resources)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             api(libs.kotlinx.datetime)
@@ -33,11 +34,19 @@ kotlin {
             implementation(libs.ktor.client.auth)
             implementation(libs.datastore.preferences)
             implementation(libs.kermit)
+            implementation(libs.compose.material.icons.extended)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.compose.core)
             implementation(libs.okio)
+            implementation(libs.filekit.compose)
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.koin.android)
+            implementation(libs.androidx.camera.core)
+            implementation(libs.androidx.camera.camera2)
+            implementation(libs.androidx.camera.lifecycle)
+            implementation(libs.androidx.camera.view)
         }
         jvmMain.dependencies {
             implementation(libs.ktor.client.okhttp)

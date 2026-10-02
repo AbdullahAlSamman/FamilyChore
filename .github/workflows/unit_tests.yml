@@ -1,4 +1,4 @@
-name: CI Unit Tests
+name: CI Android Unit Tests
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   unit-tests:
-    name: Run Android & JVM Unit Tests
+    name: Run Android Unit Tests
     runs-on: ubuntu-latest
     
     steps:
@@ -28,8 +28,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Run Android and JVM Unit Tests
-        run: ./gradlew testDebugUnitTest jvmTest :server:test --continue --stacktrace
+      - name: Run Android Unit Tests
+        run: ./gradlew testDebugUnitTest --continue --stacktrace -Dksp.useKSP2=true -Dkotlin.compiler.execution.strategy=in-process
 
       - name: Show JVM Crash Logs
         if: failure()

@@ -48,6 +48,12 @@ sealed interface DashboardState {
         val pinSetupError: UiText? = null,
         val pinSetupSaving: Boolean = false,
         val isPinChangeMode: Boolean = false,
+        val pictureTarget: User? = null,
+        val showPresetPicker: Boolean = false,
+        val cameraPermissionRequestCount: Int = 0,
+        val showCameraCapture: Boolean = false,
+        val isSavingPicture: Boolean = false,
+        val memberPictures: Map<String, String> = emptyMap(),
     ) : DashboardState
 
     data class Error(val message: UiText) : DashboardState

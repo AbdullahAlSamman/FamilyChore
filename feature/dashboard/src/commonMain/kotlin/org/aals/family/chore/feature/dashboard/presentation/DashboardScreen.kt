@@ -157,9 +157,13 @@ fun DashboardContent(
         state.pinSetupTarget?.let { target ->
             ChildPinSetupDialog(
                 childName = target.nickname,
+                pin = state.pinSetupDraft,
+                pinVisible = state.isPinSetupVisible,
                 error = state.pinSetupError,
                 isSaving = state.pinSetupSaving,
                 isChangeMode = state.isPinChangeMode,
+                onPinChange = { onAction(DashboardAction.OnPinSetupDraftChange(it)) },
+                onPinVisibleToggle = { onAction(DashboardAction.TogglePinSetupVisibility) },
                 onConfirm = { pin ->
                     onAction(
                         DashboardAction.ConfirmChildPinSetup(

@@ -27,6 +27,8 @@ sealed interface DashboardAction {
     data class AddMember(val nickname: String, val role: UserRole, val pin: String?) : DashboardAction
     data class UpdateUserPinRequirement(val userId: String, val requiresPin: Boolean) : DashboardAction
     data class ChangeMemberPin(val userId: String) : DashboardAction
+    data class OnPinSetupDraftChange(val pin: String) : DashboardAction
+    data object TogglePinSetupVisibility : DashboardAction
     data class ConfirmChildPinSetup(val userId: String, val pin: String, val enableRequiresPin: Boolean) : DashboardAction
     data object DismissChildPinSetup : DashboardAction
     data class ShowInviteQr(val userId: String? = null) : DashboardAction

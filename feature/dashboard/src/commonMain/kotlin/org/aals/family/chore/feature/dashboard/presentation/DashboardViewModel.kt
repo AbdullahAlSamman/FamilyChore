@@ -115,20 +115,40 @@ class DashboardViewModel(
                     val target = (_state.value as? DashboardState.Success)
                         ?.familyMembers?.find { it.id == action.userId }
                     if (target != null) {
-                        updateSuccessState { it.copy(pinSetupTarget = target, pinSetupError = null, isPinChangeMode = false) }
+                        updateSuccessState { 
+                            it.copy(
+                                pinSetupTarget = target, 
+                                pinSetupDraft = "",
+                                isPinSetupVisible = false,
+                                pinSetupError = null, 
+                                isPinChangeMode = false
+                            ) 
+                        }
                     }
                 } else {
                     updateUserPinRequirement(action.userId, false)
                 }
             }
             is DashboardAction.ChangeMemberPin -> openChangePinDialog(action.userId)
+            is DashboardAction.OnPinSetupDraftChange -> {
+                updateSuccessState { it.copy(pinSetupDraft = action.pin, pinSetupError = null) }
+            }
+            DashboardAction.TogglePinSetupVisibility -> {
+                updateSuccessState { it.copy(isPinSetupVisible = !it.isPinSetupVisible) }
+            }
             is DashboardAction.ConfirmChildPinSetup -> confirmChildPinSetup(
                 userId = action.userId,
                 pin = action.pin,
                 enableRequiresPin = action.enableRequiresPin
             )
             DashboardAction.DismissChildPinSetup -> updateSuccessState {
-                it.copy(pinSetupTarget = null, pinSetupError = null, isPinChangeMode = false)
+                it.copy(
+                    pinSetupTarget = null, 
+                    pinSetupDraft = "",
+                    isPinSetupVisible = false,
+                    pinSetupError = null, 
+                    isPinChangeMode = false
+                )
             }
             is DashboardAction.ShowInviteQr -> showInviteQr(action.userId)
             DashboardAction.DismissInviteQr -> updateSuccessState { it.copy(inviteQrContent = null) }
@@ -285,7 +305,15 @@ class DashboardViewModel(
         val target = (_state.value as? DashboardState.Success)
             ?.familyMembers?.find { it.id == userId }
         if (target != null) {
-            updateSuccessState { it.copy(pinSetupTarget = target, pinSetupError = null, isPinChangeMode = true) }
+            updateSuccessState { 
+                it.copy(
+                    pinSetupTarget = target, 
+                    pinSetupDraft = "",
+                    isPinSetupVisible = false,
+                    pinSetupError = null, 
+                    isPinChangeMode = true
+                ) 
+            }
         }
     }
 
@@ -309,6 +337,8 @@ class DashboardViewModel(
                                 updateSuccessState {
                                     it.copy(
                                         pinSetupTarget = null,
+                                        pinSetupDraft = "",
+                                        isPinSetupVisible = false,
                                         pinSetupError = null,
                                         pinSetupSaving = false,
                                         isPinChangeMode = false
@@ -326,6 +356,8 @@ class DashboardViewModel(
                         updateSuccessState {
                             it.copy(
                                 pinSetupTarget = null,
+                                pinSetupDraft = "",
+                                isPinSetupVisible = false,
                                 pinSetupError = null,
                                 pinSetupSaving = false,
                                 isPinChangeMode = false

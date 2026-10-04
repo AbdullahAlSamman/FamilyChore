@@ -20,10 +20,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -45,15 +41,16 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun ChildPinSetupDialog(
     childName: String,
+    pin: String,
+    pinVisible: Boolean,
     error: UiText?,
     isSaving: Boolean,
     isChangeMode: Boolean = false,
+    onPinChange: (String) -> Unit,
+    onPinVisibleToggle: () -> Unit,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var pin by remember { mutableStateOf("") }
-    var pinVisible by remember { mutableStateOf(false) }
-
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = MaterialTheme.shapes.extraLarge,
@@ -86,13 +83,13 @@ fun ChildPinSetupDialog(
 
                 OutlinedTextField(
                     value = pin,
-                    onValueChange = { if (it.length <= 8) pin = it },
+                    onValueChange = { if (it.length <= 8) onPinChange(it) },
                     label = { Text(stringResource(Res.string.pin_label)) },
                     visualTransformation = if (pinVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                     trailingIcon = {
                         val image = if (pinVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-                        IconButton(onClick = { pinVisible = !pinVisible }) {
+                        IconButton(onClick = onPinVisibleToggle) {
                             Icon(imageVector = image, contentDescription = null)
                         }
                     },

@@ -8,6 +8,7 @@ import kotlinx.coroutines.IO
 object DatabaseFactory {
     fun create(builder: RoomDatabase.Builder<FamilyDatabase>): FamilyDatabase {
         return builder
+            // TODO: Remove destructive migration for production
             .fallbackToDestructiveMigration(true)
             .fallbackToDestructiveMigrationOnDowngrade(true)
             .setDriver(BundledSQLiteDriver())

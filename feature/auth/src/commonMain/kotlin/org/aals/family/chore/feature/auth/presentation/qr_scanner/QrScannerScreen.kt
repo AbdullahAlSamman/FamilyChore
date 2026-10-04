@@ -35,7 +35,7 @@ import familychore.core.generated.resources.refresh
 import org.aals.family.chore.core.presentation.ObserveAsEvents
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import org.aals.family.chore.core.presentation.permissions.RequestCameraPermission
+import org.aals.family.chore.core.presentation.permissions.rememberCameraPermissionManager
 
 @Composable
 fun QrScannerRoot(
@@ -44,6 +44,7 @@ fun QrScannerRoot(
     viewModel: QrScannerViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val permissionManager = rememberCameraPermissionManager()
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
@@ -53,13 +54,10 @@ fun QrScannerRoot(
     }
 
     val noPermissionState = state as? QrScannerState.NoPermission
-    if (noPermissionState != null) {
-        RequestCameraPermission(
-            trigger = noPermissionState.permissionRequestCount,
-            onResult = { granted ->
-                viewModel.onAction(QrScannerAction.OnPermissionResult(granted))
-            }
-        )
+    if (noPermissionState != null && noPermissionState.permissionRequestCount > 0) {
+        permissionManager.requestPermission { granted ->
+            viewModel.onAction(QrScannerAction.OnPermissionResult(granted))
+        }
     }
 
     QrScannerScreen(

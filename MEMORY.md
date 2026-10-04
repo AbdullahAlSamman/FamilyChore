@@ -31,6 +31,7 @@ This file tracks critical architectural decisions and domain rules for the Famil
 - **Offline-First**: Room KMP is the Single Source of Truth.
 - **Data Sovereignty**: Local Ktor server (Home Lab); no external analytics.
 - **Multi-Tenancy**: Every entity and request is scoped via `familyId`.
+- **Platform Capabilities via Repository (NOT Composable)**: Device/hardware checks (camera availability, etc.) MUST live in a domain interface implemented per-platform (`expect`/`actual`, Koin-bound, e.g. `HardwareAvailabilityRepository`), injected into ViewModels, surfaced on `State`. NEVER write a `@Composable` helper reading `LocalContext` for this — it blocks business logic and unit testing. Pattern: interface in `domain/repository`, impl in `data/repository` per platform source set, bound in `platformModule`.
 - **Navigation**: Type-Safe Compose Navigation (@Serializable routes).
 - **Build Infra**: Gradle Convention Plugins in `:build-logic`.
 - **Module Documentation**: Every module MUST have a `README.md` explaining its purpose, dependencies, consumers, and tests. Read this FIRST.
@@ -60,3 +61,22 @@ This file tracks critical architectural decisions and domain rules for the Famil
 - **Point SSOT**: The local Room `Transaction` ledger is the final authority on balances; server sync ensures multi-device consistency.
 - **Authentication**: Optional 4-digit PIN for child profiles.
 - **Secure Communication**: [FUTURE] Migrate from cleartext HTTP to HTTPS for all server communications (currently using `usesCleartextTraffic` for development).
+
+## Module Map (current as of this session)
+- `:core` — domain models, repos/interfaces, Room KMP, Ktor client, DataStore, UiText, DI (common `coreModule` + per-platform `platformModule` with `expect val platformModule`).
+- `:feature:auth` — onboarding (QR pairing, PIN, server discovery).
+- `:feature:dashboard` — role-based parent/child UI (MVI: `DashboardState`/`Action`/`Event`, Koin `dashboardModule`).
+- `:app:shared` — shared UI/navigation orchestration.
+- `:app:androidApp` / `:app:desktopApp` — platform entry points.
+- `:server` — Ktor backend (SQLite/Exposed).
+- `:build-logic` — convention plugins (`familychore.*`).
+
+## Repositories (examples)
+- Domain interfaces in `core/domain/repository`; `Impl` classes in `core/data/repository`.
+- Koin bindings: `singleOf(::Impl) { bind<Interface>() }` — common bindings in `coreModule`, platform ones (Context-dependent) in `platformModule`.
+- Naming: `AndroidServerDiscovery`, `AndroidHardwareAvailabilityRepository` (platform prefix), `ConnectivityRepositoryImpl`, `ProfilePictureRepositoryImpl` (shared).
+
+## Test Conventions
+- JUnit5 + AssertK + Turbine + `UnconfinedTestDispatcher`.
+- Fakes (not mocks) for repo deps — e.g. `FakeHardwareAvailabilityRepository`, `FakeProfilePictureRepository`.
+- Run: `:feature:dashboard:allTests`, `:core:allTests` (JVM tests key; known pre-existing iOS `DataStoreTokenStorageTest` failures are relative-path issues, unrelated).

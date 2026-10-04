@@ -41,6 +41,7 @@ sealed interface DashboardState {
         val isServerReachable: Boolean = true,
         val isOfflineMode: Boolean = false,
         val isRefreshing: Boolean = false,
+        val isCameraAvailable: Boolean = false,
         val addChoreForm: AddChoreFormState = AddChoreFormState(),
         val addMemberForm: AddMemberFormState = AddMemberFormState(),
         val inviteQrContent: String? = null,

@@ -346,7 +346,11 @@ fun FamilyManagementContent(
         if (state.showPresetPicker) {
             PresetPickerDialog(target = target, onAction = onAction)
         } else if (!state.showCameraCapture) {
-            PictureSourceDialog(target = target, onAction = onAction)
+            PictureSourceDialog(
+                target = target,
+                isCameraAvailable = state.isCameraAvailable,
+                onAction = onAction,
+            )
         }
     }
 

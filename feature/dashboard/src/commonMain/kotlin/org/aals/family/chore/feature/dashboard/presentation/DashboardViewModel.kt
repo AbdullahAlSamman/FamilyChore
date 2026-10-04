@@ -29,6 +29,7 @@ import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.ChoreRepository
+import org.aals.family.chore.core.domain.repository.HardwareAvailabilityRepository
 import org.aals.family.chore.core.domain.repository.ProfilePictureRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.repository.TransactionRepository
@@ -58,6 +59,7 @@ class DashboardViewModel(
     private val observeConnectivityUseCase: ObserveConnectivityUseCase,
     private val tokenStorage: TokenStorage,
     private val profilePictureRepository: ProfilePictureRepository,
+    private val hardwareAvailabilityRepository: HardwareAvailabilityRepository,
     private val logger: Logger,
     private val timeProvider: TimeProvider,
 ) : ViewModel() {
@@ -520,6 +522,7 @@ class DashboardViewModel(
                         currentTab = currentTab,
                         isOfflineMode = isOffline,
                         isRefreshing = false,
+                        isCameraAvailable = hardwareAvailabilityRepository.hasCamera(),
                         addChoreForm = previousSuccessState?.addChoreForm ?: AddChoreFormState(),
                         addMemberForm = previousSuccessState?.addMemberForm ?: AddMemberFormState(),
                         inviteQrContent = previousSuccessState?.inviteQrContent,

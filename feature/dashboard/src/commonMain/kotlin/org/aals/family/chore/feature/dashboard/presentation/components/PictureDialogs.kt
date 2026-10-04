@@ -39,7 +39,6 @@ import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.presentation.components.MemberAvatarPresets
 import org.aals.family.chore.core.presentation.components.PresetAvatar
-import org.aals.family.chore.core.presentation.permissions.rememberCameraAvailability
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
 import org.jetbrains.compose.resources.stringResource
 
@@ -51,6 +50,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun PictureSourceDialog(
     target: User,
+    isCameraAvailable: Boolean,
     onAction: (DashboardAction) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -70,8 +70,6 @@ fun PictureSourceDialog(
             }
         },
     )
-    val isCameraAvailable = rememberCameraAvailability()
-
     Dialog(onDismissRequest = { onAction(DashboardAction.DismissPictureSourceDialog) }) {
         Card {
             Column(modifier = Modifier.padding(16.dp)) {

@@ -4,18 +4,26 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 
 @Composable
-actual fun RequestCameraPermission(
-    trigger: Any,
-    onResult: (Boolean) -> Unit
-) {
+actual fun rememberCameraPermissionManager(): CameraPermissionManager {
+    var onResultCallback: ((Boolean) -> Unit)? = null
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
-        onResult = onResult
+        onResult = { granted ->
+            onResultCallback?.invoke(granted)
+            onResultCallback = null
+        }
     )
-    LaunchedEffect(trigger) {
-        launcher.launch(Manifest.permission.CAMERA)
+
+    return remember(launcher) {
+        object : CameraPermissionManager {
+            override fun requestPermission(onResult: (Boolean) -> Unit) {
+                onResultCallback = onResult
+                launcher.launch(Manifest.permission.CAMERA)
+            }
+        }
     }
 }

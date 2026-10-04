@@ -68,7 +68,7 @@ import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.presentation.components.CameraCaptureView
 import org.aals.family.chore.core.presentation.components.MemberAvatar
-import org.aals.family.chore.core.presentation.permissions.RequestCameraPermission
+import org.aals.family.chore.core.presentation.permissions.rememberCameraPermissionManager
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
 import org.aals.family.chore.feature.dashboard.presentation.DashboardState
 import org.jetbrains.compose.resources.stringResource
@@ -353,12 +353,13 @@ fun FamilyManagementContent(
             )
         }
     }
+    
+    val permissionManager = rememberCameraPermissionManager()
 
     if (state.cameraPermissionRequestCount > 0) {
-        RequestCameraPermission(
-            trigger = state.cameraPermissionRequestCount,
-            onResult = { granted -> onAction(DashboardAction.OnCameraPermissionResult(granted)) }
-        )
+        permissionManager.requestPermission { granted ->
+            onAction(DashboardAction.OnCameraPermissionResult(granted))
+        }
     }
 
     if (state.showCameraCapture && state.pictureTarget != null) {

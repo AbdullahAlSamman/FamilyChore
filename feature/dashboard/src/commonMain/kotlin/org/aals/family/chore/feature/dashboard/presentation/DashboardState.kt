@@ -45,6 +45,8 @@ sealed interface DashboardState {
         val addMemberForm: AddMemberFormState = AddMemberFormState(),
         val inviteQrContent: String? = null,
         val pinSetupTarget: User? = null,
+        val pinSetupDraft: String = "",
+        val isPinSetupVisible: Boolean = false,
         val pinSetupError: UiText? = null,
         val pinSetupSaving: Boolean = false,
         val isPinChangeMode: Boolean = false,

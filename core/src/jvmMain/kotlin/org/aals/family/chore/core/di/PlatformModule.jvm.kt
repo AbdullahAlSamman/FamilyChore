@@ -7,8 +7,10 @@ import org.aals.family.chore.core.data.local.DatabaseFactory
 import org.aals.family.chore.core.data.local.FamilyDatabase
 import org.aals.family.chore.core.data.local.FamilyDatabaseConstructor
 import org.aals.family.chore.core.data.local.ProfilePictureStorage
+import org.aals.family.chore.core.data.repository.JvmHardwareAvailabilityRepository
 import org.aals.family.chore.core.domain.discovery.JvmServerDiscovery
 import org.aals.family.chore.core.domain.discovery.ServerDiscovery
+import org.aals.family.chore.core.domain.repository.HardwareAvailabilityRepository
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
@@ -18,6 +20,7 @@ import java.io.File
 actual val platformModule: Module = module {
     single { OkHttp.create() }
     singleOf(::JvmServerDiscovery) { bind<ServerDiscovery>() }
+    singleOf(::JvmHardwareAvailabilityRepository) { bind<HardwareAvailabilityRepository>() }
     single {
         DataStoreFactory.create(
             producePath = {

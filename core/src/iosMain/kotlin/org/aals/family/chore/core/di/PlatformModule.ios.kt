@@ -8,8 +8,10 @@ import org.aals.family.chore.core.data.local.DatabaseFactory
 import org.aals.family.chore.core.data.local.FamilyDatabase
 import org.aals.family.chore.core.data.local.FamilyDatabaseConstructor
 import org.aals.family.chore.core.data.local.ProfilePictureStorage
+import org.aals.family.chore.core.data.repository.IosHardwareAvailabilityRepository
 import org.aals.family.chore.core.domain.discovery.IosServerDiscovery
 import org.aals.family.chore.core.domain.discovery.ServerDiscovery
+import org.aals.family.chore.core.domain.repository.HardwareAvailabilityRepository
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.singleOf
@@ -23,6 +25,7 @@ import platform.Foundation.NSUserDomainMask
 actual val platformModule: Module = module {
     single { Darwin.create() }
     singleOf(::IosServerDiscovery) { bind<ServerDiscovery>() }
+    singleOf(::IosHardwareAvailabilityRepository) { bind<HardwareAvailabilityRepository>() }
     single {
         DataStoreFactory.create(
             producePath = {

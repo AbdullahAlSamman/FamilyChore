@@ -13,6 +13,7 @@ import kotlinx.coroutines.test.setMain
 import org.aals.family.chore.core.domain.model.AppLanguage
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
+import org.aals.family.chore.core.domain.repository.HardwareAvailabilityRepository
 import org.aals.family.chore.core.domain.repository.ProfilePictureRepository
 import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.core.domain.util.DataError
@@ -37,6 +38,7 @@ class DashboardViewModelTest {
     private lateinit var observeConnectivityUseCase: ObserveConnectivityUseCase
     private lateinit var timeProvider: FakeTimeProvider
     private lateinit var profilePictureRepository: FakeProfilePictureRepository
+    private lateinit var hardwareAvailabilityRepository: FakeHardwareAvailabilityRepository
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @BeforeTest
@@ -50,6 +52,7 @@ class DashboardViewModelTest {
         observeConnectivityUseCase = ObserveConnectivityUseCase(tokenStorage, connectivityRepository)
         timeProvider = FakeTimeProvider()
         profilePictureRepository = FakeProfilePictureRepository()
+        hardwareAvailabilityRepository = FakeHardwareAvailabilityRepository()
         
         // Default mock setup
         authRepository.currentUser = User("parent1", "family1", "Parent", UserRole.PARENT)
@@ -65,6 +68,7 @@ class DashboardViewModelTest {
             observeConnectivityUseCase = observeConnectivityUseCase,
             tokenStorage = tokenStorage,
             profilePictureRepository = profilePictureRepository,
+            hardwareAvailabilityRepository = hardwareAvailabilityRepository,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider
         )
@@ -348,6 +352,7 @@ class DashboardViewModelTest {
             observeConnectivityUseCase = observeConnectivityUseCase,
             tokenStorage = tokenStorage,
             profilePictureRepository = profilePictureRepository,
+            hardwareAvailabilityRepository = hardwareAvailabilityRepository,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider
         )
@@ -428,6 +433,7 @@ class DashboardViewModelTest {
             observeConnectivityUseCase = observeConnectivityUseCase,
             tokenStorage = tokenStorage,
             profilePictureRepository = profilePictureRepository,
+            hardwareAvailabilityRepository = hardwareAvailabilityRepository,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider
         )
@@ -572,6 +578,12 @@ class DashboardViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+}
+
+private class FakeHardwareAvailabilityRepository : HardwareAvailabilityRepository {
+    var hasCameraResult: Boolean = true
+
+    override fun hasCamera(): Boolean = hasCameraResult
 }
 
 private class FakeProfilePictureRepository : ProfilePictureRepository {

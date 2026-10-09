@@ -4,8 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
-import familychore.core.generated.resources.Res
-import familychore.core.generated.resources.auth_pin_invalid_length_error
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,6 +13,7 @@ import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
+import org.aals.family.chore.core.domain.validation.AuthValidator
 import org.aals.family.chore.core.presentation.UiText
 import org.aals.family.chore.core.presentation.toUiText
 
@@ -80,10 +79,11 @@ class PinEntryViewModel(
                 }
             }
             PinEntryAction.OnSubmit -> {
-                if (currentState.pin.length in 4..8) {
+                val pinError = AuthValidator.validatePin(currentState.pin)
+                if (pinError == null) {
                     submitPin()
                 } else {
-                    _state.value = currentState.copy(error = UiText.StringResource(Res.string.auth_pin_invalid_length_error))
+                    _state.value = currentState.copy(error = pinError.toUiText())
                 }
             }
             PinEntryAction.OnBackClick -> Unit

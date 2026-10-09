@@ -15,12 +15,16 @@ import kotlinx.coroutines.launch
 import org.aals.family.chore.core.domain.discovery.DiscoveredServer
 import org.aals.family.chore.core.domain.discovery.ServerDiscovery
 import org.aals.family.chore.core.domain.repository.TokenStorage
+import org.aals.family.chore.core.domain.validation.DiscoveryValidator
+import org.aals.family.chore.core.presentation.UiText
+import org.aals.family.chore.core.presentation.toUiText
 
 data class ServerDiscoveryState(
     val discoveredServers: List<DiscoveredServer> = emptyList(),
     val isScanning: Boolean = false,
     val manualUrl: String = "http://10.0.2.2:8080",
-    val isErrorMode: Boolean = false
+    val isErrorMode: Boolean = false,
+    val urlError: UiText? = null
 )
 
 sealed interface ServerDiscoveryAction {
@@ -94,12 +98,17 @@ class ServerDiscoveryViewModel(
                 startScanning()
             }
             is ServerDiscoveryAction.OnManualUrlChange -> {
-                _state.update { it.copy(manualUrl = action.url) }
+                _state.update { it.copy(manualUrl = action.url, urlError = null) }
             }
             ServerDiscoveryAction.OnConnectManualClick -> {
+                val urlError = DiscoveryValidator.validateUrl(state.value.manualUrl)
+                if (urlError != null) {
+                    _state.update { it.copy(urlError = urlError.toUiText()) }
+                    return
+                }
                 logger.d { "Connecting manually to: ${state.value.manualUrl}" }
                 viewModelScope.launch {
-                    tokenStorage.saveServerUrl(state.value.manualUrl)
+                    tokenStorage.saveServerUrl(DiscoveryValidator.normalizeServerUrl(state.value.manualUrl))
                     tokenStorage.saveServerName("Manual Server")
                     _events.send(ServerDiscoveryEvent.NavigateToWelcome)
                 }

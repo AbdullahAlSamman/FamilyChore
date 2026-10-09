@@ -190,15 +190,19 @@ fun ServerDiscoveryScreen(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                OutlinedTextField(
-                    value = state.manualUrl,
-                    onValueChange = { onAction(ServerDiscoveryAction.OnManualUrlChange(it)) },
-                    label = { Text(stringResource(Res.string.discovery_url_label)) },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    OutlinedTextField(
+                        value = state.manualUrl,
+                        onValueChange = { onAction(ServerDiscoveryAction.OnManualUrlChange(it)) },
+                        label = { Text(stringResource(Res.string.discovery_url_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        isError = state.urlError != null,
+                        supportingText = state.urlError?.let { { Text(it.asString()) } }
+                    )
+                }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = { onAction(ServerDiscoveryAction.OnConnectManualClick) },

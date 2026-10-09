@@ -32,17 +32,20 @@
     <!-- Validation Errors - Auth -->
     <string name="auth_family_name_empty_error">Family name cannot be empty</string>
     <string name="auth_family_name_too_short_error">Family name is too short (min 3 chars)</string>
-    <string name="auth_family_name_invalid_error">Family name must contain letters and only alphanumeric characters</string>
+    <string name="auth_family_name_too_long_error">Family name is too long (max 80 chars)</string>
+    <string name="auth_family_name_invalid_error">Family name must contain letters and only spaces</string>
     <string name="auth_nickname_empty_error">Nickname cannot be empty</string>
     <string name="auth_nickname_too_short_error">Nickname is too short (min 2 chars)</string>
-    <string name="auth_nickname_invalid_error">Nickname must contain letters and only alphanumeric characters</string>
+    <string name="auth_nickname_too_long_error">Nickname is too long (max 40 chars)</string>
+    <string name="auth_nickname_invalid_error">Nickname must contain letters only</string>
     <string name="auth_pin_invalid_length_error">PIN must be between 4 and 8 digits</string>
     <string name="auth_pin_not_digits_error">PIN must contain only digits</string>
 
     <!-- Validation Errors - Chore -->
     <string name="chore_name_empty_error">Chore name cannot be empty</string>
     <string name="chore_name_too_short_error">Chore name is too short (min 3 chars)</string>
-    <string name="chore_name_invalid_error">Chore name must contain letters and only alphanumeric characters</string>
+    <string name="chore_name_too_long_error">Chore name is too long (max 80 chars)</string>
+    <string name="chore_name_invalid_error">Chore name must contain letters and numbers only</string>
     <string name="chore_points_negative_error">Points cannot be negative</string>
     <string name="chore_points_zero_error">Points must be greater than zero</string>
     <string name="chore_points_too_high_error">Points too high (max 1000)</string>
@@ -57,6 +60,8 @@
     <string name="discovery_instruction">Ensure your server is running and on the same Wi-Fi network.</string>
     <string name="discovery_manual_title">Connect Manually</string>
     <string name="discovery_url_label">Server URL</string>
+    <string name="discovery_url_empty_error">Server address cannot be empty</string>
+    <string name="discovery_url_invalid_error">Enter a valid address, e.g. 192.168.1.2:2222</string>
 
     <!-- Welcome -->
     <string name="welcome_title_to">Welcome to %1$s</string>

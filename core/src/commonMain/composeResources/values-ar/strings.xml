@@ -32,16 +32,19 @@
     <!-- Validation Errors - Auth -->
     <string name="auth_family_name_empty_error">اسم العائلة لا يمكن أن يكون فارغاً</string>
     <string name="auth_family_name_too_short_error">اسم العائلة قصير جداً (3 أحرف على الأقل)</string>
-    <string name="auth_family_name_invalid_error">يجب أن يحتوي اسم العائلة على أحرف وأرقام فقط</string>
+    <string name="auth_family_name_too_long_error">اسم العائلة طويل جداً (80 حرفاً كحد أقصى)</string>
+    <string name="auth_family_name_invalid_error">يجب أن يحتوي اسم العائلة على أحرف ومسافات فقط</string>
     <string name="auth_nickname_empty_error">اللقب لا يمكن أن يكون فارغاً</string>
     <string name="auth_nickname_too_short_error">اللقب قصير جداً (حرفان على الأقل)</string>
-    <string name="auth_nickname_invalid_error">يجب أن يحتوي اللقب على أحرف وأرقام فقط</string>
+    <string name="auth_nickname_too_long_error">اللقب طويل جداً (40 حرفاً كحد أقصى)</string>
+    <string name="auth_nickname_invalid_error">يجب أن يحتوي اللقب على أحرف فقط</string>
     <string name="auth_pin_invalid_length_error">يجب أن يتكون رمز PIN من 4 إلى 8 أرقام</string>
     <string name="auth_pin_not_digits_error">يجب أن يحتوي رمز PIN على أرقام فقط</string>
 
     <!-- Validation Errors - Chore -->
     <string name="chore_name_empty_error">اسم المهمة لا يمكن أن يكون فارغاً</string>
     <string name="chore_name_too_short_error">اسم المهمة قصير جداً (3 أحرف على الأقل)</string>
+    <string name="chore_name_too_long_error">اسم المهمة طويل جداً (80 حرفاً كحد أقصى)</string>
     <string name="chore_name_invalid_error">يجب أن يحتوي اسم المهمة على أحرف وأرقام فقط</string>
     <string name="chore_points_negative_error">النقاط لا يمكن أن تكون سالبة</string>
     <string name="chore_points_zero_error">يجب أن تكون النقاط أكبر من الصفر</string>
@@ -57,6 +60,8 @@
     <string name="discovery_instruction">تأكد من أن الخادم الخاص بك يعمل وموجود على نفس شبكة Wi-Fi.</string>
     <string name="discovery_manual_title">الاتصال يدوياً</string>
     <string name="discovery_url_label">عنوان الخادم</string>
+    <string name="discovery_url_empty_error">عنوان الخادم لا يمكن أن يكون فارغاً</string>
+    <string name="discovery_url_invalid_error">أدخل عنواناً صالحاً، مثال: 192.168.1.2:2222</string>
 
     <!-- Welcome -->
     <string name="welcome_title_to">مرحباً بك في %1$s</string>

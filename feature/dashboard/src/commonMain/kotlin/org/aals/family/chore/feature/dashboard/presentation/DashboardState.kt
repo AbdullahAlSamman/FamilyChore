@@ -22,6 +22,7 @@ data class AddMemberFormState(
     val nicknameError: UiText? = null,
     val role: UserRole = UserRole.CHILD,
     val pin: String = "",
+    val pinError: UiText? = null,
     val isAdding: Boolean = false,
 )
 

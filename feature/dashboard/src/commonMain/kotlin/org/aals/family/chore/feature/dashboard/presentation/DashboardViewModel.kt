@@ -108,7 +108,7 @@ class DashboardViewModel(
                 updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(role = action.role)) }
             }
             is DashboardAction.OnNewMemberPinChange -> {
-                updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(pin = action.pin)) }
+                updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(pin = action.pin, pinError = null)) }
             }
             is DashboardAction.AddMember -> addMember(action.nickname, action.role, action.pin)
             is DashboardAction.UpdateUserPinRequirement -> {
@@ -265,11 +265,20 @@ class DashboardViewModel(
             return
         }
 
-        // For Parent, PIN is mandatory
+        // For Parent, PIN is mandatory and must be valid
         if (role == UserRole.PARENT && pin.isNullOrBlank()) {
-            // Should show PIN error, but for now just log
-            logger.e { "Parent requires a PIN" }
+            updateSuccessState {
+                it.copy(addMemberForm = it.addMemberForm.copy(pinError = AuthValidator.validatePin("")?.toUiText()))
+            }
             return
+        }
+
+        if (!pin.isNullOrBlank()) {
+            val pinError = AuthValidator.validatePin(pin)
+            if (pinError != null) {
+                updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(pinError = pinError.toUiText())) }
+                return
+            }
         }
 
         val requiresPin = role == UserRole.PARENT || !pin.isNullOrBlank()
@@ -278,7 +287,7 @@ class DashboardViewModel(
             updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(isAdding = true)) }
             authRepository.addFamilyMember(currentState.user.familyId, nickname, role, pin, requiresPin)
                 .onSuccess { newUser ->
-                    updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(isAdding = false, nickname = "", pin = "")) }
+                    updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(isAdding = false, nickname = "", pin = "", pinError = null, nicknameError = null)) }
                     loadDashboardData(isRefreshing = true) // Refresh members
                     if (!currentState.isOfflineMode) {
                         showInviteQr(newUser.id)

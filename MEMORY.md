@@ -10,7 +10,7 @@
 - Don't commit until you have been asked to.
 
 ## Data Entry & Validation
-- **Domain-Level SSOT**: All validation logic MUST reside in the `core:domain` layer (e.g., `ChoreValidator`).
+- **Domain-Level SSOT**: All validation logic MUST reside in the `core:domain` layer (e.g., `ChoreValidator`). Multi-language letter support is REQUIRED (Unicode letters) for all name-like fields.
 - **Standardized Error Types**: Validators MUST return domain-specific error types inheriting from `core.domain.util.Error`.
 - **Presentation Mapping**: Domain errors MUST be mapped to `UiText` in the presentation layer via `ValidationMappers.kt`.
 - **Zero Plain-Text Persistence**: Sensitive data (like PINs) MUST NEVER be saved to any database (local or server) in plain text. Hashing (SHA-256) MUST occur at the Repository level before any storage or network transmission.
@@ -18,10 +18,27 @@
 - **Server Parity**: Server-side routes MUST implement mirror validation logic. If validation fails, the server MUST respond with `HttpStatusCode.BadRequest` (400) and a structured `ErrorResponse` detailing the validation errors.
 - **Client-Side Handling**: The client `SafeCall` mechanism MUST be able to parse server-side validation errors and map them to `DataError.Network.VALIDATION_ERROR`.
 
+## Field Validation Rules (Single Source of Truth)
+All user input MUST follow these rules. They apply across **all platforms** (Android, Desktop) and the **server** because validation lives in shared `core:domain`.
+- **Multi-Language**: Letter fields accept letters of ANY language (Unicode letters), plus allowed separators below.
+
+| Field | Allowed | Max Length | Notes |
+| --- | --- | --- | --- |
+| `familyName` | letters (any language) + spaces | 80 | at least one letter required |
+| `parentNickname` | letters (any language) only | 40 | at least one letter required |
+| `nickname` (member) | letters (any language) only | 40 | at least one letter required |
+| `pin` | digits only | 8 | length must be 4-8; hashed (SHA-256) before persistence/network |
+| `choreName` | letters (any language) + numbers | 80 | at least one letter or number required |
+| `chorePoints` | integer | n/a | must be > 0 and <= 1000 |
+| `manualUrl` | IPv4 + port | n/a | regex format `IPv4:port` (e.g. `192.168.1.2:2222`) |
+
+> [!IMPORTANT]
+> Any FUTURE input field MUST follow this convention: add its rules to this table and place its validator in `core:domain/validation`.
+
 ## Implementation rules
 - Features should be always implemented by the skill set available to you, with complete layers data, domain, ui.
 - Always localize ui layer with English and Arabic following localization skill.
-- **Any field or data entry should be validated before submission.**
+- **Any field or data entry should be validated before submission.** Follow the `android-validation` skill.
 - Use sealed interfaces/classes as state no data class.
 - Each transaction with server side should be logged and audited followup on issues.
 

@@ -91,6 +91,7 @@ fun CreateFamilyScreen(
                 onValueChange = { onAction(CreateFamilyAction.OnFamilyNameChange(it)) },
                 label = { Text(stringResource(Res.string.create_family_name_label)) },
                 modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
                 isError = state.familyNameError != null,
                 supportingText = state.familyNameError?.let { { Text(it.asString()) } }
             )
@@ -100,6 +101,7 @@ fun CreateFamilyScreen(
                 onValueChange = { onAction(CreateFamilyAction.OnParentNicknameChange(it)) },
                 label = { Text(stringResource(Res.string.create_family_nickname_label)) },
                 modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
                 isError = state.nicknameError != null,
                 supportingText = state.nicknameError?.let { { Text(it.asString()) } }
             )

@@ -186,6 +186,7 @@ fun ParentTasksContent(
                             onAction(DashboardAction.OnChoreNameChange(it)) 
                         },
                         label = { Text(stringResource(Res.string.task_management_name_label)) },
+                        singleLine = true,
                         isError = state.addChoreForm.nameError != null,
                         supportingText = { state.addChoreForm.nameError?.let { Text(it.asString()) } }
                     )
@@ -196,6 +197,8 @@ fun ParentTasksContent(
                             onAction(DashboardAction.OnChorePointsChange(it))
                         },
                         label = { Text(stringResource(Res.string.task_management_points_label)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         isError = state.addChoreForm.pointsError != null,
                         supportingText = { state.addChoreForm.pointsError?.let { Text(it.asString()) } }
                     )
@@ -280,6 +283,7 @@ fun FamilyManagementContent(
                     onValueChange = { onAction(DashboardAction.OnMemberNicknameChange(it)) },
                     label = { Text(stringResource(Res.string.family_management_nickname_label)) },
                     modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
                     isError = addMemberForm.nicknameError != null,
                     supportingText = { addMemberForm.nicknameError?.let { Text(it.asString()) } }
                 )
@@ -295,7 +299,10 @@ fun FamilyManagementContent(
                         Text("${stringResource(Res.string.pin_label)} ($hint)") 
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    isError = addMemberForm.pinError != null,
+                    supportingText = { addMemberForm.pinError?.let { Text(it.asString()) } },
                     visualTransformation = if (pinVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         val image = if (pinVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff

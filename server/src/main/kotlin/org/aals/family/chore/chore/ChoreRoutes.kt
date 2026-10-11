@@ -65,7 +65,16 @@ fun Route.choreRoutes(choreRepository: ChoreRepository) {
                 assignedTo = request.assignedTo,
                 createdBy = request.createdBy,
                 createdAt = now,
-                updatedAt = now
+                updatedAt = now,
+                recurrence = request.recurrence,
+                activeDays = request.activeDays,
+                activeWindowStart = request.activeWindowStart,
+                activeWindowEnd = request.activeWindowEnd,
+                penalty = request.penalty,
+                requiresPhotoProof = request.requiresPhotoProof,
+                iconName = request.iconName,
+                parentChoreId = request.parentChoreId,
+                dueDate = request.dueDate
             )
             val createdChore = choreRepository.createChore(chore)
             call.respond(HttpStatusCode.Created, createdChore.toDto())
@@ -102,5 +111,14 @@ fun Chore.toDto(): ChoreDto = ChoreDto(
     assignedTo = assignedTo,
     createdBy = createdBy,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    recurrence = recurrence,
+    activeDays = activeDays,
+    activeWindowStart = activeWindowStart,
+    activeWindowEnd = activeWindowEnd,
+    penalty = penalty,
+    requiresPhotoProof = requiresPhotoProof,
+    iconName = iconName,
+    parentChoreId = parentChoreId,
+    dueDate = dueDate
 )

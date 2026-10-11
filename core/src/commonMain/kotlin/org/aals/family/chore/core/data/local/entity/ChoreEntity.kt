@@ -13,5 +13,14 @@ data class ChoreEntity(
     val assignedTo: String,
     val createdBy: String,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt: Long,
+    val recurrence: String = "NONE", // Recurrence enum name
+    val activeDays: String = "", // Comma-separated list of integers
+    val activeWindowStart: Int? = null,
+    val activeWindowEnd: Int? = null,
+    val penalty: Int = 0,
+    val requiresPhotoProof: Boolean = false,
+    val iconName: String? = null,
+    val parentChoreId: String? = null,
+    val dueDate: Long? = null
 )

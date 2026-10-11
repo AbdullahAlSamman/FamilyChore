@@ -95,6 +95,9 @@ class DashboardViewModel(
             }
             is DashboardAction.AwardPoints -> awardPoints(action.targetUserId, action.item)
             is DashboardAction.CreateChore -> createChore(action)
+            is DashboardAction.RequestApproval -> requestApproval(action.choreId)
+            is DashboardAction.ApproveChore -> approveChore(action.choreId, action.targetUserId)
+            is DashboardAction.DeclineChore -> declineChore(action.choreId, action.targetUserId)
             is DashboardAction.OnChoreNameChange -> {
                 updateSuccessState { it.copy(addChoreForm = it.addChoreForm.copy(nameError = null)) }
             }
@@ -450,7 +453,16 @@ class DashboardViewModel(
                 assignedTo = action.assignedTo,
                 createdBy = currentState.user.id,
                 createdAt = now,
-                updatedAt = now
+                updatedAt = now,
+                recurrence = action.recurrence,
+                activeDays = action.activeDays,
+                activeWindowStart = action.activeWindowStart,
+                activeWindowEnd = action.activeWindowEnd,
+                penalty = action.penalty,
+                requiresPhotoProof = action.requiresPhotoProof,
+                iconName = action.iconName,
+                parentChoreId = null,
+                dueDate = null
             )
             // Clear errors before attempting to save
             updateSuccessState {
@@ -466,6 +478,88 @@ class DashboardViewModel(
                 .onFailure { error ->
                     logger.e { "Failed to create chore: $error" }
                 }
+        }
+    }
+
+    private fun requestApproval(choreId: String) {
+        val currentState = _state.value as? DashboardState.Success ?: return
+        viewModelScope.launch {
+            choreRepository.updateChoreStatus(
+                familyId = currentState.user.familyId,
+                choreId = choreId,
+                newStatus = ChoreStatus.PENDING_APPROVAL,
+                adminId = currentState.user.id
+            ).onFailure { error ->
+                logger.e { "Failed to request approval: $error" }
+            }
+        }
+    }
+
+    private fun approveChore(choreId: String, targetUserId: String) {
+        val currentState = _state.value as? DashboardState.Success ?: return
+        viewModelScope.launch {
+            choreRepository.updateChoreStatus(
+                familyId = currentState.user.familyId,
+                choreId = choreId,
+                newStatus = ChoreStatus.APPROVED,
+                adminId = currentState.user.id
+            ).onSuccess {
+                val chore = currentState.chores.find { it.id == choreId }
+                if (chore != null && chore.points > 0) {
+                    val now = timeProvider.now()
+                    val transaction = Transaction(
+                        id = "tr_${targetUserId}_${choreId}_$now",
+                        familyId = currentState.user.familyId,
+                        userId = targetUserId,
+                        adminId = currentState.user.id,
+                        amount = chore.points,
+                        type = TransactionType.BONUS,
+                        timestamp = now,
+                        note = "Chore Approved: ${chore.name}"
+                    )
+                    transactionRepository.addTransaction(transaction)
+                }
+            }.onFailure { error ->
+                logger.e { "Failed to approve chore: $error" }
+            }
+        }
+    }
+
+    private fun declineChore(choreId: String, targetUserId: String) {
+        val currentState = _state.value as? DashboardState.Success ?: return
+        viewModelScope.launch {
+            val chore = currentState.chores.find { it.id == choreId } ?: return@launch
+            
+            // Check time window. If passed, REJECTED. Else PENDING.
+            val now = timeProvider.now()
+            // Simplified check: if it has an activeWindowEnd, we'd check it. For now, we revert to PENDING.
+            // A more complex check requires mapping now to minutes from midnight.
+            val isWindowPassed = false // TODO: implement precise window check
+            
+            val newStatus = if (isWindowPassed) ChoreStatus.REJECTED else ChoreStatus.PENDING
+            
+            choreRepository.updateChoreStatus(
+                familyId = currentState.user.familyId,
+                choreId = choreId,
+                newStatus = newStatus,
+                adminId = currentState.user.id
+            ).onSuccess {
+                if (newStatus == ChoreStatus.REJECTED && chore.penalty > 0) {
+                    val transaction = Transaction(
+                        id = "tr_${targetUserId}_${choreId}_$now",
+                        familyId = currentState.user.familyId,
+                        userId = targetUserId,
+                        adminId = currentState.user.id,
+                        amount = -chore.penalty,
+                        type = TransactionType.PENALTY,
+                        timestamp = now,
+                        note = "Chore Missed/Declined: ${chore.name}"
+                    )
+                    transactionRepository.addTransaction(transaction)
+                }
+            }.onFailure { error ->
+                logger.e { "Failed to decline chore: $error" }
+            }
         }
     }
 

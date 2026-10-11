@@ -53,7 +53,16 @@ class ChoreRepositoryImpl(
             description = chore.description,
             points = chore.points,
             assignedTo = chore.assignedTo,
-            createdBy = chore.createdBy
+            createdBy = chore.createdBy,
+            recurrence = chore.recurrence,
+            activeDays = chore.activeDays,
+            activeWindowStart = chore.activeWindowStart,
+            activeWindowEnd = chore.activeWindowEnd,
+            penalty = chore.penalty,
+            requiresPhotoProof = chore.requiresPhotoProof,
+            iconName = chore.iconName,
+            parentChoreId = chore.parentChoreId,
+            dueDate = chore.dueDate
         )
         
         return choreDataSource.createChore(request).map { Unit }
@@ -115,7 +124,16 @@ fun ChoreDto.toChore(): Chore = Chore(
     assignedTo = assignedTo,
     createdBy = createdBy,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    recurrence = recurrence,
+    activeDays = activeDays,
+    activeWindowStart = activeWindowStart,
+    activeWindowEnd = activeWindowEnd,
+    penalty = penalty,
+    requiresPhotoProof = requiresPhotoProof,
+    iconName = iconName,
+    parentChoreId = parentChoreId,
+    dueDate = dueDate
 )
 
 fun ChoreDto.toEntity(): ChoreEntity = ChoreEntity(
@@ -128,7 +146,16 @@ fun ChoreDto.toEntity(): ChoreEntity = ChoreEntity(
     assignedTo = assignedTo,
     createdBy = createdBy,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    recurrence = recurrence.name,
+    activeDays = activeDays.joinToString(","),
+    activeWindowStart = activeWindowStart,
+    activeWindowEnd = activeWindowEnd,
+    penalty = penalty,
+    requiresPhotoProof = requiresPhotoProof,
+    iconName = iconName,
+    parentChoreId = parentChoreId,
+    dueDate = dueDate
 )
 
 fun ChoreEntity.toChore(): Chore = Chore(
@@ -141,7 +168,16 @@ fun ChoreEntity.toChore(): Chore = Chore(
     assignedTo = assignedTo,
     createdBy = createdBy,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    recurrence = org.aals.family.chore.core.domain.model.Recurrence.valueOf(recurrence),
+    activeDays = activeDays.split(",").filter { it.isNotEmpty() }.map { it.toInt() },
+    activeWindowStart = activeWindowStart,
+    activeWindowEnd = activeWindowEnd,
+    penalty = penalty,
+    requiresPhotoProof = requiresPhotoProof,
+    iconName = iconName,
+    parentChoreId = parentChoreId,
+    dueDate = dueDate
 )
 
 fun Chore.toEntity(): ChoreEntity = ChoreEntity(
@@ -154,5 +190,14 @@ fun Chore.toEntity(): ChoreEntity = ChoreEntity(
     assignedTo = assignedTo,
     createdBy = createdBy,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    recurrence = recurrence.name,
+    activeDays = activeDays.joinToString(","),
+    activeWindowStart = activeWindowStart,
+    activeWindowEnd = activeWindowEnd,
+    penalty = penalty,
+    requiresPhotoProof = requiresPhotoProof,
+    iconName = iconName,
+    parentChoreId = parentChoreId,
+    dueDate = dueDate
 )

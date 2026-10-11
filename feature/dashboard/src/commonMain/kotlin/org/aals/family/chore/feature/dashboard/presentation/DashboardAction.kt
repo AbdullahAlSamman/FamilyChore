@@ -15,8 +15,20 @@ sealed interface DashboardAction {
         val name: String,
         val points: Int,
         val description: String?,
-        val assignedTo: String
+        val assignedTo: String,
+        val recurrence: org.aals.family.chore.core.domain.model.Recurrence = org.aals.family.chore.core.domain.model.Recurrence.NONE,
+        val activeDays: List<Int> = emptyList(),
+        val activeWindowStart: Int? = null,
+        val activeWindowEnd: Int? = null,
+        val penalty: Int = 0,
+        val requiresPhotoProof: Boolean = false,
+        val iconName: String? = null
     ) : DashboardAction
+
+    data class RequestApproval(val choreId: String) : DashboardAction
+    data class ApproveChore(val choreId: String, val targetUserId: String) : DashboardAction
+    data class DeclineChore(val choreId: String, val targetUserId: String) : DashboardAction
+
     data class OnChoreNameChange(val name: String) : DashboardAction
     data class OnChorePointsChange(val points: String) : DashboardAction
 

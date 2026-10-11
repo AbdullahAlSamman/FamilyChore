@@ -12,7 +12,16 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import org.aals.family.chore.auth.PairingManager
 import org.aals.family.chore.auth.pairingRoutes
+import io.ktor.server.websocket.WebSockets
+import io.ktor.server.websocket.pingPeriod
+import io.ktor.server.websocket.timeout
+import kotlin.time.Duration.Companion.seconds
 import org.aals.family.chore.chore.choreRoutes
+import org.aals.family.chore.chore.photoProofRoutes
+import org.aals.family.chore.chore.sync.ChoreSessionManager
+import org.aals.family.chore.chore.sync.choreSyncRoutes
+import org.aals.family.chore.storage.local.LocalDiskFileStorage
+import java.io.File
 import org.aals.family.chore.data.local.DatabaseFactory
 import org.aals.family.chore.data.repository.SqlChoreRepository
 import org.aals.family.chore.data.repository.SqlFamilyRepository
@@ -37,11 +46,19 @@ fun Application.module() {
     install(ContentNegotiation) {
         json()
     }
+    install(WebSockets) {
+        pingPeriod = 15.seconds
+        timeout = 15.seconds
+        maxFrameSize = Long.MAX_VALUE
+        masking = false
+    }
 
     val familyRepository = SqlFamilyRepository()
     val transactionRepository = SqlTransactionRepository()
     val choreRepository = SqlChoreRepository()
     val pairingManager = PairingManager()
+    val sessionManager = ChoreSessionManager()
+    val fileStorage = LocalDiskFileStorage(File("data/storage"))
 
     routing {
         get("/") {
@@ -50,6 +67,8 @@ fun Application.module() {
 
         pairingRoutes(familyRepository, pairingManager)
         transactionRoutes(transactionRepository)
-        choreRoutes(choreRepository)
+        choreRoutes(choreRepository, sessionManager)
+        choreSyncRoutes(sessionManager)
+        photoProofRoutes(fileStorage)
     }
 }

@@ -112,6 +112,12 @@ class ChoreRepositoryImpl(
             }
             .map { Unit }
     }
+
+    override fun observeRemoteChanges(familyId: String): Flow<Unit> {
+        return choreDataSource.observeChoreSync(familyId).flowMap { choreDto ->
+            choreDao.upsertChore(choreDto.toEntity())
+        }
+    }
 }
 
 fun ChoreDto.toChore(): Chore = Chore(

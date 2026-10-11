@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.ktor.serverCore)
     implementation(libs.ktor.serverNetty)
     implementation(libs.ktor.serverContentNegotiation)
+    implementation(libs.ktor.serverWebsockets)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.jmdns)
     implementation(libs.kermit)

@@ -20,7 +20,9 @@ import org.aals.family.chore.core.domain.validation.ChoreValidator
 import org.aals.family.chore.domain.repository.ChoreRepository
 import java.util.UUID
 
-fun Route.choreRoutes(choreRepository: ChoreRepository) {
+import org.aals.family.chore.chore.sync.ChoreSessionManager
+
+fun Route.choreRoutes(choreRepository: ChoreRepository, sessionManager: ChoreSessionManager) {
     route("/family/{familyId}/chores") {
         get {
             val familyId = call.parameters["familyId"] ?: return@get call.respond(HttpStatusCode.BadRequest)
@@ -77,7 +79,9 @@ fun Route.choreRoutes(choreRepository: ChoreRepository) {
                 dueDate = request.dueDate
             )
             val createdChore = choreRepository.createChore(chore)
-            call.respond(HttpStatusCode.Created, createdChore.toDto())
+            val choreDto = createdChore.toDto()
+            sessionManager.broadcastChoreUpdate(request.familyId, choreDto)
+            call.respond(HttpStatusCode.Created, choreDto)
         }
 
         patch("/{choreId}/status") {
@@ -93,6 +97,12 @@ fun Route.choreRoutes(choreRepository: ChoreRepository) {
             )
             
             if (success) {
+                // Fetch the updated chore to broadcast
+                val updatedChoreList = choreRepository.getChoresByFamily(familyId)
+                val updatedChore = updatedChoreList.find { it.id == choreId }
+                if (updatedChore != null) {
+                    sessionManager.broadcastChoreUpdate(familyId, updatedChore.toDto())
+                }
                 call.respond(HttpStatusCode.OK)
             } else {
                 call.respond(HttpStatusCode.NotFound)

@@ -19,4 +19,6 @@ interface ChoreRepository {
     ): Result<Unit, DataError>
     
     suspend fun syncChores(familyId: String): Result<Unit, DataError>
+    
+    fun observeRemoteChanges(familyId: String): Flow<Unit>
 }

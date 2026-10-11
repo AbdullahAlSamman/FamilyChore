@@ -25,8 +25,8 @@ class DataStoreTokenStorageTest {
     @BeforeTest
     fun setUp() {
         testScope = CoroutineScope(UnconfinedTestDispatcher() + Job())
-        // Use a unique path in the current directory for the test
-        testPath = "test_${kotlin.random.Random.nextInt()}.preferences_pb".toPath()
+        // Use a unique absolute path in /tmp for the test
+        testPath = "/tmp/test_${kotlin.random.Random.nextInt()}.preferences_pb".toPath()
         
         val dataStore = PreferenceDataStoreFactory.createWithPath(
             produceFile = { testPath },

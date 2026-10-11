@@ -58,3 +58,8 @@ data class UpdateChoreStatusRequest(
 data class ChoresResponse(
     val chores: List<ChoreDto>
 )
+
+@Serializable
+data class FileUploadResponseDto(
+    val fileId: String
+)

@@ -2,6 +2,7 @@ package org.aals.family.chore.feature.dashboard.presentation
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.model.Family
@@ -105,6 +106,7 @@ class FakeChoreRepository : ChoreRepository {
     }
     override suspend fun updateChoreStatus(familyId: String, choreId: String, newStatus: ChoreStatus, adminId: String?): Result<Unit, DataError> = Result.Success(Unit)
     override suspend fun syncChores(familyId: String): Result<Unit, DataError> = Result.Success(Unit)
+    override fun observeRemoteChanges(familyId: String): Flow<Unit> = emptyFlow()
 }
 
 class FakeConnectivityRepository : ConnectivityRepository {

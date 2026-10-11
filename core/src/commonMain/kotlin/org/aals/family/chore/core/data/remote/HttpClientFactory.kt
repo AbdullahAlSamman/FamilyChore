@@ -19,6 +19,8 @@ import kotlinx.serialization.json.Json
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import co.touchlab.kermit.Logger as KermitLogger
 
+import io.ktor.client.plugins.websocket.WebSockets
+
 object HttpClientFactory {
     fun create(
         engine: HttpClientEngine,
@@ -33,6 +35,8 @@ object HttpClientFactory {
                         ignoreUnknownKeys = true
                     }
                 )
+            }
+            install(WebSockets) {
             }
             install(Logging) {
                 logger = object : Logger {

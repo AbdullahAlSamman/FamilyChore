@@ -102,6 +102,7 @@ class FakeChoreRepository : ChoreRepository {
     override suspend fun createChore(chore: Chore): Result<Unit, DataError> = Result.Success(Unit)
     override suspend fun updateChoreStatus(familyId: String, choreId: String, newStatus: org.aals.family.chore.core.domain.model.ChoreStatus, adminId: String?): Result<Unit, DataError> = Result.Success(Unit)
     override suspend fun syncChores(familyId: String): Result<Unit, DataError> = Result.Success(Unit)
+    override fun observeRemoteChanges(familyId: String): Flow<Unit> = emptyFlow()
 }
 
 private class FakeProfilePictureRepository : ProfilePictureRepository {

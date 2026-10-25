@@ -33,6 +33,7 @@ import org.aals.family.chore.core.domain.repository.HardwareAvailabilityReposito
 import org.aals.family.chore.core.domain.repository.ProfilePictureRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.repository.TransactionRepository
+import org.aals.family.chore.core.domain.usecase.ChoreGenerationUseCase
 import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.core.domain.util.TimeProvider
 import org.aals.family.chore.core.domain.util.getOrElse
@@ -57,6 +58,7 @@ class DashboardViewModel(
     private val transactionRepository: TransactionRepository,
     private val choreRepository: ChoreRepository,
     private val observeConnectivityUseCase: ObserveConnectivityUseCase,
+    private val choreGenerationUseCase: ChoreGenerationUseCase,
     private val tokenStorage: TokenStorage,
     private val profilePictureRepository: ProfilePictureRepository,
     private val hardwareAvailabilityRepository: HardwareAvailabilityRepository,
@@ -103,6 +105,28 @@ class DashboardViewModel(
             }
             is DashboardAction.OnChorePointsChange -> {
                 updateSuccessState { it.copy(addChoreForm = it.addChoreForm.copy(pointsError = null)) }
+            }
+            is DashboardAction.OnChoreRecurrenceChange -> {
+                updateSuccessState { it.copy(addChoreForm = it.addChoreForm.copy(recurrence = action.recurrence)) }
+            }
+            is DashboardAction.OnChoreActiveDayToggle -> {
+                updateSuccessState { 
+                    val days = it.addChoreForm.activeDays.toMutableSet()
+                    if (days.contains(action.dayNumber)) days.remove(action.dayNumber) else days.add(action.dayNumber)
+                    it.copy(addChoreForm = it.addChoreForm.copy(activeDays = days))
+                }
+            }
+            is DashboardAction.OnChoreWindowStartChange -> {
+                updateSuccessState { it.copy(addChoreForm = it.addChoreForm.copy(activeWindowStart = action.time)) }
+            }
+            is DashboardAction.OnChoreWindowEndChange -> {
+                updateSuccessState { it.copy(addChoreForm = it.addChoreForm.copy(activeWindowEnd = action.time)) }
+            }
+            is DashboardAction.OnChorePenaltyChange -> {
+                updateSuccessState { it.copy(addChoreForm = it.addChoreForm.copy(penalty = action.penalty)) }
+            }
+            is DashboardAction.OnChoreRequiresPhotoProofToggle -> {
+                updateSuccessState { it.copy(addChoreForm = it.addChoreForm.copy(requiresPhotoProof = action.required)) }
             }
             is DashboardAction.OnMemberNicknameChange -> {
                 updateSuccessState { it.copy(addMemberForm = it.addMemberForm.copy(nickname = action.nickname, nicknameError = null)) }
@@ -188,7 +212,37 @@ class DashboardViewModel(
                 }
             }
             DashboardAction.CancelCameraCapture -> {
-                updateSuccessState { it.copy(showCameraCapture = false) }
+                updateSuccessState { it.copy(showCameraCapture = false, photoProofChoreId = null) }
+            }
+            is DashboardAction.StartPhotoProofCapture -> {
+                updateSuccessState { 
+                    it.copy(
+                        cameraPermissionRequestCount = it.cameraPermissionRequestCount + 1,
+                        photoProofChoreId = action.choreId 
+                    )
+                }
+            }
+            is DashboardAction.OnPhotoProofCaptured -> {
+                uploadPhotoProof(action.choreId, action.imageBytes)
+            }
+        }
+    }
+
+    private fun uploadPhotoProof(choreId: String, imageBytes: ByteArray) {
+        val currentState = _state.value as? DashboardState.Success ?: return
+        viewModelScope.launch {
+            updateSuccessState { it.copy(isSavingPicture = true, showCameraCapture = false) }
+            choreRepository.uploadPhotoProof(
+                familyId = currentState.user.familyId,
+                choreId = choreId,
+                fileName = "proof_${choreId}_${timeProvider.now()}.jpg",
+                photoBytes = imageBytes
+            ).onSuccess {
+                updateSuccessState { it.copy(isSavingPicture = false, photoProofChoreId = null) }
+                requestApproval(choreId) // Auto-submit after proof is captured
+            }.onFailure { error ->
+                logger.e { "Failed to upload photo proof: $error" }
+                updateSuccessState { it.copy(isSavingPicture = false, photoProofChoreId = null) }
             }
         }
     }
@@ -489,7 +543,9 @@ class DashboardViewModel(
                 choreId = choreId,
                 newStatus = ChoreStatus.PENDING_APPROVAL,
                 adminId = currentState.user.id
-            ).onFailure { error ->
+            ).onSuccess {
+                triggerSyncFallback(currentState.user.familyId)
+            }.onFailure { error ->
                 logger.e { "Failed to request approval: $error" }
             }
         }
@@ -504,6 +560,7 @@ class DashboardViewModel(
                 newStatus = ChoreStatus.APPROVED,
                 adminId = currentState.user.id
             ).onSuccess {
+                triggerSyncFallback(currentState.user.familyId)
                 val chore = currentState.chores.find { it.id == choreId }
                 if (chore != null && chore.points > 0) {
                     val now = timeProvider.now()
@@ -544,6 +601,7 @@ class DashboardViewModel(
                 newStatus = newStatus,
                 adminId = currentState.user.id
             ).onSuccess {
+                triggerSyncFallback(currentState.user.familyId)
                 if (newStatus == ChoreStatus.REJECTED && chore.penalty > 0) {
                     val transaction = Transaction(
                         id = "tr_${targetUserId}_${choreId}_$now",
@@ -559,6 +617,15 @@ class DashboardViewModel(
                 }
             }.onFailure { error ->
                 logger.e { "Failed to decline chore: $error" }
+            }
+        }
+    }
+
+    private suspend fun triggerSyncFallback(familyId: String) {
+        val currentState = _state.value as? DashboardState.Success ?: return
+        if (currentState.isServerReachable && !currentState.isOfflineMode) {
+            choreRepository.syncChores(familyId).onFailure { error ->
+                logger.e { "Manual sync fallback failed: $error" }
             }
         }
     }
@@ -641,6 +708,9 @@ class DashboardViewModel(
                     // Restart observations for the new user
                     observationsJob?.cancel()
                     observationsJob = viewModelScope.launch {
+                        // Generate instances for today/tomorrow before listening
+                        choreGenerationUseCase(user.familyId)
+
                         transactionRepository.getTransactionsForUser(user.id)
                             .onEach { transactions ->
                                 updateSuccessState { it.copy(transactions = transactions) }
@@ -649,9 +719,34 @@ class DashboardViewModel(
 
                         choreRepository.getChoresForUser(user.id)
                             .onEach { chores ->
-                                updateSuccessState { it.copy(chores = chores) }
+                                val counts = mutableMapOf<String, Int>()
+                                if (user.role == UserRole.PARENT) {
+                                    val pendingApproval = chores.count { it.status == ChoreStatus.PENDING_APPROVAL }
+                                    if (pendingApproval > 0) counts["tasks"] = pendingApproval
+                                    
+                                    familyMembers.filter { it.role == UserRole.CHILD }.forEach { child ->
+                                        val childPending = chores.count { it.assignedTo == child.id && it.status == ChoreStatus.PENDING_APPROVAL }
+                                        if (childPending > 0) counts[child.id] = childPending
+                                    }
+                                } else {
+                                    val myPending = chores.count { it.assignedTo == user.id && (it.status == ChoreStatus.PENDING || it.status == ChoreStatus.IN_PROGRESS) }
+                                    if (myPending > 0) counts["today"] = myPending
+                                }
+                                
+                                updateSuccessState { it.copy(chores = chores, pendingCounts = counts) }
                             }
                             .launchIn(this)
+                            
+                        if (!isOffline) { 
+                            // Start listening for websocket updates
+                            choreRepository.observeRemoteChanges(user.familyId)
+                                .onEach {
+                                    // When a change is detected via websocket, the remote data source will upsert the local database.
+                                    // Room will emit a new list on getChoresForUser, so we just need to collect this to keep it active.
+                                    logger.d { "Received remote chore change" }
+                                }
+                                .launchIn(this)
+                        }
                     }
                 }
                 .onFailure { error ->

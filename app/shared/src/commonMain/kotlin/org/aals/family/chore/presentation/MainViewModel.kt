@@ -44,7 +44,13 @@ class MainViewModel(
             val token = tokenStorage.getToken()
 
             val destination = when {
-                token != null || familyId != null -> UserSelectionRoute(familyId = familyId)
+                token != null || familyId != null -> {
+                    // Schedule background sync if configured
+                    if (isOffline != true && familyId != null) {
+                        org.aals.family.chore.core.data.worker.ChoreSyncScheduler.schedule(familyId)
+                    }
+                    UserSelectionRoute(familyId = familyId)
+                }
                 isOffline == null -> ModeSelectionRoute
                 isOffline -> WelcomeRoute
                 serverUrl != null -> checkServerHealthRoute()

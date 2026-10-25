@@ -24,6 +24,7 @@ import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.ProfilePictureRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.repository.TransactionRepository
+import org.aals.family.chore.core.domain.usecase.ChoreGenerationUseCase
 import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.core.domain.util.LoggingInitializer
 import org.aals.family.chore.core.domain.util.TimeProvider
@@ -51,4 +52,5 @@ val coreModule = module {
     singleOf(::ProfilePictureRepositoryImpl) { bind<ProfilePictureRepository>() }
     singleOf(::DataStoreTokenStorage) { bind<TokenStorage>() }
     factoryOf(::ObserveConnectivityUseCase)
+    singleOf(::ChoreGenerationUseCase)
 }

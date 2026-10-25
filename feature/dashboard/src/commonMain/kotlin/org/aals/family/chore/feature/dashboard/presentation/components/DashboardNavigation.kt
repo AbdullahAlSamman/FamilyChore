@@ -132,10 +132,24 @@ fun DashboardBottomBar(
                 selected = state.currentTab == tab,
                 onClick = { onAction(DashboardAction.ChangeTab(tab)) },
                 icon = {
-                    Icon(
-                        imageVector = getIconForRoute(tab),
-                        contentDescription = stringResource(getLabelForRoute(tab))
-                    )
+                    val count = when (tab) {
+                        ParentTasksRoute -> state.pendingCounts["tasks"]
+                        ChildTodayRoute -> state.pendingCounts["today"]
+                        else -> null
+                    } ?: 0
+
+                    androidx.compose.material3.BadgedBox(
+                        badge = {
+                            if (count > 0) {
+                                androidx.compose.material3.Badge { Text(count.toString()) }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = getIconForRoute(tab),
+                            contentDescription = stringResource(getLabelForRoute(tab))
+                        )
+                    }
                 },
                 label = {
                     Text(stringResource(getLabelForRoute(tab)))

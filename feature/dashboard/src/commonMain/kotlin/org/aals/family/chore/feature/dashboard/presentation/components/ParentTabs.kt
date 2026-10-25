@@ -86,7 +86,17 @@ fun ParentOverviewContent(
         Spacer(modifier = Modifier.size(16.dp))
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(state.familyMembers) { member ->
-                ChildSummaryCard(member)
+                val count = state.pendingCounts[member.id] ?: 0
+                androidx.compose.material3.BadgedBox(
+                    badge = {
+                        if (count > 0) {
+                            androidx.compose.material3.Badge { Text(count.toString()) }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(end = 16.dp)
+                ) {
+                    ChildSummaryCard(member)
+                }
             }
         }
     }
@@ -150,19 +160,35 @@ fun ParentTasksContent(
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(state.chores) { chore ->
                     Card(modifier = Modifier.fillMaxWidth()) {
-                        Row(modifier = Modifier.padding(16.dp)) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(chore.name, style = MaterialTheme.typography.titleMedium)
-                                Text(
-                                    stringResource(
-                                        Res.string.task_assigned_to,
-                                        state.familyMembers.find { it.id == chore.assignedTo }?.nickname
-                                            ?: stringResource(Res.string.task_unknown_user)
-                                    ),
-                                    style = MaterialTheme.typography.bodySmall
-                                )
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(chore.name, style = MaterialTheme.typography.titleMedium)
+                                    Text(
+                                        stringResource(
+                                            Res.string.task_assigned_to,
+                                            state.familyMembers.find { it.id == chore.assignedTo }?.nickname
+                                                ?: stringResource(Res.string.task_unknown_user)
+                                        ),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(stringResource(Res.string.pts_count, chore.points), color = MaterialTheme.colorScheme.primary)
+                                    Text(chore.status.name, style = MaterialTheme.typography.labelSmall)
+                                }
                             }
-                            Text(stringResource(Res.string.pts_count, chore.points), color = MaterialTheme.colorScheme.primary)
+                            if (chore.status == org.aals.family.chore.core.domain.model.ChoreStatus.PENDING_APPROVAL) {
+                                Spacer(modifier = Modifier.size(8.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.align(Alignment.End)) {
+                                    Button(onClick = { onAction(DashboardAction.ApproveChore(chore.id, chore.assignedTo)) }) {
+                                        Text("Approve")
+                                    }
+                                    Button(onClick = { onAction(DashboardAction.DeclineChore(chore.id, chore.assignedTo)) }) {
+                                        Text("Decline")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -215,13 +241,53 @@ fun ParentTasksContent(
                         }
                     }
 
+                    Spacer(Modifier.size(16.dp))
+                    Text("Recurrence", style = MaterialTheme.typography.labelLarge)
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        org.aals.family.chore.core.domain.model.Recurrence.entries.forEach { rec ->
+                            FilterChip(
+                                selected = state.addChoreForm.recurrence == rec,
+                                onClick = { onAction(DashboardAction.OnChoreRecurrenceChange(rec)) },
+                                label = { Text(rec.name) }
+                            )
+                            Spacer(Modifier.width(4.dp))
+                        }
+                    }
+
+                    if (state.addChoreForm.recurrence != org.aals.family.chore.core.domain.model.Recurrence.NONE) {
+                        Spacer(Modifier.size(8.dp))
+                        Text("Active Days", style = MaterialTheme.typography.labelMedium)
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            (1..7).forEach { day ->
+                                FilterChip(
+                                    selected = state.addChoreForm.activeDays.contains(day),
+                                    onClick = { onAction(DashboardAction.OnChoreActiveDayToggle(day)) },
+                                    label = { Text(day.toString()) }
+                                )
+                                Spacer(Modifier.width(2.dp))
+                            }
+                        }
+                    }
+
+                    Spacer(Modifier.size(8.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text("Requires Photo Proof", modifier = Modifier.weight(1f))
+                        Switch(
+                            checked = state.addChoreForm.requiresPhotoProof,
+                            onCheckedChange = { onAction(DashboardAction.OnChoreRequiresPhotoProofToggle(it)) }
+                        )
+                    }
+
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         Button(onClick = {
                             onAction(DashboardAction.CreateChore(
                                 name = choreName,
                                 points = points.toIntOrNull() ?: 0,
                                 description = null,
-                                assignedTo = state.selectedAssigneeId ?: ""
+                                assignedTo = state.selectedAssigneeId ?: "",
+                                recurrence = state.addChoreForm.recurrence,
+                                activeDays = state.addChoreForm.activeDays.toList(),
+                                requiresPhotoProof = state.addChoreForm.requiresPhotoProof
                             ))
                             // Simple logic to close if no error immediately (not ideal MVI but for now)
                             if (choreName.isNotBlank()) {

@@ -103,6 +103,7 @@ class FakeChoreRepository : ChoreRepository {
     override suspend fun updateChoreStatus(familyId: String, choreId: String, newStatus: org.aals.family.chore.core.domain.model.ChoreStatus, adminId: String?): Result<Unit, DataError> = Result.Success(Unit)
     override suspend fun syncChores(familyId: String): Result<Unit, DataError> = Result.Success(Unit)
     override fun observeRemoteChanges(familyId: String): Flow<Unit> = emptyFlow()
+    override suspend fun uploadPhotoProof(familyId: String, choreId: String, fileName: String, photoBytes: ByteArray): Result<String, DataError> = Result.Success("fileId")
 }
 
 private class FakeProfilePictureRepository : ProfilePictureRepository {

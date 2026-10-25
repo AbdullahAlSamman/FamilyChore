@@ -66,9 +66,29 @@ fun ChildTodayContent(
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(state.chores) { chore ->
                     Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(chore.name, style = MaterialTheme.typography.titleMedium)
-                            Text(stringResource(Res.string.pts_count, chore.points), color = MaterialTheme.colorScheme.primary)
+                        androidx.compose.foundation.layout.Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(chore.name, style = MaterialTheme.typography.titleMedium)
+                                Text(chore.status.name, style = MaterialTheme.typography.labelSmall)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(stringResource(Res.string.pts_count, chore.points), color = MaterialTheme.colorScheme.primary)
+                                if (chore.status == org.aals.family.chore.core.domain.model.ChoreStatus.PENDING || 
+                                    chore.status == org.aals.family.chore.core.domain.model.ChoreStatus.IN_PROGRESS) {
+                                    androidx.compose.material3.Button(onClick = { 
+                                        if (chore.requiresPhotoProof) {
+                                            onAction(DashboardAction.StartPhotoProofCapture(chore.id))
+                                        } else {
+                                            onAction(DashboardAction.RequestApproval(chore.id)) 
+                                        }
+                                    }) {
+                                        Text(if (chore.requiresPhotoProof) "Add Proof" else "Submit")
+                                    }
+                                }
+                            }
                         }
                     }
                 }

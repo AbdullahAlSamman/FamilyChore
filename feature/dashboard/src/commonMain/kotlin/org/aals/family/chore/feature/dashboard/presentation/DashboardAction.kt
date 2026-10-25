@@ -31,6 +31,12 @@ sealed interface DashboardAction {
 
     data class OnChoreNameChange(val name: String) : DashboardAction
     data class OnChorePointsChange(val points: String) : DashboardAction
+    data class OnChoreRecurrenceChange(val recurrence: org.aals.family.chore.core.domain.model.Recurrence) : DashboardAction
+    data class OnChoreActiveDayToggle(val dayNumber: Int) : DashboardAction
+    data class OnChoreWindowStartChange(val time: String) : DashboardAction
+    data class OnChoreWindowEndChange(val time: String) : DashboardAction
+    data class OnChorePenaltyChange(val penalty: String) : DashboardAction
+    data class OnChoreRequiresPhotoProofToggle(val required: Boolean) : DashboardAction
 
     // Family Management
     data class OnMemberNicknameChange(val nickname: String) : DashboardAction
@@ -59,4 +65,7 @@ sealed interface DashboardAction {
     data class OnCameraPermissionResult(val granted: Boolean) : DashboardAction
     data object StartCameraCapture : DashboardAction
     data object CancelCameraCapture : DashboardAction
+    
+    data class StartPhotoProofCapture(val choreId: String) : DashboardAction
+    data class OnPhotoProofCaptured(val choreId: String, val imageBytes: ByteArray) : DashboardAction
 }

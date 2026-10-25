@@ -118,6 +118,15 @@ class ChoreRepositoryImpl(
             choreDao.upsertChore(choreDto.toEntity())
         }
     }
+
+    override suspend fun uploadPhotoProof(
+        familyId: String,
+        choreId: String,
+        fileName: String,
+        photoBytes: ByteArray
+    ): Result<String, DataError> {
+        return choreDataSource.uploadPhotoProof(familyId, choreId, fileName, photoBytes)
+    }
 }
 
 fun ChoreDto.toChore(): Chore = Chore(

@@ -11,6 +11,12 @@ interface ChoreRepository {
     fun getChoresForUser(userId: String): Flow<List<Chore>>
     
     suspend fun createChore(chore: Chore): Result<Unit, DataError>
+    suspend fun uploadPhotoProof(
+        familyId: String,
+        choreId: String,
+        fileName: String,
+        photoBytes: ByteArray
+    ): Result<String, DataError>
     suspend fun updateChoreStatus(
         familyId: String,
         choreId: String, 

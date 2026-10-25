@@ -14,8 +14,11 @@ import org.aals.family.chore.feature.dashboard.presentation.navigation.Dashboard
 data class AddChoreFormState(
     val nameError: UiText? = null,
     val pointsError: UiText? = null,
+    val dueDateError: UiText? = null,
+    val timeWindowError: UiText? = null,
     val recurrence: org.aals.family.chore.core.domain.model.Recurrence = org.aals.family.chore.core.domain.model.Recurrence.NONE,
     val activeDays: Set<Int> = emptySet(),
+    val dueDate: String = "",
     val activeWindowStart: String = "",
     val activeWindowEnd: String = "",
     val penalty: String = "0",

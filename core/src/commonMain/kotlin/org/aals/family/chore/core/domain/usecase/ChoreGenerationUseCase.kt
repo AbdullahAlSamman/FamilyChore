@@ -30,7 +30,7 @@ class ChoreGenerationUseCase(
         val startOfDayMillis = startOfDay.toInstant(tz).toEpochMilliseconds()
         val startOfTomorrowMillis = startOfDayMillis + 24 * 60 * 60 * 1000
 
-        val templates = chores.filter { it.parentChoreId == null && it.recurrence != Recurrence.NONE }
+        val templates = chores.filter { it.parentChoreId == null && it.recurrence != Recurrence.NONE && it.recurrence != Recurrence.CUSTOM }
         val instances = chores.filter { it.parentChoreId != null }
 
         // 1. Mark past pending/in-progress instances as REJECTED and apply penalty

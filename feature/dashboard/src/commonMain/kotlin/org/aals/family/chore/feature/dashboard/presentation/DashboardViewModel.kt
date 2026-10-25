@@ -8,6 +8,8 @@ import familychore.core.generated.resources.child_pin_set_success
 import familychore.core.generated.resources.dashboard_load_failed_error
 import familychore.core.generated.resources.member_pin_change_success
 import familychore.core.generated.resources.picture_updated_success
+import familychore.core.generated.resources.time_window_invalid_error
+import familychore.core.generated.resources.due_date_past_error
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,6 +25,7 @@ import org.aals.family.chore.core.domain.model.BehaviorItem
 import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.model.PairingToken
+import org.aals.family.chore.core.domain.model.Recurrence
 import org.aals.family.chore.core.domain.model.Transaction
 import org.aals.family.chore.core.domain.model.TransactionType
 import org.aals.family.chore.core.domain.model.User
@@ -39,6 +42,10 @@ import org.aals.family.chore.core.domain.util.TimeProvider
 import org.aals.family.chore.core.domain.util.getOrElse
 import org.aals.family.chore.core.domain.util.onFailure
 import org.aals.family.chore.core.domain.util.onSuccess
+import org.aals.family.chore.core.domain.util.isDateInPast
+import org.aals.family.chore.core.domain.util.parseDateToEpochMillis
+import org.aals.family.chore.core.domain.util.startOfTodayEpochMillis
+import org.aals.family.chore.core.domain.util.toMinutesOfDay
 import org.aals.family.chore.core.domain.validation.AuthValidator
 import org.aals.family.chore.core.domain.validation.ChoreValidator
 import org.aals.family.chore.core.presentation.UiText
@@ -109,6 +116,14 @@ class DashboardViewModel(
             is DashboardAction.OnChoreRecurrenceChange -> {
                 updateSuccessState { it.copy(addChoreForm = it.addChoreForm.copy(recurrence = action.recurrence)) }
             }
+            is DashboardAction.OnChoreDueDateChange -> {
+                updateSuccessState {
+                    val error = if (action.date.isNotBlank() && isDateInPast(action.date, timeProvider.now())) {
+                        UiText.StringResource(Res.string.due_date_past_error)
+                    } else null
+                    it.copy(addChoreForm = it.addChoreForm.copy(dueDate = action.date, dueDateError = error))
+                }
+            }
             is DashboardAction.OnChoreActiveDayToggle -> {
                 updateSuccessState { 
                     val days = it.addChoreForm.activeDays.toMutableSet()
@@ -117,10 +132,18 @@ class DashboardViewModel(
                 }
             }
             is DashboardAction.OnChoreWindowStartChange -> {
-                updateSuccessState { it.copy(addChoreForm = it.addChoreForm.copy(activeWindowStart = action.time)) }
+                updateSuccessState {
+                    val form = it.addChoreForm.copy(activeWindowStart = action.time)
+                    val error = validateTimeWindow(form.activeWindowStart, form.activeWindowEnd)
+                    it.copy(addChoreForm = form.copy(timeWindowError = error))
+                }
             }
             is DashboardAction.OnChoreWindowEndChange -> {
-                updateSuccessState { it.copy(addChoreForm = it.addChoreForm.copy(activeWindowEnd = action.time)) }
+                updateSuccessState {
+                    val form = it.addChoreForm.copy(activeWindowEnd = action.time)
+                    val error = validateTimeWindow(form.activeWindowStart, form.activeWindowEnd)
+                    it.copy(addChoreForm = form.copy(timeWindowError = error))
+                }
             }
             is DashboardAction.OnChorePenaltyChange -> {
                 updateSuccessState { it.copy(addChoreForm = it.addChoreForm.copy(penalty = action.penalty)) }
@@ -476,19 +499,36 @@ class DashboardViewModel(
         }
     }
 
+    private fun validateTimeWindow(startStr: String, endStr: String): UiText? {
+        val startMin = startStr.toMinutesOfDay()
+        val endMin = endStr.toMinutesOfDay()
+        if (startMin != null && endMin != null && endMin <= startMin) {
+            return UiText.StringResource(Res.string.time_window_invalid_error)
+        }
+        return null
+    }
+
     private fun createChore(action: DashboardAction.CreateChore) {
         val currentState = _state.value as? DashboardState.Success ?: return
+        val form = currentState.addChoreForm
+        val now = timeProvider.now()
         
         val nameError = ChoreValidator.validateName(action.name)
         val pointsError = ChoreValidator.validatePoints(action.points)
         val assigneeError = ChoreValidator.validateAssignee(action.assignedTo)
+        val timeWindowError = validateTimeWindow(form.activeWindowStart, form.activeWindowEnd)
+        val dueDateError = if (form.dueDate.isNotBlank() && isDateInPast(form.dueDate, now)) {
+            UiText.StringResource(Res.string.due_date_past_error)
+        } else null
         
-        if (nameError != null || pointsError != null || assigneeError != null) {
+        if (nameError != null || pointsError != null || assigneeError != null || timeWindowError != null || dueDateError != null) {
             updateSuccessState {
                 it.copy(
                     addChoreForm = it.addChoreForm.copy(
                         nameError = nameError?.toUiText(),
                         pointsError = pointsError?.toUiText(),
+                        timeWindowError = timeWindowError,
+                        dueDateError = dueDateError
                     )
                 )
             }
@@ -497,6 +537,10 @@ class DashboardViewModel(
 
         viewModelScope.launch {
             val now = timeProvider.now()
+            val form = currentState.addChoreForm
+            val dueDateMillis = form.dueDate.takeIf { it.isNotBlank() }?.let { dateStr ->
+                parseDateToEpochMillis(dateStr)
+            }
             val chore = Chore(
                 id = "chore_${action.assignedTo}_$now",
                 familyId = currentState.user.familyId,
@@ -510,13 +554,13 @@ class DashboardViewModel(
                 updatedAt = now,
                 recurrence = action.recurrence,
                 activeDays = action.activeDays,
-                activeWindowStart = action.activeWindowStart,
-                activeWindowEnd = action.activeWindowEnd,
+                activeWindowStart = form.activeWindowStart.toMinutesOfDay(),
+                activeWindowEnd = form.activeWindowEnd.toMinutesOfDay(),
                 penalty = action.penalty,
                 requiresPhotoProof = action.requiresPhotoProof,
                 iconName = action.iconName,
                 parentChoreId = null,
-                dueDate = null
+                dueDate = dueDateMillis
             )
             // Clear errors before attempting to save
             updateSuccessState {
@@ -711,29 +755,61 @@ class DashboardViewModel(
                         // Generate instances for today/tomorrow before listening
                         choreGenerationUseCase(user.familyId)
 
-                        transactionRepository.getTransactionsForUser(user.id)
+                        val transactionFlow = if (user.role == UserRole.PARENT) {
+                            transactionRepository.getTransactionsForFamily(user.familyId)
+                        } else {
+                            transactionRepository.getTransactionsForUser(user.id)
+                        }
+
+                        transactionFlow
                             .onEach { transactions ->
-                                updateSuccessState { it.copy(transactions = transactions) }
+                                updateSuccessState { currentState ->
+                                    val updatedMembers = currentState.familyMembers.map { member ->
+                                        val memberPoints = transactions
+                                            .filter { it.userId == member.id }
+                                            .sumOf { it.amount }
+                                        member.copy(points = memberPoints)
+                                    }
+                                    val currentUserPoints = transactions
+                                        .filter { it.userId == currentState.user.id }
+                                        .sumOf { it.amount }
+                                    val updatedUser = currentState.user.copy(points = currentUserPoints)
+
+                                    currentState.copy(
+                                        transactions = transactions,
+                                        familyMembers = updatedMembers,
+                                        user = updatedUser
+                                    )
+                                }
                             }
                             .launchIn(this)
 
-                        choreRepository.getChoresForUser(user.id)
-                            .onEach { chores ->
+                        val choreFlow = if (user.role == UserRole.PARENT) {
+                            choreRepository.getChoresForFamily(user.familyId)
+                        } else {
+                            choreRepository.getChoresForUser(user.id)
+                        }
+
+                        choreFlow
+                            .onEach { rawChores ->
+                                val now = timeProvider.now()
+                                val filteredChores = filterChoresForUser(rawChores, user, now)
                                 val counts = mutableMapOf<String, Int>()
+
                                 if (user.role == UserRole.PARENT) {
-                                    val pendingApproval = chores.count { it.status == ChoreStatus.PENDING_APPROVAL }
+                                    val pendingApproval = rawChores.count { it.status == ChoreStatus.PENDING_APPROVAL }
                                     if (pendingApproval > 0) counts["tasks"] = pendingApproval
                                     
                                     familyMembers.filter { it.role == UserRole.CHILD }.forEach { child ->
-                                        val childPending = chores.count { it.assignedTo == child.id && it.status == ChoreStatus.PENDING_APPROVAL }
+                                        val childPending = rawChores.count { it.assignedTo == child.id && it.status == ChoreStatus.PENDING_APPROVAL }
                                         if (childPending > 0) counts[child.id] = childPending
                                     }
                                 } else {
-                                    val myPending = chores.count { it.assignedTo == user.id && (it.status == ChoreStatus.PENDING || it.status == ChoreStatus.IN_PROGRESS) }
+                                    val myPending = filteredChores.count { it.assignedTo == user.id && (it.status == ChoreStatus.PENDING || it.status == ChoreStatus.IN_PROGRESS) }
                                     if (myPending > 0) counts["today"] = myPending
                                 }
                                 
-                                updateSuccessState { it.copy(chores = chores, pendingCounts = counts) }
+                                updateSuccessState { it.copy(chores = filteredChores, pendingCounts = counts) }
                             }
                             .launchIn(this)
                             
@@ -755,6 +831,35 @@ class DashboardViewModel(
                         UiText.StringResource(Res.string.dashboard_load_failed_error)
                     )
                 }
+        }
+    }
+
+    private fun filterChoresForUser(chores: List<Chore>, user: User, nowMillis: Long): List<Chore> {
+        val todayStart = startOfTodayEpochMillis(nowMillis)
+        val tomorrowStart = todayStart + 86_400_000L
+
+        return if (user.role == UserRole.CHILD) {
+            chores.filter { chore ->
+                if (chore.parentChoreId == null) {
+                    if (chore.recurrence == Recurrence.NONE || chore.recurrence == Recurrence.CUSTOM) {
+                        val due = chore.dueDate
+                        due == null || due < tomorrowStart
+                    } else {
+                        false
+                    }
+                } else {
+                    val due = chore.dueDate ?: 0L
+                    due >= todayStart && due < tomorrowStart
+                }
+            }
+        } else {
+            chores.filter { chore ->
+                if (chore.parentChoreId == null) {
+                    true
+                } else {
+                    chore.status == ChoreStatus.PENDING_APPROVAL
+                }
+            }
         }
     }
 

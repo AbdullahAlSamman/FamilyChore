@@ -202,6 +202,30 @@ class DashboardViewModelTest {
     }
 
     @Test
+    fun `ApproveChore adds transaction and updates member points`() = runTest {
+        val now = 1000L
+        timeProvider.staticTime = now
+        val pendingChore = Chore(
+            id = "chore_child1_1", familyId = "family1", name = "Clean Room", description = null, points = 20,
+            status = ChoreStatus.PENDING_APPROVAL, assignedTo = "child1", createdBy = "parent1", createdAt = now, updatedAt = now
+        )
+        choreRepository.chores.value = listOf(pendingChore)
+
+        viewModel.onAction(DashboardAction.Refresh)
+        viewModel.state.test {
+            awaitItem() // Skip initial state
+            
+            viewModel.onAction(DashboardAction.ApproveChore("chore_child1_1", "child1"))
+            
+            val state = awaitItem() as DashboardState.Success
+            val child1 = state.familyMembers.find { it.id == "child1" }
+            assertThat(child1?.points).isEqualTo(20)
+            
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `CreateChore action adds chore to repository`() = runTest {
         viewModel.state.test {
             awaitItem() // Initial state
@@ -274,6 +298,59 @@ class DashboardViewModelTest {
             viewModel.onAction(DashboardAction.OnChoreNameChange("A"))
             val state = awaitItem() as DashboardState.Success
             assertThat(state.addChoreForm.nameError).isEqualTo(null)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `Time window validation sets error when end time is before start time`() = runTest {
+        viewModel.state.test {
+            awaitItem() // Initial state
+            
+            viewModel.onAction(DashboardAction.OnChoreWindowStartChange("13:00"))
+            awaitItem()
+            
+            viewModel.onAction(DashboardAction.OnChoreWindowEndChange("12:00"))
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.addChoreForm.timeWindowError != null).isEqualTo(true)
+            
+            // Attempt creation - should be blocked
+            val createAction = DashboardAction.CreateChore(
+                name = "Valid Chore",
+                points = 10,
+                description = null,
+                assignedTo = "child1",
+                recurrence = org.aals.family.chore.core.domain.model.Recurrence.CUSTOM
+            )
+            viewModel.onAction(createAction)
+            assertThat(choreRepository.createdChores.isEmpty()).isEqualTo(true)
+            
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `Due date validation sets error when date is in the past`() = runTest {
+        timeProvider.staticTime = 1761400000000L
+        viewModel.state.test {
+            awaitItem() // Initial state
+            
+            // Set past date
+            viewModel.onAction(DashboardAction.OnChoreDueDateChange("2020-01-01"))
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.addChoreForm.dueDateError != null).isEqualTo(true)
+            
+            // Attempt creation - should be blocked
+            val createAction = DashboardAction.CreateChore(
+                name = "Past Chore",
+                points = 10,
+                description = null,
+                assignedTo = "child1",
+                recurrence = org.aals.family.chore.core.domain.model.Recurrence.CUSTOM
+            )
+            viewModel.onAction(createAction)
+            assertThat(choreRepository.createdChores.isEmpty()).isEqualTo(true)
+            
             cancelAndIgnoreRemainingEvents()
         }
     }

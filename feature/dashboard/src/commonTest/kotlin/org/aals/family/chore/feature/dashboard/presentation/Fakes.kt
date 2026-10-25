@@ -89,6 +89,7 @@ class FakeTransactionRepository : TransactionRepository {
     override suspend fun syncTransactions(familyId: String): Result<Unit, DataError> = Result.Success(Unit)
     override suspend fun addTransaction(transaction: Transaction): Result<Unit, DataError> {
         addedTransactions.add(transaction)
+        transactions.value = transactions.value + transaction
         return Result.Success(Unit)
     }
 }

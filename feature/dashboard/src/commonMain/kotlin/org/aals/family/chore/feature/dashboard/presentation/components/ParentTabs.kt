@@ -1,7 +1,11 @@
 package org.aals.family.chore.feature.dashboard.presentation.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,21 +18,31 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +69,8 @@ import familychore.core.generated.resources.pts_count
 import familychore.core.generated.resources.role_child
 import familychore.core.generated.resources.role_parent
 import familychore.core.generated.resources.save
+import familychore.core.generated.resources.cancel
+import familychore.core.generated.resources.ok
 import familychore.core.generated.resources.task_assigned_to
 import familychore.core.generated.resources.task_management_add_chore
 import familychore.core.generated.resources.task_management_assign_to
@@ -64,8 +80,34 @@ import familychore.core.generated.resources.task_management_points_label
 import familychore.core.generated.resources.task_management_save_action
 import familychore.core.generated.resources.task_management_title
 import familychore.core.generated.resources.task_unknown_user
+import familychore.core.generated.resources.recurrence_label
+import familychore.core.generated.resources.recurrence_custom
+import familychore.core.generated.resources.recurrence_daily
+import familychore.core.generated.resources.recurrence_weekly
+import familychore.core.generated.resources.recurrence_monthly
+import familychore.core.generated.resources.recurrence_none
+import familychore.core.generated.resources.active_days_label
+import familychore.core.generated.resources.requires_photo_proof_label
+import familychore.core.generated.resources.due_date_label
+import familychore.core.generated.resources.time_window_label
+import familychore.core.generated.resources.window_start_label
+import familychore.core.generated.resources.window_end_label
+import familychore.core.generated.resources.date_hint
+import familychore.core.generated.resources.time_hint
+import familychore.core.generated.resources.day_sunday
+import familychore.core.generated.resources.day_monday
+import familychore.core.generated.resources.day_tuesday
+import familychore.core.generated.resources.day_wednesday
+import familychore.core.generated.resources.day_thursday
+import familychore.core.generated.resources.day_friday
+import familychore.core.generated.resources.day_saturday
+import kotlin.time.Clock
+import kotlinx.datetime.TimeZone
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
+import org.aals.family.chore.core.domain.util.formatEpochMillisToDate
+import org.aals.family.chore.core.domain.util.parseTimeString
+import org.aals.family.chore.core.domain.util.startOfTodayEpochMillis
 import org.aals.family.chore.core.presentation.components.CameraCaptureView
 import org.aals.family.chore.core.presentation.components.MemberAvatar
 import org.aals.family.chore.core.presentation.permissions.rememberCameraPermissionManager
@@ -121,13 +163,16 @@ fun ChildSummaryCard(user: User) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ParentTasksContent(
     state: DashboardState.Success,
     onAction: (DashboardAction) -> Unit
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showStartTimePicker by remember { mutableStateOf(false) }
+    var showEndTimePicker by remember { mutableStateOf(false) }
     var choreName by remember { mutableStateOf("") }
     var points by remember { mutableStateOf("10") }
 
@@ -242,36 +287,141 @@ fun ParentTasksContent(
                     }
 
                     Spacer(Modifier.size(16.dp))
-                    Text("Recurrence", style = MaterialTheme.typography.labelLarge)
-                    Row(modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(Res.string.recurrence_label), style = MaterialTheme.typography.labelLarge)
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         org.aals.family.chore.core.domain.model.Recurrence.entries.forEach { rec ->
+                            val labelRes = when (rec) {
+                                org.aals.family.chore.core.domain.model.Recurrence.NONE -> Res.string.recurrence_none
+                                org.aals.family.chore.core.domain.model.Recurrence.CUSTOM -> Res.string.recurrence_custom
+                                org.aals.family.chore.core.domain.model.Recurrence.DAILY -> Res.string.recurrence_daily
+                                org.aals.family.chore.core.domain.model.Recurrence.WEEKLY -> Res.string.recurrence_weekly
+                                org.aals.family.chore.core.domain.model.Recurrence.MONTHLY -> Res.string.recurrence_monthly
+                            }
                             FilterChip(
                                 selected = state.addChoreForm.recurrence == rec,
                                 onClick = { onAction(DashboardAction.OnChoreRecurrenceChange(rec)) },
-                                label = { Text(rec.name) }
+                                label = { Text(stringResource(labelRes)) }
                             )
-                            Spacer(Modifier.width(4.dp))
                         }
                     }
 
-                    if (state.addChoreForm.recurrence != org.aals.family.chore.core.domain.model.Recurrence.NONE) {
+                    if (state.addChoreForm.recurrence == org.aals.family.chore.core.domain.model.Recurrence.WEEKLY) {
                         Spacer(Modifier.size(8.dp))
-                        Text("Active Days", style = MaterialTheme.typography.labelMedium)
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            (1..7).forEach { day ->
+                        Text(stringResource(Res.string.active_days_label), style = MaterialTheme.typography.labelMedium)
+                        val dayNames = listOf(
+                            Res.string.day_sunday,
+                            Res.string.day_monday,
+                            Res.string.day_tuesday,
+                            Res.string.day_wednesday,
+                            Res.string.day_thursday,
+                            Res.string.day_friday,
+                            Res.string.day_saturday
+                        )
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            dayNames.forEach { dayRes ->
+                                val dayNumber = dayNames.indexOf(dayRes) + 1
                                 FilterChip(
-                                    selected = state.addChoreForm.activeDays.contains(day),
-                                    onClick = { onAction(DashboardAction.OnChoreActiveDayToggle(day)) },
-                                    label = { Text(day.toString()) }
+                                    selected = state.addChoreForm.activeDays.contains(dayNumber),
+                                    onClick = { onAction(DashboardAction.OnChoreActiveDayToggle(dayNumber)) },
+                                    label = { Text(stringResource(dayRes)) }
                                 )
-                                Spacer(Modifier.width(2.dp))
                             }
+                        }
+                    }
+
+                    if (state.addChoreForm.recurrence == org.aals.family.chore.core.domain.model.Recurrence.CUSTOM) {
+                        Spacer(Modifier.size(12.dp))
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedTextField(
+                                value = state.addChoreForm.dueDate,
+                                onValueChange = {},
+                                label = { Text(stringResource(Res.string.due_date_label)) },
+                                placeholder = { Text(stringResource(Res.string.date_hint)) },
+                                singleLine = true,
+                                readOnly = true,
+                                isError = state.addChoreForm.dueDateError != null,
+                                supportingText = { state.addChoreForm.dueDateError?.let { Text(it.asString()) } },
+                                modifier = Modifier.fillMaxWidth(),
+                                trailingIcon = {
+                                    IconButton(onClick = { showDatePicker = true }) {
+                                        Icon(Icons.Default.CalendarToday, contentDescription = null)
+                                    }
+                                }
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clickable { showDatePicker = true }
+                            )
+                        }
+
+                        Spacer(Modifier.size(8.dp))
+                        Text(stringResource(Res.string.time_window_label), style = MaterialTheme.typography.labelMedium)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                OutlinedTextField(
+                                    value = state.addChoreForm.activeWindowStart,
+                                    onValueChange = {},
+                                    label = { Text(stringResource(Res.string.window_start_label)) },
+                                    placeholder = { Text(stringResource(Res.string.time_hint)) },
+                                    singleLine = true,
+                                    readOnly = true,
+                                    isError = state.addChoreForm.timeWindowError != null,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    trailingIcon = {
+                                        IconButton(onClick = { showStartTimePicker = true }) {
+                                            Icon(Icons.Default.Schedule, contentDescription = null)
+                                        }
+                                    }
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .clickable { showStartTimePicker = true }
+                                )
+                            }
+                            Box(modifier = Modifier.weight(1f)) {
+                                OutlinedTextField(
+                                    value = state.addChoreForm.activeWindowEnd,
+                                    onValueChange = {},
+                                    label = { Text(stringResource(Res.string.window_end_label)) },
+                                    placeholder = { Text(stringResource(Res.string.time_hint)) },
+                                    singleLine = true,
+                                    readOnly = true,
+                                    isError = state.addChoreForm.timeWindowError != null,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    trailingIcon = {
+                                        IconButton(onClick = { showEndTimePicker = true }) {
+                                            Icon(Icons.Default.Schedule, contentDescription = null)
+                                        }
+                                    }
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .clickable { showEndTimePicker = true }
+                                )
+                            }
+                        }
+                        if (state.addChoreForm.timeWindowError != null) {
+                            Text(
+                                text = state.addChoreForm.timeWindowError.asString(),
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                            )
                         }
                     }
 
                     Spacer(Modifier.size(8.dp))
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text("Requires Photo Proof", modifier = Modifier.weight(1f))
+                        Text(stringResource(Res.string.requires_photo_proof_label), modifier = Modifier.weight(1f))
                         Switch(
                             checked = state.addChoreForm.requiresPhotoProof,
                             onCheckedChange = { onAction(DashboardAction.OnChoreRequiresPhotoProofToggle(it)) }
@@ -290,7 +440,7 @@ fun ParentTasksContent(
                                 requiresPhotoProof = state.addChoreForm.requiresPhotoProof
                             ))
                             // Simple logic to close if no error immediately (not ideal MVI but for now)
-                            if (choreName.isNotBlank()) {
+                            if (choreName.isNotBlank() && state.addChoreForm.timeWindowError == null && state.addChoreForm.dueDateError == null) {
                                 showAddDialog = false
                             }
                         }) {
@@ -299,6 +449,96 @@ fun ParentTasksContent(
                     }
                 }
             }
+        }
+    }
+
+    if (showDatePicker) {
+        val todayStartUtc = remember { startOfTodayEpochMillis(Clock.System.now().toEpochMilliseconds(), TimeZone.UTC) }
+        val datePickerState = rememberDatePickerState(
+            selectableDates = remember {
+                object : SelectableDates {
+                    override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                        return utcTimeMillis >= todayStartUtc
+                    }
+                }
+            }
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val dateStr = formatEpochMillisToDate(millis)
+                        onAction(DashboardAction.OnChoreDueDateChange(dateStr))
+                    }
+                    showDatePicker = false
+                }) {
+                    Text(stringResource(Res.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text(stringResource(Res.string.cancel))
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (showStartTimePicker) {
+        val (initHour, initMinute) = parseTimeString(state.addChoreForm.activeWindowStart)
+        val timePickerState = rememberTimePickerState(
+            initialHour = initHour,
+            initialMinute = initMinute,
+            is24Hour = true
+        )
+        TimePickerDialog(
+            onDismissRequest = { showStartTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val formatted = "${timePickerState.hour.toString().padStart(2, '0')}:${timePickerState.minute.toString().padStart(2, '0')}"
+                    onAction(DashboardAction.OnChoreWindowStartChange(formatted))
+                    showStartTimePicker = false
+                }) {
+                    Text(stringResource(Res.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartTimePicker = false }) {
+                    Text(stringResource(Res.string.cancel))
+                }
+            }
+        ) {
+            TimePicker(state = timePickerState)
+        }
+    }
+
+    if (showEndTimePicker) {
+        val (initHour, initMinute) = parseTimeString(state.addChoreForm.activeWindowEnd)
+        val timePickerState = rememberTimePickerState(
+            initialHour = initHour,
+            initialMinute = initMinute,
+            is24Hour = true
+        )
+        TimePickerDialog(
+            onDismissRequest = { showEndTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val formatted = "${timePickerState.hour.toString().padStart(2, '0')}:${timePickerState.minute.toString().padStart(2, '0')}"
+                    onAction(DashboardAction.OnChoreWindowEndChange(formatted))
+                    showEndTimePicker = false
+                }) {
+                    Text(stringResource(Res.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndTimePicker = false }) {
+                    Text(stringResource(Res.string.cancel))
+                }
+            }
+        ) {
+            TimePicker(state = timePickerState)
         }
     }
 }
@@ -507,3 +747,19 @@ fun FamilyMemberCard(
 }
 
 internal fun Modifier.layoutScale(scale: Float) = this.then(Modifier.size((scale * 48).dp)) // Rough scale hack
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TimePickerDialog(
+    onDismissRequest: () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    dismissButton: @Composable () -> Unit,
+    content: @Composable () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        confirmButton = confirmButton,
+        dismissButton = dismissButton,
+        text = content
+    )
+}

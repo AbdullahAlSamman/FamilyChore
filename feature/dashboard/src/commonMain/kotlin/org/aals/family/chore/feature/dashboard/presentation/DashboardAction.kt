@@ -32,6 +32,7 @@ sealed interface DashboardAction {
     data class OnChoreNameChange(val name: String) : DashboardAction
     data class OnChorePointsChange(val points: String) : DashboardAction
     data class OnChoreRecurrenceChange(val recurrence: org.aals.family.chore.core.domain.model.Recurrence) : DashboardAction
+    data class OnChoreDueDateChange(val date: String) : DashboardAction
     data class OnChoreActiveDayToggle(val dayNumber: Int) : DashboardAction
     data class OnChoreWindowStartChange(val time: String) : DashboardAction
     data class OnChoreWindowEndChange(val time: String) : DashboardAction

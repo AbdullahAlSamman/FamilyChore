@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class Recurrence {
     NONE,
-    HOURLY,
+    CUSTOM,
     DAILY,
     WEEKLY,
     MONTHLY

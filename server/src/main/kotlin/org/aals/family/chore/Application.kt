@@ -67,7 +67,7 @@ fun Application.module() {
 
         pairingRoutes(familyRepository, pairingManager)
         transactionRoutes(transactionRepository)
-        choreRoutes(choreRepository, sessionManager)
+        choreRoutes(choreRepository, sessionManager, fileStorage)
         choreSyncRoutes(sessionManager)
         photoProofRoutes(fileStorage)
     }

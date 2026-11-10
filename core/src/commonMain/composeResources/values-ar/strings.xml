@@ -206,4 +206,7 @@
     <string name="presets">صور جاهزة</string>
     <string name="camera">الكاميرا</string>
     <string name="picture_picker_gallery">المعرض</string>
+    <string name="chore_image_updated_success">تم تحديث صورة المهمة</string>
+    <string name="chore_image_source_title">تعيين صورة المهمة</string>
+    <string name="choose_task_preset">اختر صورة مهمة</string>
 </resources>

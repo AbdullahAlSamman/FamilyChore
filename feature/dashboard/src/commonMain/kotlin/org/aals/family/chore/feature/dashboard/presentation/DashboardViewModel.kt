@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import co.touchlab.kermit.Logger
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.child_pin_set_success
+import familychore.core.generated.resources.chore_image_updated_success
 import familychore.core.generated.resources.dashboard_load_failed_error
 import familychore.core.generated.resources.member_pin_change_success
 import familychore.core.generated.resources.picture_updated_success
@@ -34,6 +35,7 @@ import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.HardwareAvailabilityRepository
 import org.aals.family.chore.core.domain.repository.ProfilePictureRepository
+import org.aals.family.chore.core.domain.repository.TaskImageRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.repository.TransactionRepository
 import org.aals.family.chore.core.domain.usecase.ChoreGenerationUseCase
@@ -68,6 +70,7 @@ class DashboardViewModel(
     private val choreGenerationUseCase: ChoreGenerationUseCase,
     private val tokenStorage: TokenStorage,
     private val profilePictureRepository: ProfilePictureRepository,
+    private val taskImageRepository: TaskImageRepository,
     private val hardwareAvailabilityRepository: HardwareAvailabilityRepository,
     private val logger: Logger,
     private val timeProvider: TimeProvider,
@@ -237,6 +240,18 @@ class DashboardViewModel(
             DashboardAction.CancelCameraCapture -> {
                 updateSuccessState { it.copy(showCameraCapture = false, photoProofChoreId = null) }
             }
+            is DashboardAction.ShowTaskImageSourceDialog -> openTaskImageSourceDialog(action.choreId)
+            DashboardAction.DismissTaskImageSourceDialog -> updateSuccessState {
+                it.copy(taskImageTarget = null, showTaskPresetPicker = false)
+            }
+            DashboardAction.ShowTaskPresetPicker -> updateSuccessState {
+                it.copy(showTaskPresetPicker = true)
+            }
+            DashboardAction.DismissTaskPresetPicker -> updateSuccessState {
+                it.copy(showTaskPresetPicker = false)
+            }
+            is DashboardAction.SelectTaskPreset -> saveTaskPreset(action.choreId, action.preset)
+            is DashboardAction.OnTaskImagePicked -> saveTaskImage(action.choreId, action.imageBytes)
             is DashboardAction.StartPhotoProofCapture -> {
                 updateSuccessState { 
                     it.copy(
@@ -332,6 +347,73 @@ class DashboardViewModel(
                 }
             }
             updateSuccessState { it.copy(memberPictures = pictures) }
+        }
+    }
+
+    private fun openTaskImageSourceDialog(choreId: String) {
+        val exists = (_state.value as? DashboardState.Success)?.chores?.any { it.id == choreId } ?: false
+        if (exists) {
+            updateSuccessState { it.copy(taskImageTarget = choreId, showTaskPresetPicker = false, isSavingTaskImage = false) }
+        }
+    }
+
+    private fun saveTaskPreset(choreId: String, preset: String) {
+        val familyId = (_state.value as? DashboardState.Success)?.user?.familyId ?: return
+        viewModelScope.launch {
+            updateSuccessState { it.copy(isSavingTaskImage = true) }
+            taskImageRepository.savePreset(familyId, choreId, preset)
+                .onSuccess {
+                    updateSuccessState {
+                        it.copy(
+                            taskImageTarget = null,
+                            showTaskPresetPicker = false,
+                            isSavingTaskImage = false,
+                        )
+                    }
+                    _events.send(DashboardEvent.ShowMessage(UiText.StringResource(Res.string.chore_image_updated_success)))
+                    loadTaskImages()
+                }
+                .onFailure { e ->
+                    logger.e { "Failed to save preset image for chore $choreId: $e" }
+                    updateSuccessState { it.copy(isSavingTaskImage = false) }
+                }
+        }
+    }
+
+    private fun saveTaskImage(choreId: String, imageBytes: ByteArray) {
+        val familyId = (_state.value as? DashboardState.Success)?.user?.familyId ?: return
+        viewModelScope.launch {
+            updateSuccessState { it.copy(isSavingTaskImage = true) }
+            taskImageRepository.saveCustomPicture(familyId, choreId, imageBytes)
+                .onSuccess {
+                    updateSuccessState {
+                        it.copy(
+                            taskImageTarget = null,
+                            showTaskPresetPicker = false,
+                            isSavingTaskImage = false,
+                        )
+                    }
+                    _events.send(DashboardEvent.ShowMessage(UiText.StringResource(Res.string.chore_image_updated_success)))
+                    loadTaskImages()
+                }
+                .onFailure { e ->
+                    logger.e { "Failed to save task image for chore $choreId: $e" }
+                    updateSuccessState { it.copy(isSavingTaskImage = false) }
+                }
+        }
+    }
+
+    private fun loadTaskImages() {
+        val chores = (_state.value as? DashboardState.Success)?.chores ?: return
+        val familyId = (_state.value as? DashboardState.Success)?.user?.familyId ?: return
+        viewModelScope.launch {
+            val images = mutableMapOf<String, String>()
+            chores.forEach { chore ->
+                taskImageRepository.getTaskImage(familyId, chore.id)?.let { path ->
+                    images[chore.id] = path
+                }
+            }
+            updateSuccessState { it.copy(taskImages = images) }
         }
     }
 
@@ -743,7 +825,8 @@ class DashboardViewModel(
                         pinSetupTarget = previousSuccessState?.pinSetupTarget,
                         pinSetupError = previousSuccessState?.pinSetupError,
                         pinSetupSaving = previousSuccessState?.pinSetupSaving ?: false,
-                        memberPictures = previousSuccessState?.memberPictures ?: emptyMap()
+                        memberPictures = previousSuccessState?.memberPictures ?: emptyMap(),
+                        taskImages = previousSuccessState?.taskImages ?: emptyMap()
                     )
 
                     // Refresh local profile pictures (local-only, not on the server model)

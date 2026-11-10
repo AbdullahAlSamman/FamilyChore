@@ -95,4 +95,32 @@ open class ChoreDataSource(
             body = request
         )
     }
+
+    open suspend fun uploadTaskImage(
+        familyId: String,
+        choreId: String,
+        fileName: String,
+        imageBytes: ByteArray
+    ): Result<Unit, DataError.Network> {
+        return safeCall<Unit> {
+            httpClient.post("family/$familyId/chores/$choreId/image") {
+                setBody(
+                    MultiPartFormDataContent(
+                        formData {
+                            append("file", imageBytes, Headers.build {
+                                append(HttpHeaders.ContentDisposition, "filename=\"$fileName\"")
+                            })
+                        }
+                    )
+                )
+            }
+        }
+    }
+
+    open suspend fun downloadTaskImage(
+        familyId: String,
+        choreId: String
+    ): Result<ByteArray, DataError.Network> {
+        return httpClient.get<ByteArray>("family/$familyId/chores/$choreId/image")
+    }
 }

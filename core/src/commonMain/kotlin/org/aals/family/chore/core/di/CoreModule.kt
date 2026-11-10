@@ -16,12 +16,14 @@ import org.aals.family.chore.core.data.repository.ChoreRepositoryImpl
 import org.aals.family.chore.core.data.repository.ConnectivityRepositoryImpl
 import org.aals.family.chore.core.data.repository.DataStoreTokenStorage
 import org.aals.family.chore.core.data.repository.ProfilePictureRepositoryImpl
+import org.aals.family.chore.core.data.repository.TaskImageRepositoryImpl
 import org.aals.family.chore.core.data.repository.TransactionRepositoryImpl
 import org.aals.family.chore.core.data.util.DefaultTimeProvider
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.ProfilePictureRepository
+import org.aals.family.chore.core.domain.repository.TaskImageRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.repository.TransactionRepository
 import org.aals.family.chore.core.domain.usecase.ChoreGenerationUseCase
@@ -50,6 +52,7 @@ val coreModule = module {
     singleOf(::ChoreRepositoryImpl) { bind<ChoreRepository>() }
     singleOf(::ConnectivityRepositoryImpl) { bind<ConnectivityRepository>() }
     singleOf(::ProfilePictureRepositoryImpl) { bind<ProfilePictureRepository>() }
+    singleOf(::TaskImageRepositoryImpl) { bind<TaskImageRepository>() }
     singleOf(::DataStoreTokenStorage) { bind<TokenStorage>() }
     factoryOf(::ObserveConnectivityUseCase)
     singleOf(::ChoreGenerationUseCase)

@@ -36,6 +36,15 @@ class SqlChoreRepository : ChoreRepository {
             it[createdBy] = chore.createdBy
             it[createdAt] = chore.createdAt
             it[updatedAt] = chore.updatedAt
+            it[recurrence] = chore.recurrence.name
+            it[activeDays] = chore.activeDays.joinToString(",")
+            it[activeWindowStart] = chore.activeWindowStart
+            it[activeWindowEnd] = chore.activeWindowEnd
+            it[penalty] = chore.penalty
+            it[requiresPhotoProof] = chore.requiresPhotoProof
+            it[iconName] = chore.iconName
+            it[parentChoreId] = chore.parentChoreId
+            it[dueDate] = chore.dueDate
         }
         chore
     }
@@ -63,7 +72,16 @@ class SqlChoreRepository : ChoreRepository {
             assignedTo = this[ChoresTable.assignedTo],
             createdBy = this[ChoresTable.createdBy],
             createdAt = this[ChoresTable.createdAt],
-            updatedAt = this[ChoresTable.updatedAt]
+            updatedAt = this[ChoresTable.updatedAt],
+            recurrence = org.aals.family.chore.core.domain.model.Recurrence.valueOf(this[ChoresTable.recurrence]),
+            activeDays = this[ChoresTable.activeDays].split(",").mapNotNull { it.toIntOrNull() },
+            activeWindowStart = this[ChoresTable.activeWindowStart],
+            activeWindowEnd = this[ChoresTable.activeWindowEnd],
+            penalty = this[ChoresTable.penalty],
+            requiresPhotoProof = this[ChoresTable.requiresPhotoProof],
+            iconName = this[ChoresTable.iconName],
+            parentChoreId = this[ChoresTable.parentChoreId],
+            dueDate = this[ChoresTable.dueDate]
         )
     }
 }

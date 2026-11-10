@@ -17,6 +17,7 @@ import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.HardwareAvailabilityRepository
 import org.aals.family.chore.core.domain.repository.ProfilePictureRepository
+import org.aals.family.chore.core.domain.repository.TaskImageRepository
 import org.aals.family.chore.core.domain.usecase.ObserveConnectivityUseCase
 import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.EmptyResult
@@ -40,6 +41,7 @@ class DashboardViewModelTest {
     private lateinit var observeConnectivityUseCase: ObserveConnectivityUseCase
     private lateinit var timeProvider: FakeTimeProvider
     private lateinit var profilePictureRepository: FakeProfilePictureRepository
+    private lateinit var taskImageRepository: FakeTaskImageRepository
     private lateinit var hardwareAvailabilityRepository: FakeHardwareAvailabilityRepository
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -54,6 +56,7 @@ class DashboardViewModelTest {
         observeConnectivityUseCase = ObserveConnectivityUseCase(tokenStorage, connectivityRepository)
         timeProvider = FakeTimeProvider()
         profilePictureRepository = FakeProfilePictureRepository()
+        taskImageRepository = FakeTaskImageRepository()
         hardwareAvailabilityRepository = FakeHardwareAvailabilityRepository()
         
         // Default mock setup
@@ -71,6 +74,7 @@ class DashboardViewModelTest {
             choreGenerationUseCase = org.aals.family.chore.core.domain.usecase.ChoreGenerationUseCase(choreRepository, timeProvider),
             tokenStorage = tokenStorage,
             profilePictureRepository = profilePictureRepository,
+            taskImageRepository = taskImageRepository,
             hardwareAvailabilityRepository = hardwareAvailabilityRepository,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider
@@ -508,6 +512,7 @@ class DashboardViewModelTest {
             choreGenerationUseCase = org.aals.family.chore.core.domain.usecase.ChoreGenerationUseCase(choreRepository, timeProvider),
             tokenStorage = tokenStorage,
             profilePictureRepository = profilePictureRepository,
+            taskImageRepository = taskImageRepository,
             hardwareAvailabilityRepository = hardwareAvailabilityRepository,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider
@@ -590,6 +595,7 @@ class DashboardViewModelTest {
             choreGenerationUseCase = org.aals.family.chore.core.domain.usecase.ChoreGenerationUseCase(choreRepository, timeProvider),
             tokenStorage = tokenStorage,
             profilePictureRepository = profilePictureRepository,
+            taskImageRepository = taskImageRepository,
             hardwareAvailabilityRepository = hardwareAvailabilityRepository,
             logger = Logger.withTag("DashboardViewModelTest"),
             timeProvider = timeProvider
@@ -761,6 +767,30 @@ private class FakeProfilePictureRepository : ProfilePictureRepository {
     override suspend fun savePreset(userId: String, presetKey: String): EmptyResult<DataError.Local> {
         presetSaves.add(userId to presetKey)
         pictures[userId] = "bundled:$presetKey"
+        return Result.Success(Unit)
+    }
+}
+
+private class FakeTaskImageRepository : TaskImageRepository {
+    val images = mutableMapOf<String, String>()
+    val presetSaves = mutableListOf<Pair<String, String>>()
+    val customSaves = mutableListOf<Pair<String, ByteArray>>()
+
+    override suspend fun getTaskImage(familyId: String, choreId: String): String? = images[choreId]
+
+    override suspend fun saveCustomPicture(familyId: String, choreId: String, imageBytes: ByteArray): EmptyResult<DataError.Local> {
+        customSaves.add(choreId to imageBytes)
+        images[choreId] = "/fake/path/for/$choreId.jpg"
+        return Result.Success(Unit)
+    }
+
+    override suspend fun savePreset(familyId: String, choreId: String, presetKey: String): EmptyResult<DataError.Local> {
+        presetSaves.add(choreId to presetKey)
+        images[choreId] = "bundled:$presetKey"
+        return Result.Success(Unit)
+    }
+
+    override suspend fun downloadImage(familyId: String, choreId: String): EmptyResult<DataError.Local> {
         return Result.Success(Unit)
     }
 }

@@ -69,6 +69,10 @@ sealed interface DashboardState {
         val photoProofChoreId: String? = null, // Which chore we are capturing proof for
         val isSavingPicture: Boolean = false,
         val memberPictures: Map<String, String> = emptyMap(),
+        val taskImageTarget: String? = null, // Which chore we are setting an image for
+        val showTaskPresetPicker: Boolean = false,
+        val isSavingTaskImage: Boolean = false,
+        val taskImages: Map<String, String> = emptyMap(), // choreId -> iconName/path
     ) : DashboardState
 
     data class Error(val message: UiText) : DashboardState

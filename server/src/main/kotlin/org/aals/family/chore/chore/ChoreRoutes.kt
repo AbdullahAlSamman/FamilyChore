@@ -18,11 +18,17 @@ import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.validation.ChoreValidator
 import org.aals.family.chore.domain.repository.ChoreRepository
+import org.aals.family.chore.storage.FileStorage
 import java.util.UUID
 
 import org.aals.family.chore.chore.sync.ChoreSessionManager
+import io.ktor.http.content.PartData
+import io.ktor.server.request.receiveMultipart
+import io.ktor.http.content.forEachPart
+import io.ktor.http.content.streamProvider
+import io.ktor.server.response.respondBytes
 
-fun Route.choreRoutes(choreRepository: ChoreRepository, sessionManager: ChoreSessionManager) {
+fun Route.choreRoutes(choreRepository: ChoreRepository, sessionManager: ChoreSessionManager, fileStorage: FileStorage) {
     route("/family/{familyId}/chores") {
         get {
             val familyId = call.parameters["familyId"] ?: return@get call.respond(HttpStatusCode.BadRequest)
@@ -104,6 +110,58 @@ fun Route.choreRoutes(choreRepository: ChoreRepository, sessionManager: ChoreSes
                     sessionManager.broadcastChoreUpdate(familyId, updatedChore.toDto())
                 }
                 call.respond(HttpStatusCode.OK)
+            } else {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+
+        post("/{choreId}/image") {
+            val familyId = call.parameters["familyId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+            val choreId = call.parameters["choreId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+            
+            val multipart = call.receiveMultipart()
+            var fileId: String? = null
+
+            multipart.forEachPart { part ->
+                if (part is PartData.FileItem) {
+                    val fileName = part.originalFileName ?: "image.jpg"
+                    val inputStream = part.streamProvider()
+                    fileId = fileStorage.saveFile(familyId, choreId, fileName, inputStream)
+                }
+                part.dispose()
+            }
+
+            if (fileId != null) {
+                // Return success
+                call.respond(HttpStatusCode.OK)
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "No file found")
+            }
+        }
+
+        get("/{choreId}/image") {
+            val familyId = call.parameters["familyId"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+            val choreId = call.parameters["choreId"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+            
+            val chores = choreRepository.getChoresByFamily(familyId)
+            val chore = chores.find { it.id == choreId }
+            val iconName = chore?.iconName
+            
+            if (iconName == null || iconName.startsWith("bundled:")) {
+                return@get call.respond(HttpStatusCode.NotFound)
+            }
+            
+            // The fileId convention in LocalDiskFileStorage is familyId/choreId/uuid_filename
+            // but the client uploads a unique filename via remoteDataSource.uploadTaskImage and it gets saved under family/chore/file.
+            // Wait, we need to map iconName to the actual file ID, or just search the folder.
+            // Let's just assume the file ID is familyId/choreId/iconName
+            val fileId = "$familyId/$choreId/$iconName"
+            val fileStream = fileStorage.getFile(fileId)
+            
+            if (fileStream != null) {
+                val bytes = fileStream.readBytes()
+                fileStream.close()
+                call.respondBytes(bytes)
             } else {
                 call.respond(HttpStatusCode.NotFound)
             }

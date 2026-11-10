@@ -191,6 +191,20 @@ fun DashboardContent(
                 onCancel = { onAction(DashboardAction.CancelCameraCapture) }
             )
         }
+
+        if (state.choreImageTarget != null) {
+            if (state.showChorePresetPicker) {
+                org.aals.family.chore.feature.dashboard.presentation.components.ChorePresetPickerDialog(
+                    choreId = state.choreImageTarget,
+                    onAction = onAction
+                )
+            } else {
+                org.aals.family.chore.feature.dashboard.presentation.components.ChoreImageSourceDialog(
+                    choreId = state.choreImageTarget,
+                    onAction = onAction
+                )
+            }
+        }
     }
 }
 

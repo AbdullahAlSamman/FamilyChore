@@ -4,15 +4,15 @@ import org.aals.family.chore.core.domain.util.DataError
 import org.aals.family.chore.core.domain.util.EmptyResult
 
 /**
- * Stores and retrieves the local task images or infographics (icons) for a chore.
+ * Stores and retrieves the local chore images or infographics (icons) for a chore.
  *
  * A "path" stored in the DB (iconName) may be:
  *  - a `file://...` absolute path to a copied image in app-private storage, or
  *  - a bundled preset marker like `bundled:<name>` referencing a compose resource.
  */
-interface TaskImageRepository {
-    /** Returns the stored task image reference for [choreId], or null if none. */
-    suspend fun getTaskImage(familyId: String, choreId: String): String?
+interface ChoreImageRepository {
+    /** Returns the stored chore image reference for [choreId], or null if none. */
+    suspend fun getChoreImage(familyId: String, choreId: String): String?
 
     /** Saves a custom uploaded image locally and uploads to the server. */
     suspend fun saveCustomPicture(familyId: String, choreId: String, imageBytes: ByteArray): EmptyResult<DataError>

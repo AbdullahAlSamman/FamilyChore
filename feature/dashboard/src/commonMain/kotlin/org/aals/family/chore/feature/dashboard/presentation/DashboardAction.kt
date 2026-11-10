@@ -70,11 +70,11 @@ sealed interface DashboardAction {
     data class StartPhotoProofCapture(val choreId: String) : DashboardAction
     data class OnPhotoProofCaptured(val choreId: String, val imageBytes: ByteArray) : DashboardAction
 
-    // Task Images / Infographics
-    data class ShowTaskImageSourceDialog(val choreId: String) : DashboardAction
-    data object DismissTaskImageSourceDialog : DashboardAction
-    data object ShowTaskPresetPicker : DashboardAction
-    data object DismissTaskPresetPicker : DashboardAction
-    data class SelectTaskPreset(val choreId: String, val preset: String) : DashboardAction
-    data class OnTaskImagePicked(val choreId: String, val imageBytes: ByteArray) : DashboardAction
+    // Chore Images / Infographics
+    data class ShowChoreImageSourceDialog(val choreId: String) : DashboardAction
+    data object DismissChoreImageSourceDialog : DashboardAction
+    data object ShowChorePresetPicker : DashboardAction
+    data object DismissChorePresetPicker : DashboardAction
+    data class SelectChorePreset(val choreId: String, val preset: String) : DashboardAction
+    data class OnChoreImagePicked(val choreId: String, val imageBytes: ByteArray) : DashboardAction
 }

@@ -10,9 +10,11 @@ import org.aals.family.chore.core.data.remote.dto.CreateChoreRequest
 import org.aals.family.chore.core.data.remote.dto.UpdateChoreStatusRequest
 import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.ChoreStatus
+import org.aals.family.chore.core.domain.repository.ChoreImageRepository
 import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.DataError
+import org.aals.family.chore.core.domain.util.EmptyResult
 import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.core.domain.util.TimeProvider
 import org.aals.family.chore.core.domain.util.map
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.map as flowMap
 class ChoreRepositoryImpl(
     private val choreDao: ChoreDao,
     private val choreDataSource: ChoreDataSource,
+    private val choreImageRepository: ChoreImageRepository,
     private val tokenStorage: TokenStorage,
     private val timeProvider: TimeProvider,
     private val logger: Logger
@@ -127,6 +130,15 @@ class ChoreRepositoryImpl(
     ): Result<String, DataError> {
         return choreDataSource.uploadPhotoProof(familyId, choreId, fileName, photoBytes)
     }
+
+    override suspend fun saveChoreImage(familyId: String, choreId: String, imageBytes: ByteArray): EmptyResult<DataError> =
+        choreImageRepository.saveCustomPicture(familyId, choreId, imageBytes)
+
+    override suspend fun saveChoreImagePreset(familyId: String, choreId: String, presetKey: String): EmptyResult<DataError> =
+        choreImageRepository.savePreset(familyId, choreId, presetKey)
+
+    override suspend fun downloadChoreImage(familyId: String, choreId: String): EmptyResult<DataError> =
+        choreImageRepository.downloadImage(familyId, choreId)
 }
 
 fun ChoreDto.toChore(): Chore = Chore(

@@ -206,7 +206,14 @@ fun ParentTasksContent(
                 items(state.chores) { chore ->
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Row {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                org.aals.family.chore.core.presentation.components.ChoreImage(
+                                    imagePath = state.choreImages[chore.id] ?: chore.iconName,
+                                    size = 48.dp,
+                                    modifier = Modifier
+                                        .padding(end = 12.dp)
+                                        .clickable { onAction(DashboardAction.ShowChoreImageSourceDialog(chore.id)) }
+                                )
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(chore.name, style = MaterialTheme.typography.titleMedium)
                                     Text(

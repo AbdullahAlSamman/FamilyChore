@@ -204,7 +204,7 @@
     <string name="picture_updated_success">Profile picture updated</string>
     <string name="chore_image_updated_success">Task image updated</string>
     <string name="chore_image_source_title">Set Task Image</string>
-    <string name="choose_task_preset">Choose a Task Image</string>
+    <string name="choose_chore_preset">Choose a Chore Image</string>
     <string name="gallery">Gallery</string>
     <string name="presets">Presets</string>
     <string name="camera">Camera</string>

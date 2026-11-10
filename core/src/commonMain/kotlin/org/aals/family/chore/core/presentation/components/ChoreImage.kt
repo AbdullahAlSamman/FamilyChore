@@ -22,17 +22,17 @@ import coil3.compose.LocalPlatformContext
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import familychore.core.generated.resources.Res
-import familychore.core.generated.resources.task_preset_clean
-import familychore.core.generated.resources.task_preset_dishes
-import familychore.core.generated.resources.task_preset_homework
-import familychore.core.generated.resources.task_preset_laundry
+import familychore.core.generated.resources.chore_preset_clean
+import familychore.core.generated.resources.chore_preset_dishes
+import familychore.core.generated.resources.chore_preset_homework
+import familychore.core.generated.resources.chore_preset_laundry
 import org.jetbrains.compose.resources.painterResource
 
 /**
  * The set of bundled preset task-image (infographic) keys available for selection.
- * Each key maps to a corresponding `Res.drawable.task_preset_<key>` drawable.
+ * Each key maps to a corresponding `Res.drawable.chore_preset_<key>` drawable.
  */
-val TaskPresets: List<String> = listOf("dishes", "laundry", "clean", "homework")
+val ChorePresets: List<String> = listOf("dishes", "laundry", "clean", "homework")
 
 /**
  * Renders a chore's task image / infographic with this priority:
@@ -44,7 +44,7 @@ val TaskPresets: List<String> = listOf("dishes", "laundry", "clean", "homework")
  * @param size      the width/height of the rendered tile.
  */
 @Composable
-fun ChoreTaskImage(
+fun ChoreImage(
     imagePath: String?,
     size: Dp = 48.dp,
     modifier: Modifier = Modifier,
@@ -97,8 +97,8 @@ fun ChoreTaskImage(
 
 @Composable
 private fun taskPresetPainter(key: String): Painter = when (key) {
-    "laundry" -> painterResource(Res.drawable.task_preset_laundry)
-    "clean" -> painterResource(Res.drawable.task_preset_clean)
-    "homework" -> painterResource(Res.drawable.task_preset_homework)
-    else -> painterResource(Res.drawable.task_preset_dishes)
+    "laundry" -> painterResource(Res.drawable.chore_preset_laundry)
+    "clean" -> painterResource(Res.drawable.chore_preset_clean)
+    "homework" -> painterResource(Res.drawable.chore_preset_homework)
+    else -> painterResource(Res.drawable.chore_preset_dishes)
 }

@@ -14,6 +14,7 @@ import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TransactionRepository
 import org.aals.family.chore.core.domain.util.DataError
+import org.aals.family.chore.core.domain.util.EmptyResult
 import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.core.domain.util.TimeProvider
 
@@ -113,6 +114,20 @@ class FakeChoreRepository : ChoreRepository {
     override suspend fun syncChores(familyId: String): Result<Unit, DataError> = Result.Success(Unit)
     override fun observeRemoteChanges(familyId: String): Flow<Unit> = emptyFlow()
     override suspend fun uploadPhotoProof(familyId: String, choreId: String, fileName: String, photoBytes: ByteArray): Result<String, DataError> = Result.Success("fileId")
+
+    override suspend fun saveChoreImage(familyId: String, choreId: String, imageBytes: ByteArray): EmptyResult<DataError> {
+        val updated = chores.value.map { if (it.id == choreId) it.copy(iconName = "/fake/path/for/$choreId.jpg") else it }
+        chores.value = updated
+        return Result.Success(Unit)
+    }
+
+    override suspend fun saveChoreImagePreset(familyId: String, choreId: String, presetKey: String): EmptyResult<DataError> {
+        val updated = chores.value.map { if (it.id == choreId) it.copy(iconName = "bundled:$presetKey") else it }
+        chores.value = updated
+        return Result.Success(Unit)
+    }
+
+    override suspend fun downloadChoreImage(familyId: String, choreId: String): EmptyResult<DataError> = Result.Success(Unit)
 }
 
 class FakeConnectivityRepository : ConnectivityRepository {

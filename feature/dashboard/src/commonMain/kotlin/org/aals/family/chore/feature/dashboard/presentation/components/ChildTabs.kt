@@ -70,6 +70,11 @@ fun ChildTodayContent(
                             modifier = Modifier.padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            org.aals.family.chore.core.presentation.components.ChoreImage(
+                                imagePath = state.choreImages[chore.id] ?: chore.iconName,
+                                size = 48.dp,
+                                modifier = Modifier.padding(end = 12.dp)
+                            )
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(chore.name, style = MaterialTheme.typography.titleMedium)
                                 Text(chore.status.name, style = MaterialTheme.typography.labelSmall)

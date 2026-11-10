@@ -96,7 +96,7 @@ open class ChoreDataSource(
         )
     }
 
-    open suspend fun uploadTaskImage(
+    open suspend fun uploadChoreImage(
         familyId: String,
         choreId: String,
         fileName: String,
@@ -117,7 +117,7 @@ open class ChoreDataSource(
         }
     }
 
-    open suspend fun downloadTaskImage(
+    open suspend fun downloadChoreImage(
         familyId: String,
         choreId: String
     ): Result<ByteArray, DataError.Network> {

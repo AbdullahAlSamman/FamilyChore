@@ -35,7 +35,6 @@ import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.HardwareAvailabilityRepository
 import org.aals.family.chore.core.domain.repository.ProfilePictureRepository
-import org.aals.family.chore.core.domain.repository.TaskImageRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.repository.TransactionRepository
 import org.aals.family.chore.core.domain.usecase.ChoreGenerationUseCase
@@ -70,7 +69,6 @@ class DashboardViewModel(
     private val choreGenerationUseCase: ChoreGenerationUseCase,
     private val tokenStorage: TokenStorage,
     private val profilePictureRepository: ProfilePictureRepository,
-    private val taskImageRepository: TaskImageRepository,
     private val hardwareAvailabilityRepository: HardwareAvailabilityRepository,
     private val logger: Logger,
     private val timeProvider: TimeProvider,
@@ -240,18 +238,18 @@ class DashboardViewModel(
             DashboardAction.CancelCameraCapture -> {
                 updateSuccessState { it.copy(showCameraCapture = false, photoProofChoreId = null) }
             }
-            is DashboardAction.ShowTaskImageSourceDialog -> openTaskImageSourceDialog(action.choreId)
-            DashboardAction.DismissTaskImageSourceDialog -> updateSuccessState {
-                it.copy(taskImageTarget = null, showTaskPresetPicker = false)
+            is DashboardAction.ShowChoreImageSourceDialog -> openChoreImageSourceDialog(action.choreId)
+            DashboardAction.DismissChoreImageSourceDialog -> updateSuccessState {
+                it.copy(choreImageTarget = null, showChorePresetPicker = false)
             }
-            DashboardAction.ShowTaskPresetPicker -> updateSuccessState {
-                it.copy(showTaskPresetPicker = true)
+            DashboardAction.ShowChorePresetPicker -> updateSuccessState {
+                it.copy(showChorePresetPicker = true)
             }
-            DashboardAction.DismissTaskPresetPicker -> updateSuccessState {
-                it.copy(showTaskPresetPicker = false)
+            DashboardAction.DismissChorePresetPicker -> updateSuccessState {
+                it.copy(showChorePresetPicker = false)
             }
-            is DashboardAction.SelectTaskPreset -> saveTaskPreset(action.choreId, action.preset)
-            is DashboardAction.OnTaskImagePicked -> saveTaskImage(action.choreId, action.imageBytes)
+            is DashboardAction.SelectChorePreset -> saveChorePreset(action.choreId, action.preset)
+            is DashboardAction.OnChoreImagePicked -> saveChoreImage(action.choreId, action.imageBytes)
             is DashboardAction.StartPhotoProofCapture -> {
                 updateSuccessState { 
                     it.copy(
@@ -350,70 +348,54 @@ class DashboardViewModel(
         }
     }
 
-    private fun openTaskImageSourceDialog(choreId: String) {
+    private fun openChoreImageSourceDialog(choreId: String) {
         val exists = (_state.value as? DashboardState.Success)?.chores?.any { it.id == choreId } ?: false
         if (exists) {
-            updateSuccessState { it.copy(taskImageTarget = choreId, showTaskPresetPicker = false, isSavingTaskImage = false) }
+            updateSuccessState { it.copy(choreImageTarget = choreId, showChorePresetPicker = false, isSavingChoreImage = false) }
         }
     }
 
-    private fun saveTaskPreset(choreId: String, preset: String) {
+    private fun saveChorePreset(choreId: String, preset: String) {
         val familyId = (_state.value as? DashboardState.Success)?.user?.familyId ?: return
         viewModelScope.launch {
-            updateSuccessState { it.copy(isSavingTaskImage = true) }
-            taskImageRepository.savePreset(familyId, choreId, preset)
+            updateSuccessState { it.copy(isSavingChoreImage = true) }
+            choreRepository.saveChoreImagePreset(familyId, choreId, preset)
                 .onSuccess {
                     updateSuccessState {
                         it.copy(
-                            taskImageTarget = null,
-                            showTaskPresetPicker = false,
-                            isSavingTaskImage = false,
+                            choreImageTarget = null,
+                            showChorePresetPicker = false,
+                            isSavingChoreImage = false,
                         )
                     }
                     _events.send(DashboardEvent.ShowMessage(UiText.StringResource(Res.string.chore_image_updated_success)))
-                    loadTaskImages()
                 }
                 .onFailure { e ->
                     logger.e { "Failed to save preset image for chore $choreId: $e" }
-                    updateSuccessState { it.copy(isSavingTaskImage = false) }
+                    updateSuccessState { it.copy(isSavingChoreImage = false) }
                 }
         }
     }
 
-    private fun saveTaskImage(choreId: String, imageBytes: ByteArray) {
+    private fun saveChoreImage(choreId: String, imageBytes: ByteArray) {
         val familyId = (_state.value as? DashboardState.Success)?.user?.familyId ?: return
         viewModelScope.launch {
-            updateSuccessState { it.copy(isSavingTaskImage = true) }
-            taskImageRepository.saveCustomPicture(familyId, choreId, imageBytes)
+            updateSuccessState { it.copy(isSavingChoreImage = true) }
+            choreRepository.saveChoreImage(familyId, choreId, imageBytes)
                 .onSuccess {
                     updateSuccessState {
                         it.copy(
-                            taskImageTarget = null,
-                            showTaskPresetPicker = false,
-                            isSavingTaskImage = false,
+                            choreImageTarget = null,
+                            showChorePresetPicker = false,
+                            isSavingChoreImage = false,
                         )
                     }
                     _events.send(DashboardEvent.ShowMessage(UiText.StringResource(Res.string.chore_image_updated_success)))
-                    loadTaskImages()
                 }
                 .onFailure { e ->
-                    logger.e { "Failed to save task image for chore $choreId: $e" }
-                    updateSuccessState { it.copy(isSavingTaskImage = false) }
+                    logger.e { "Failed to save chore image for chore $choreId: $e" }
+                    updateSuccessState { it.copy(isSavingChoreImage = false) }
                 }
-        }
-    }
-
-    private fun loadTaskImages() {
-        val chores = (_state.value as? DashboardState.Success)?.chores ?: return
-        val familyId = (_state.value as? DashboardState.Success)?.user?.familyId ?: return
-        viewModelScope.launch {
-            val images = mutableMapOf<String, String>()
-            chores.forEach { chore ->
-                taskImageRepository.getTaskImage(familyId, chore.id)?.let { path ->
-                    images[chore.id] = path
-                }
-            }
-            updateSuccessState { it.copy(taskImages = images) }
         }
     }
 
@@ -826,7 +808,7 @@ class DashboardViewModel(
                         pinSetupError = previousSuccessState?.pinSetupError,
                         pinSetupSaving = previousSuccessState?.pinSetupSaving ?: false,
                         memberPictures = previousSuccessState?.memberPictures ?: emptyMap(),
-                        taskImages = previousSuccessState?.taskImages ?: emptyMap()
+                        choreImages = previousSuccessState?.choreImages ?: emptyMap()
                     )
 
                     // Refresh local profile pictures (local-only, not on the server model)
@@ -892,7 +874,8 @@ class DashboardViewModel(
                                     if (myPending > 0) counts["today"] = myPending
                                 }
                                 
-                                updateSuccessState { it.copy(chores = filteredChores, pendingCounts = counts) }
+                                val choreImages = filteredChores.mapNotNull { chore -> chore.iconName?.let { chore.id to it } }.toMap()
+                                updateSuccessState { it.copy(chores = filteredChores, pendingCounts = counts, choreImages = choreImages) }
                             }
                             .launchIn(this)
                             

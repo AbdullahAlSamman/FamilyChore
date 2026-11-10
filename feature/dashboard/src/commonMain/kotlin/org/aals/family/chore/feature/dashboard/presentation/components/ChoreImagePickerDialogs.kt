@@ -28,23 +28,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import familychore.core.generated.resources.Res
 import familychore.core.generated.resources.cancel
-import familychore.core.generated.resources.choose_task_preset
+import familychore.core.generated.resources.choose_chore_preset
 import familychore.core.generated.resources.chore_image_source_title
 import familychore.core.generated.resources.pick_from_gallery
 import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerType
 import kotlinx.coroutines.launch
-import org.aals.family.chore.core.presentation.components.ChoreTaskImage
-import org.aals.family.chore.core.presentation.components.TaskPresets
+import org.aals.family.chore.core.presentation.components.ChoreImage
+import org.aals.family.chore.core.presentation.components.ChorePresets
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Source-choice dialog for a chore's task image / infographic.
+ * Source-choice dialog for a chore's image / infographic.
  * Offers picking from the gallery (FileKit) or choosing a bundled preset.
  */
 @Composable
-fun TaskImageSourceDialog(
+fun ChoreImageSourceDialog(
     choreId: String,
     onAction: (DashboardAction) -> Unit,
 ) {
@@ -57,7 +57,7 @@ fun TaskImageSourceDialog(
                 scope.launch {
                     try {
                         val bytes = file.readBytes()
-                        onAction(DashboardAction.OnTaskImagePicked(choreId, bytes))
+                        onAction(DashboardAction.OnChoreImagePicked(choreId, bytes))
                     } catch (e: Exception) {
                         co.touchlab.kermit.Logger.e(e) { "Gallery readBytes failed for ${file.name}" }
                     }
@@ -65,7 +65,7 @@ fun TaskImageSourceDialog(
             }
         },
     )
-    Dialog(onDismissRequest = { onAction(DashboardAction.DismissTaskImageSourceDialog) }) {
+    Dialog(onDismissRequest = { onAction(DashboardAction.DismissChoreImageSourceDialog) }) {
         Card {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -82,8 +82,8 @@ fun TaskImageSourceDialog(
                 HorizontalDivider()
                 SourceRow(
                     icon = { Icon(Icons.Default.Palette, contentDescription = null) },
-                    label = stringResource(Res.string.choose_task_preset),
-                    onClick = { onAction(DashboardAction.ShowTaskPresetPicker) },
+                    label = stringResource(Res.string.choose_chore_preset),
+                    onClick = { onAction(DashboardAction.ShowChorePresetPicker) },
                 )
 
                 Spacer(modifier = Modifier.size(8.dp))
@@ -91,7 +91,7 @@ fun TaskImageSourceDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(onClick = { onAction(DashboardAction.DismissTaskImageSourceDialog) }) {
+                    TextButton(onClick = { onAction(DashboardAction.DismissChoreImageSourceDialog) }) {
                         Text(stringResource(Res.string.cancel))
                     }
                 }
@@ -105,15 +105,15 @@ fun TaskImageSourceDialog(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun TaskPresetPickerDialog(
+fun ChorePresetPickerDialog(
     choreId: String,
     onAction: (DashboardAction) -> Unit,
 ) {
-    Dialog(onDismissRequest = { onAction(DashboardAction.DismissTaskPresetPicker) }) {
+    Dialog(onDismissRequest = { onAction(DashboardAction.DismissChorePresetPicker) }) {
         Card {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    stringResource(Res.string.choose_task_preset),
+                    stringResource(Res.string.choose_chore_preset),
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Spacer(modifier = Modifier.size(16.dp))
@@ -122,13 +122,13 @@ fun TaskPresetPickerDialog(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     maxItemsInEachRow = 4,
                 ) {
-                    TaskPresets.forEach { key ->
-                        ChoreTaskImage(
+                    ChorePresets.forEach { key ->
+                        ChoreImage(
                             imagePath = "bundled:$key",
                             size = 64.dp,
                             modifier = Modifier
                                 .clickable {
-                                    onAction(DashboardAction.SelectTaskPreset(choreId, key))
+                                    onAction(DashboardAction.SelectChorePreset(choreId, key))
                                 }
                                 .padding(4.dp),
                         )
@@ -139,7 +139,7 @@ fun TaskPresetPickerDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(onClick = { onAction(DashboardAction.DismissTaskPresetPicker) }) {
+                    TextButton(onClick = { onAction(DashboardAction.DismissChorePresetPicker) }) {
                         Text(stringResource(Res.string.cancel))
                     }
                 }

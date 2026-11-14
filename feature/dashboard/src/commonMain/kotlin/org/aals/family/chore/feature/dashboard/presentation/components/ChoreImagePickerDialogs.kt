@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Collections
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
@@ -84,6 +85,12 @@ fun ChoreImageSourceDialog(
                     icon = { Icon(Icons.Default.Palette, contentDescription = null) },
                     label = stringResource(Res.string.choose_chore_preset),
                     onClick = { onAction(DashboardAction.ShowChorePresetPicker) },
+                )
+                HorizontalDivider()
+                SourceRow(
+                    icon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                    label = "Remove Image",
+                    onClick = { onAction(DashboardAction.ClearChoreImage(choreId)) },
                 )
 
                 Spacer(modifier = Modifier.size(8.dp))

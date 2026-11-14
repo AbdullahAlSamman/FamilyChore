@@ -257,17 +257,30 @@ fun ParentTasksContent(
                         style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(Modifier.size(16.dp))
-                    OutlinedTextField(
-                        value = choreName,
-                        onValueChange = { 
-                            choreName = it
-                            onAction(DashboardAction.OnChoreNameChange(it)) 
-                        },
-                        label = { Text(stringResource(Res.string.task_management_name_label)) },
-                        singleLine = true,
-                        isError = state.addChoreForm.nameError != null,
-                        supportingText = { state.addChoreForm.nameError?.let { Text(it.asString()) } }
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        org.aals.family.chore.core.presentation.components.ChoreImage(
+                            imagePath = state.addChoreForm.tempImagePath ?: state.addChoreForm.iconName,
+                            size = 56.dp,
+                            modifier = Modifier
+                                .padding(end = 12.dp)
+                                .clickable { onAction(DashboardAction.ShowChoreImageSourceDialog("NEW_CHORE")) }
+                        )
+                        OutlinedTextField(
+                            value = choreName,
+                            onValueChange = { 
+                                choreName = it
+                                onAction(DashboardAction.OnChoreNameChange(it)) 
+                            },
+                            label = { Text(stringResource(Res.string.task_management_name_label)) },
+                            singleLine = true,
+                            isError = state.addChoreForm.nameError != null,
+                            supportingText = { state.addChoreForm.nameError?.let { Text(it.asString()) } },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                     OutlinedTextField(
                         value = points,
                         onValueChange = { 

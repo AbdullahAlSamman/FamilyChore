@@ -139,6 +139,15 @@ class ChoreRepositoryImpl(
 
     override suspend fun downloadChoreImage(familyId: String, choreId: String): EmptyResult<DataError> =
         choreImageRepository.downloadImage(familyId, choreId)
+
+    override suspend fun saveTempChoreImage(imageBytes: ByteArray): Result<String, DataError> =
+        choreImageRepository.saveTempImage(imageBytes)
+
+    override suspend fun clearTempChoreImage(filePath: String) =
+        choreImageRepository.clearTempImage(filePath)
+
+    override suspend fun saveChoreImageFromPath(familyId: String, choreId: String, filePath: String): EmptyResult<DataError> =
+        choreImageRepository.saveCustomPictureFromPath(familyId, choreId, filePath)
 }
 
 fun ChoreDto.toChore(): Chore = Chore(

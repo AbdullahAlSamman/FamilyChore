@@ -77,4 +77,5 @@ sealed interface DashboardAction {
     data object DismissChorePresetPicker : DashboardAction
     data class SelectChorePreset(val choreId: String, val preset: String) : DashboardAction
     data class OnChoreImagePicked(val choreId: String, val imageBytes: ByteArray) : DashboardAction
+    data class ClearChoreImage(val choreId: String) : DashboardAction
 }

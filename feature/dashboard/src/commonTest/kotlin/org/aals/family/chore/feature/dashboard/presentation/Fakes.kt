@@ -128,6 +128,14 @@ class FakeChoreRepository : ChoreRepository {
     }
 
     override suspend fun downloadChoreImage(familyId: String, choreId: String): EmptyResult<DataError> = Result.Success(Unit)
+
+    override suspend fun saveTempChoreImage(imageBytes: ByteArray): Result<String, DataError> = Result.Success("/temp/fake_chore.jpg")
+    override suspend fun clearTempChoreImage(filePath: String) {}
+    override suspend fun saveChoreImageFromPath(familyId: String, choreId: String, filePath: String): EmptyResult<DataError> {
+        val updated = chores.value.map { if (it.id == choreId) it.copy(iconName = "/fake/path/for/$choreId.jpg") else it }
+        chores.value = updated
+        return Result.Success(Unit)
+    }
 }
 
 class FakeConnectivityRepository : ConnectivityRepository {

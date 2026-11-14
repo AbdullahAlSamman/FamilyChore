@@ -104,6 +104,12 @@ class FakeChoreRepository : ChoreRepository {
     override suspend fun syncChores(familyId: String): Result<Unit, DataError> = Result.Success(Unit)
     override fun observeRemoteChanges(familyId: String): Flow<Unit> = emptyFlow()
     override suspend fun uploadPhotoProof(familyId: String, choreId: String, fileName: String, photoBytes: ByteArray): Result<String, DataError> = Result.Success("fileId")
+    override suspend fun saveChoreImage(familyId: String, choreId: String, imageBytes: ByteArray): EmptyResult<DataError> = Result.Success(Unit)
+    override suspend fun saveChoreImagePreset(familyId: String, choreId: String, presetKey: String): EmptyResult<DataError> = Result.Success(Unit)
+    override suspend fun downloadChoreImage(familyId: String, choreId: String): EmptyResult<DataError> = Result.Success(Unit)
+    override suspend fun saveTempChoreImage(imageBytes: ByteArray): Result<String, DataError> = Result.Success("/temp/fake.jpg")
+    override suspend fun clearTempChoreImage(filePath: String) {}
+    override suspend fun saveChoreImageFromPath(familyId: String, choreId: String, filePath: String): EmptyResult<DataError> = Result.Success(Unit)
 }
 
 private class FakeProfilePictureRepository : ProfilePictureRepository {

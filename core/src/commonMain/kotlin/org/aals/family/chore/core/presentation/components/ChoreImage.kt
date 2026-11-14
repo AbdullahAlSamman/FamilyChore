@@ -65,8 +65,12 @@ fun ChoreImage(
         }
 
         resolved != null -> {
+            val modelData: Any = if (!resolved.startsWith("http://") && !resolved.startsWith("https://") && !resolved.startsWith("file://") && !resolved.startsWith("content://")) {
+                if (resolved.startsWith("/")) "file://$resolved" else resolved
+            } else resolved
+
             val request = ImageRequest.Builder(LocalPlatformContext.current)
-                .data(resolved)
+                .data(modelData)
                 .memoryCachePolicy(CachePolicy.DISABLED)
                 .diskCachePolicy(CachePolicy.DISABLED)
                 .build()

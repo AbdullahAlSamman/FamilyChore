@@ -23,6 +23,8 @@ data class AddChoreFormState(
     val activeWindowEnd: String = "",
     val penalty: String = "0",
     val requiresPhotoProof: Boolean = false,
+    val iconName: String? = null,
+    val tempImagePath: String? = null,
 )
 
 @Immutable

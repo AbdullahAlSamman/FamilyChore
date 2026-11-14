@@ -32,4 +32,8 @@ interface ChoreRepository {
     suspend fun saveChoreImage(familyId: String, choreId: String, imageBytes: ByteArray): EmptyResult<DataError>
     suspend fun saveChoreImagePreset(familyId: String, choreId: String, presetKey: String): EmptyResult<DataError>
     suspend fun downloadChoreImage(familyId: String, choreId: String): EmptyResult<DataError>
+
+    suspend fun saveTempChoreImage(imageBytes: ByteArray): Result<String, DataError>
+    suspend fun clearTempChoreImage(filePath: String)
+    suspend fun saveChoreImageFromPath(familyId: String, choreId: String, filePath: String): EmptyResult<DataError>
 }

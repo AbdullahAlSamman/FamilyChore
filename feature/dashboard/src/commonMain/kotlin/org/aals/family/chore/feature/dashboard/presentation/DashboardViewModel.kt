@@ -248,8 +248,65 @@ class DashboardViewModel(
             DashboardAction.DismissChorePresetPicker -> updateSuccessState {
                 it.copy(showChorePresetPicker = false)
             }
-            is DashboardAction.SelectChorePreset -> saveChorePreset(action.choreId, action.preset)
-            is DashboardAction.OnChoreImagePicked -> saveChoreImage(action.choreId, action.imageBytes)
+            is DashboardAction.SelectChorePreset -> {
+                if (action.choreId == "NEW_CHORE") {
+                    val currentTemp = (_state.value as? DashboardState.Success)?.addChoreForm?.tempImagePath
+                    if (currentTemp != null) {
+                        viewModelScope.launch { choreRepository.clearTempChoreImage(currentTemp) }
+                    }
+                    val fullPreset = "bundled:" + action.preset.removePrefix("bundled:")
+                    updateSuccessState {
+                        it.copy(
+                            addChoreForm = it.addChoreForm.copy(iconName = fullPreset, tempImagePath = null),
+                            choreImageTarget = null,
+                            showChorePresetPicker = false
+                        )
+                    }
+                } else {
+                    saveChorePreset(action.choreId, action.preset)
+                }
+            }
+            is DashboardAction.OnChoreImagePicked -> {
+                if (action.choreId == "NEW_CHORE") {
+                    viewModelScope.launch {
+                        val currentTemp = (_state.value as? DashboardState.Success)?.addChoreForm?.tempImagePath
+                        if (currentTemp != null) {
+                            choreRepository.clearTempChoreImage(currentTemp)
+                        }
+                        choreRepository.saveTempChoreImage(action.imageBytes)
+                            .onSuccess { tempPath ->
+                                updateSuccessState {
+                                    it.copy(
+                                        addChoreForm = it.addChoreForm.copy(tempImagePath = tempPath, iconName = null),
+                                        choreImageTarget = null
+                                    )
+                                }
+                            }
+                            .onFailure {
+                                updateSuccessState { it.copy(choreImageTarget = null) }
+                            }
+                    }
+                } else {
+                    saveChoreImage(action.choreId, action.imageBytes)
+                }
+            }
+            is DashboardAction.ClearChoreImage -> {
+                if (action.choreId == "NEW_CHORE") {
+                    val currentTemp = (_state.value as? DashboardState.Success)?.addChoreForm?.tempImagePath
+                    if (currentTemp != null) {
+                        viewModelScope.launch { choreRepository.clearTempChoreImage(currentTemp) }
+                    }
+                    updateSuccessState {
+                        it.copy(
+                            addChoreForm = it.addChoreForm.copy(iconName = null, tempImagePath = null),
+                            choreImageTarget = null,
+                            showChorePresetPicker = false
+                        )
+                    }
+                } else {
+                    saveChorePreset(action.choreId, "")
+                }
+            }
             is DashboardAction.StartPhotoProofCapture -> {
                 updateSuccessState { 
                     it.copy(
@@ -357,9 +414,10 @@ class DashboardViewModel(
 
     private fun saveChorePreset(choreId: String, preset: String) {
         val familyId = (_state.value as? DashboardState.Success)?.user?.familyId ?: return
+        val cleanPreset = preset.removePrefix("bundled:")
         viewModelScope.launch {
             updateSuccessState { it.copy(isSavingChoreImage = true) }
-            choreRepository.saveChoreImagePreset(familyId, choreId, preset)
+            choreRepository.saveChoreImagePreset(familyId, choreId, cleanPreset)
                 .onSuccess {
                     updateSuccessState {
                         it.copy(
@@ -605,6 +663,7 @@ class DashboardViewModel(
             val dueDateMillis = form.dueDate.takeIf { it.isNotBlank() }?.let { dateStr ->
                 parseDateToEpochMillis(dateStr)
             }
+            val selectedIcon = form.iconName ?: form.tempImagePath
             val chore = Chore(
                 id = "chore_${action.assignedTo}_$now",
                 familyId = currentState.user.familyId,
@@ -622,23 +681,40 @@ class DashboardViewModel(
                 activeWindowEnd = form.activeWindowEnd.toMinutesOfDay(),
                 penalty = action.penalty,
                 requiresPhotoProof = action.requiresPhotoProof,
-                iconName = action.iconName,
+                iconName = selectedIcon,
                 parentChoreId = null,
                 dueDate = dueDateMillis
             )
-            // Clear errors before attempting to save
+            // Clear form and errors
             updateSuccessState {
                 it.copy(
-                    addChoreForm = it.addChoreForm.copy(
-                        nameError = null,
-                        pointsError = null,
-                    )
+                    addChoreForm = AddChoreFormState()
                 )
             }
             
             choreRepository.createChore(chore)
+                .onSuccess {
+                    if (form.tempImagePath != null) {
+                        saveChoreImageFromPath(currentState.user.familyId, chore.id, form.tempImagePath)
+                    }
+                }
                 .onFailure { error ->
                     logger.e { "Failed to create chore: $error" }
+                }
+        }
+    }
+
+    private fun saveChoreImageFromPath(familyId: String, choreId: String, filePath: String) {
+        viewModelScope.launch {
+            updateSuccessState { it.copy(isSavingChoreImage = true) }
+            choreRepository.saveChoreImageFromPath(familyId, choreId, filePath)
+                .onSuccess {
+                    updateSuccessState { it.copy(isSavingChoreImage = false) }
+                    loadDashboardData(isRefreshing = true)
+                }
+                .onFailure { e ->
+                    logger.e { "Failed to upload image from path for chore $choreId: $e" }
+                    updateSuccessState { it.copy(isSavingChoreImage = false) }
                 }
         }
     }

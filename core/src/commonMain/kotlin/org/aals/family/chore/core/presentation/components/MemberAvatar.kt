@@ -70,10 +70,12 @@ fun MemberAvatar(
         }
 
         resolved != null -> {
-            // Disable Coil caching so overwriting the same picture path refreshes the avatar
-            // immediately (allows a new image to replace the previous one in the same session).
+            val modelData: Any = if (!resolved.startsWith("http://") && !resolved.startsWith("https://") && !resolved.startsWith("file://") && !resolved.startsWith("content://")) {
+                if (resolved.startsWith("/")) "file://$resolved" else resolved
+            } else resolved
+
             val request = ImageRequest.Builder(LocalPlatformContext.current)
-                .data(resolved)
+                .data(modelData)
                 .memoryCachePolicy(CachePolicy.DISABLED)
                 .diskCachePolicy(CachePolicy.DISABLED)
                 .build()

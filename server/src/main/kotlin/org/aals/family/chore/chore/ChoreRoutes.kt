@@ -19,6 +19,7 @@ import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.validation.ChoreValidator
 import org.aals.family.chore.domain.repository.ChoreRepository
 import org.aals.family.chore.storage.FileStorage
+import java.io.File
 import java.util.UUID
 
 import org.aals.family.chore.chore.sync.ChoreSessionManager
@@ -98,14 +99,12 @@ fun Route.choreRoutes(choreRepository: ChoreRepository, sessionManager: ChoreSes
             val familyChores = choreRepository.getChoresByFamily(familyId)
             val existingChore = familyChores.find { it.id == choreId }
             if (existingChore != null && (request.newStatus == ChoreStatus.COMPLETED || request.newStatus == ChoreStatus.PENDING_APPROVAL)) {
-                existingChore.activeWindowEnd?.let { windowEnd ->
-                    val nowMinutes = java.time.LocalTime.now().run { hour * 60 + minute }
-                    if (nowMinutes > windowEnd) {
-                        return@patch call.respond(
-                            HttpStatusCode.BadRequest,
-                            ErrorResponse("Active window has ended for this chore")
-                        )
-                    }
+                val nowMinutes = java.time.LocalTime.now().run { hour * 60 + minute }
+                if (!isWithinActiveWindow(nowMinutes, existingChore.activeWindowStart, existingChore.activeWindowEnd)) {
+                    return@patch call.respond(
+                        HttpStatusCode.BadRequest,
+                        ErrorResponse("Chore is outside of its active time window")
+                    )
                 }
             }
 
@@ -133,6 +132,13 @@ fun Route.choreRoutes(choreRepository: ChoreRepository, sessionManager: ChoreSes
             val familyId = call.parameters["familyId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
             val choreId = call.parameters["choreId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
             
+            val chores = choreRepository.getChoresByFamily(familyId)
+            val chore = chores.find { it.id == choreId }
+            if (chore == null) {
+                return@post call.respond(HttpStatusCode.NotFound, ErrorResponse("Chore not found"))
+            }
+
+            val oldIconName = chore.iconName
             val multipart = call.receiveMultipart()
             var fileId: String? = null
 
@@ -145,8 +151,12 @@ fun Route.choreRoutes(choreRepository: ChoreRepository, sessionManager: ChoreSes
                 part.dispose()
             }
 
-            if (fileId != null) {
-                // Return success
+            val savedFileId = fileId
+            if (savedFileId != null) {
+                val newIconName = File(savedFileId).name
+                if (!oldIconName.isNullOrBlank() && !oldIconName.startsWith("bundled:") && oldIconName != newIconName) {
+                    fileStorage.deleteFile("$familyId/$choreId/$oldIconName")
+                }
                 call.respond(HttpStatusCode.OK)
             } else {
                 call.respond(HttpStatusCode.BadRequest, "No file found")
@@ -205,3 +215,14 @@ fun Chore.toDto(): ChoreDto = ChoreDto(
     dueDate = dueDate,
     proofFileId = proofFileId
 )
+
+internal fun isWithinActiveWindow(nowMinutes: Int, windowStart: Int?, windowEnd: Int?): Boolean {
+    if (windowStart == null && windowEnd == null) return true
+    val start = windowStart ?: 0
+    val end = windowEnd ?: 1439
+    return if (start <= end) {
+        nowMinutes in start..end
+    } else {
+        nowMinutes >= start || nowMinutes <= end
+    }
+}

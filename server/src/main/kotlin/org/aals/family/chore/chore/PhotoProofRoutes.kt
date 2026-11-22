@@ -37,14 +37,12 @@ fun Route.photoProofRoutes(
                 )
             }
 
-            chore.activeWindowEnd?.let { windowEnd ->
-                val nowMinutes = java.time.LocalTime.now().run { hour * 60 + minute }
-                if (nowMinutes > windowEnd) {
-                    return@post call.respond(
-                        HttpStatusCode.BadRequest,
-                        org.aals.family.chore.core.data.remote.dto.ErrorResponse("Active window has ended for this chore")
-                    )
-                }
+            val nowMinutes = java.time.LocalTime.now().run { hour * 60 + minute }
+            if (!isWithinActiveWindow(nowMinutes, chore.activeWindowStart, chore.activeWindowEnd)) {
+                return@post call.respond(
+                    HttpStatusCode.BadRequest,
+                    org.aals.family.chore.core.data.remote.dto.ErrorResponse("Chore is outside of its active time window")
+                )
             }
 
             var fileId: String? = null
@@ -63,14 +61,19 @@ fun Route.photoProofRoutes(
                 part.dispose()
             }
 
+            val oldProofFileId = chore.proofFileId
             val savedFileId = fileId
             if (savedFileId != null) {
                 val updated = choreRepository.updateChoreProof(choreId, familyId, savedFileId)
                 if (!updated) {
+                    fileStorage.deleteFile(savedFileId)
                     return@post call.respond(
                         HttpStatusCode.InternalServerError,
                         org.aals.family.chore.core.data.remote.dto.ErrorResponse("Failed to update chore proof")
                     )
+                }
+                if (!oldProofFileId.isNullOrBlank() && oldProofFileId != savedFileId) {
+                    fileStorage.deleteFile(oldProofFileId)
                 }
                 val updatedChore = choreRepository.getChoresByFamily(familyId).find { it.id == choreId }
                 if (updatedChore != null) {

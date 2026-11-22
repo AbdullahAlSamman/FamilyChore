@@ -28,6 +28,25 @@ fun Route.photoProofRoutes(
             val familyId = call.parameters["familyId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
             val choreId = call.parameters["choreId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
 
+            val familyChores = choreRepository.getChoresByFamily(familyId)
+            val chore = familyChores.find { it.id == choreId }
+            if (chore == null) {
+                return@post call.respond(
+                    HttpStatusCode.NotFound,
+                    org.aals.family.chore.core.data.remote.dto.ErrorResponse("Chore not found")
+                )
+            }
+
+            chore.activeWindowEnd?.let { windowEnd ->
+                val nowMinutes = java.time.LocalTime.now().run { hour * 60 + minute }
+                if (nowMinutes > windowEnd) {
+                    return@post call.respond(
+                        HttpStatusCode.BadRequest,
+                        org.aals.family.chore.core.data.remote.dto.ErrorResponse("Active window has ended for this chore")
+                    )
+                }
+            }
+
             var fileId: String? = null
 
             val multipartData = call.receiveMultipart()
@@ -46,7 +65,13 @@ fun Route.photoProofRoutes(
 
             val savedFileId = fileId
             if (savedFileId != null) {
-                choreRepository.updateChoreProof(choreId, familyId, savedFileId)
+                val updated = choreRepository.updateChoreProof(choreId, familyId, savedFileId)
+                if (!updated) {
+                    return@post call.respond(
+                        HttpStatusCode.InternalServerError,
+                        org.aals.family.chore.core.data.remote.dto.ErrorResponse("Failed to update chore proof")
+                    )
+                }
                 val updatedChore = choreRepository.getChoresByFamily(familyId).find { it.id == choreId }
                 if (updatedChore != null) {
                     sessionManager.broadcastChoreUpdate(familyId, updatedChore.toDto())

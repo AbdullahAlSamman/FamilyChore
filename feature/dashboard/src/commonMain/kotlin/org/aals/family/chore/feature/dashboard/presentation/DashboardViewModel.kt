@@ -77,6 +77,8 @@ class DashboardViewModel(
     private val _state = MutableStateFlow<DashboardState>(DashboardState.Loading)
     val state = _state.asStateFlow()
 
+    private var proofDownloadJob: kotlinx.coroutines.Job? = null
+
     private val _events = Channel<DashboardEvent>()
     val events = _events.receiveAsFlow()
 
@@ -243,24 +245,31 @@ class DashboardViewModel(
                 it.copy(choreImageTarget = null, showChorePresetPicker = false)
             }
             is DashboardAction.ViewPhotoProof -> {
+                proofDownloadJob?.cancel()
                 val currentState = _state.value as? DashboardState.Success
                 if (currentState != null) {
                     updateSuccessState { it.copy(proofViewerChore = action.chore, proofViewerBytes = null) }
                     val proofFileId = action.chore.proofFileId
                     if (!proofFileId.isNullOrBlank()) {
-                        viewModelScope.launch {
+                        proofDownloadJob = viewModelScope.launch {
                             choreRepository.downloadPhotoProof(
                                 familyId = currentState.user.familyId,
                                 choreId = action.chore.id,
                                 proofFileId = proofFileId
                             ).onSuccess { bytes ->
                                 updateSuccessState { it.copy(proofViewerBytes = bytes) }
+                            }.onFailure {
+                                updateSuccessState { it.copy(proofViewerBytes = byteArrayOf()) }
                             }
                         }
+                    } else {
+                        updateSuccessState { it.copy(proofViewerBytes = byteArrayOf()) }
                     }
                 }
             }
             DashboardAction.DismissPhotoProofViewer -> {
+                proofDownloadJob?.cancel()
+                proofDownloadJob = null
                 updateSuccessState { it.copy(proofViewerChore = null, proofViewerBytes = null) }
             }
             DashboardAction.ShowChorePresetPicker -> updateSuccessState {

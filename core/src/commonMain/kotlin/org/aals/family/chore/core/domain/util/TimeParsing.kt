@@ -23,14 +23,14 @@ fun parseDateToEpochMillis(date: String): Long? {
 }
 
 /**
- * Format epoch millis to `yyyy-MM-dd` in UTC timezone.
+ * Format epoch millis to `yyyy-MM-dd` in current system timezone (or optional specified timezone).
  */
-fun formatEpochMillisToDate(millis: Long): String {
+fun formatEpochMillisToDate(millis: Long, timeZone: TimeZone = TimeZone.currentSystemDefault()): String {
     val instant = kotlinx.datetime.Instant.fromEpochMilliseconds(millis)
-    val dt = instant.toLocalDateTime(TimeZone.UTC)
+    val dt = instant.toLocalDateTime(timeZone)
     val year = dt.year
     val month = (dt.month.ordinal + 1).toString().padStart(2, '0')
-    val day = dt.day.toString().padStart(2, '0')
+    val day = dt.dayOfMonth.toString().padStart(2, '0')
     return "$year-$month-$day"
 }
 

@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import familychore.core.generated.resources.approve
 import familychore.core.generated.resources.decline
+import familychore.core.generated.resources.no_proof_submitted
 import familychore.core.generated.resources.proof_verification_desc
 import familychore.core.generated.resources.proof_verification_title
 import familychore.core.generated.resources.view_proof
@@ -243,7 +244,7 @@ fun ParentTasksContent(
                             if (chore.status == org.aals.family.chore.core.domain.model.ChoreStatus.PENDING_APPROVAL) {
                                 Spacer(modifier = Modifier.size(8.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.align(Alignment.End)) {
-                                    if (chore.requiresPhotoProof || !chore.proofFileId.isNullOrBlank()) {
+                                    if (!chore.proofFileId.isNullOrBlank()) {
                                         OutlinedButton(onClick = { onAction(DashboardAction.ViewPhotoProof(chore)) }) {
                                             Text(stringResource(Res.string.view_proof))
                                         }
@@ -596,15 +597,33 @@ fun ParentTasksContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.size(16.dp))
-                    if (state.proofViewerBytes != null) {
-                        coil3.compose.AsyncImage(
-                            model = coil3.request.ImageRequest.Builder(coil3.compose.LocalPlatformContext.current)
-                                .data(state.proofViewerBytes)
-                                .build(),
-                            contentDescription = stringResource(Res.string.proof_verification_title),
-                            modifier = Modifier.size(220.dp).clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.Crop
-                        )
+                    val proofBytes = state.proofViewerBytes
+                    if (proofBytes != null) {
+                        if (proofBytes.isNotEmpty()) {
+                            val context = coil3.compose.LocalPlatformContext.current
+                            val imageRequest = androidx.compose.runtime.remember(proofBytes) {
+                                coil3.request.ImageRequest.Builder(context)
+                                    .data(proofBytes)
+                                    .build()
+                            }
+                            coil3.compose.AsyncImage(
+                                model = imageRequest,
+                                contentDescription = stringResource(Res.string.proof_verification_title),
+                                modifier = Modifier.size(220.dp).clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier.size(220.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    stringResource(Res.string.no_proof_submitted),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     } else {
                         Box(
                             modifier = Modifier.size(220.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)),

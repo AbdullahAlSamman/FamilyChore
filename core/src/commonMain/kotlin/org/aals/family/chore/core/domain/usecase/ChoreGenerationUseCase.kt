@@ -28,7 +28,11 @@ class ChoreGenerationUseCase(
             localDateTime.year, localDateTime.month, localDateTime.dayOfMonth, 0, 0, 0
         )
         val startOfDayMillis = startOfDay.toInstant(tz).toEpochMilliseconds()
-        val startOfTomorrowMillis = startOfDayMillis + 24 * 60 * 60 * 1000
+        val tomorrowSample = Instant.fromEpochMilliseconds(startOfDayMillis + 28 * 3600 * 1000L).toLocalDateTime(tz)
+        val startOfTomorrow = kotlinx.datetime.LocalDateTime(
+            tomorrowSample.year, tomorrowSample.month, tomorrowSample.dayOfMonth, 0, 0, 0
+        )
+        val startOfTomorrowMillis = startOfTomorrow.toInstant(tz).toEpochMilliseconds()
 
         val templates = chores.filter { it.parentChoreId == null && it.recurrence != Recurrence.NONE && it.recurrence != Recurrence.CUSTOM }
         val instances = chores.filter { it.parentChoreId != null }

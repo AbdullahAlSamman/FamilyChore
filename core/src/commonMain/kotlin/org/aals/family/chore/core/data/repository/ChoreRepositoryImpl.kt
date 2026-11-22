@@ -131,6 +131,14 @@ class ChoreRepositoryImpl(
         return choreDataSource.uploadPhotoProof(familyId, choreId, fileName, photoBytes)
     }
 
+    override suspend fun downloadPhotoProof(
+        familyId: String,
+        choreId: String,
+        proofFileId: String
+    ): Result<ByteArray, DataError> {
+        return choreDataSource.downloadPhotoProof(familyId, choreId, proofFileId)
+    }
+
     override suspend fun saveChoreImage(familyId: String, choreId: String, imageBytes: ByteArray): EmptyResult<DataError> =
         choreImageRepository.saveCustomPicture(familyId, choreId, imageBytes)
 
@@ -169,7 +177,8 @@ fun ChoreDto.toChore(): Chore = Chore(
     requiresPhotoProof = requiresPhotoProof,
     iconName = iconName,
     parentChoreId = parentChoreId,
-    dueDate = dueDate
+    dueDate = dueDate,
+    proofFileId = proofFileId
 )
 
 fun ChoreDto.toEntity(): ChoreEntity = ChoreEntity(
@@ -191,7 +200,8 @@ fun ChoreDto.toEntity(): ChoreEntity = ChoreEntity(
     requiresPhotoProof = requiresPhotoProof,
     iconName = iconName,
     parentChoreId = parentChoreId,
-    dueDate = dueDate
+    dueDate = dueDate,
+    proofFileId = proofFileId
 )
 
 fun ChoreEntity.toChore(): Chore = Chore(
@@ -213,7 +223,8 @@ fun ChoreEntity.toChore(): Chore = Chore(
     requiresPhotoProof = requiresPhotoProof,
     iconName = iconName,
     parentChoreId = parentChoreId,
-    dueDate = dueDate
+    dueDate = dueDate,
+    proofFileId = proofFileId
 )
 
 fun Chore.toEntity(): ChoreEntity = ChoreEntity(
@@ -235,5 +246,6 @@ fun Chore.toEntity(): ChoreEntity = ChoreEntity(
     requiresPhotoProof = requiresPhotoProof,
     iconName = iconName,
     parentChoreId = parentChoreId,
-    dueDate = dueDate
+    dueDate = dueDate,
+    proofFileId = proofFileId
 )

@@ -202,6 +202,10 @@
     <string name="choose_preset">اختر صورة جاهزة</string>
     <string name="preset_avatar">صورة جاهزة %1$s</string>
     <string name="picture_updated_success">تم تحديث صورة الملف الشخصي</string>
+    <string name="remove_image">إزالة الصورة</string>
+    <string name="add_proof">إضافة إثبات</string>
+    <string name="approve">موافقة</string>
+    <string name="decline">رفض</string>
     <string name="gallery">المعرض</string>
     <string name="presets">صور جاهزة</string>
     <string name="camera">الكاميرا</string>
@@ -209,4 +213,8 @@
     <string name="chore_image_updated_success">تم تحديث صورة المهمة</string>
     <string name="chore_image_source_title">تعيين صورة المهمة</string>
     <string name="choose_chore_preset">اختر صورة مهمة</string>
+    <string name="proof_verification_title">التحقق من إثبات الصورة</string>
+    <string name="proof_verification_desc">مراجعة إثبات الصورة المقدم لهذه المهمة قبل القبول أو الرفض.</string>
+    <string name="view_proof">عرض الإثبات</string>
+    <string name="no_proof_submitted">لم يتم تقديم إثبات بصورة بعد.</string>
 </resources>

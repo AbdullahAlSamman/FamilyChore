@@ -11,11 +11,17 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import org.aals.family.chore.chore.sync.ChoreSessionManager
+import org.aals.family.chore.domain.repository.ChoreRepository
 import org.aals.family.chore.storage.FileStorage
 import java.io.File
 import co.touchlab.kermit.Logger
 
-fun Route.photoProofRoutes(fileStorage: FileStorage) {
+fun Route.photoProofRoutes(
+    choreRepository: ChoreRepository,
+    sessionManager: ChoreSessionManager,
+    fileStorage: FileStorage
+) {
     route("/family/{familyId}/chores/{choreId}/proof") {
 
         post {
@@ -38,9 +44,14 @@ fun Route.photoProofRoutes(fileStorage: FileStorage) {
                 part.dispose()
             }
 
-            if (fileId != null) {
-                // Here we could update the chore to include the proofUrl/fileId
-                call.respond(HttpStatusCode.Created, mapOf("fileId" to fileId))
+            val savedFileId = fileId
+            if (savedFileId != null) {
+                choreRepository.updateChoreProof(choreId, familyId, savedFileId)
+                val updatedChore = choreRepository.getChoresByFamily(familyId).find { it.id == choreId }
+                if (updatedChore != null) {
+                    sessionManager.broadcastChoreUpdate(familyId, updatedChore.toDto())
+                }
+                call.respond(HttpStatusCode.Created, mapOf("fileId" to savedFileId))
             } else {
                 call.respond(HttpStatusCode.BadRequest, "No file uploaded")
             }

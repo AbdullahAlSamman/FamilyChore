@@ -24,10 +24,20 @@ import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import familychore.core.generated.resources.approve
+import familychore.core.generated.resources.decline
+import familychore.core.generated.resources.proof_verification_desc
+import familychore.core.generated.resources.proof_verification_title
+import familychore.core.generated.resources.view_proof
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -233,11 +243,16 @@ fun ParentTasksContent(
                             if (chore.status == org.aals.family.chore.core.domain.model.ChoreStatus.PENDING_APPROVAL) {
                                 Spacer(modifier = Modifier.size(8.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.align(Alignment.End)) {
+                                    if (chore.requiresPhotoProof || !chore.proofFileId.isNullOrBlank()) {
+                                        OutlinedButton(onClick = { onAction(DashboardAction.ViewPhotoProof(chore)) }) {
+                                            Text(stringResource(Res.string.view_proof))
+                                        }
+                                    }
                                     Button(onClick = { onAction(DashboardAction.ApproveChore(chore.id, chore.assignedTo)) }) {
-                                        Text("Approve")
+                                        Text(stringResource(Res.string.approve))
                                     }
                                     Button(onClick = { onAction(DashboardAction.DeclineChore(chore.id, chore.assignedTo)) }) {
-                                        Text("Decline")
+                                        Text(stringResource(Res.string.decline))
                                     }
                                 }
                             }
@@ -559,6 +574,70 @@ fun ParentTasksContent(
             }
         ) {
             TimePicker(state = timePickerState)
+        }
+    }
+
+    state.proofViewerChore?.let { chore ->
+        androidx.compose.ui.window.Dialog(onDismissRequest = { onAction(DashboardAction.DismissPhotoProofViewer) }) {
+            Card(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        stringResource(Res.string.proof_verification_title),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(Modifier.size(8.dp))
+                    Text(chore.name, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(Res.string.proof_verification_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.size(16.dp))
+                    if (state.proofViewerBytes != null) {
+                        coil3.compose.AsyncImage(
+                            model = coil3.request.ImageRequest.Builder(coil3.compose.LocalPlatformContext.current)
+                                .data(state.proofViewerBytes)
+                                .build(),
+                            contentDescription = stringResource(Res.string.proof_verification_title),
+                            modifier = Modifier.size(220.dp).clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier.size(220.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    Spacer(Modifier.size(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        OutlinedButton(onClick = { onAction(DashboardAction.DismissPhotoProofViewer) }) {
+                            Text(stringResource(Res.string.cancel))
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = {
+                                onAction(DashboardAction.DeclineChore(chore.id, chore.assignedTo))
+                                onAction(DashboardAction.DismissPhotoProofViewer)
+                            }) {
+                                Text(stringResource(Res.string.decline))
+                            }
+                            Button(onClick = {
+                                onAction(DashboardAction.ApproveChore(chore.id, chore.assignedTo))
+                                onAction(DashboardAction.DismissPhotoProofViewer)
+                            }) {
+                                Text(stringResource(Res.string.approve))
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -45,6 +45,7 @@ class SqlChoreRepository : ChoreRepository {
             it[iconName] = chore.iconName
             it[parentChoreId] = chore.parentChoreId
             it[dueDate] = chore.dueDate
+            it[proofFileId] = chore.proofFileId
         }
         chore
     }
@@ -57,6 +58,18 @@ class SqlChoreRepository : ChoreRepository {
     ): Boolean = dbQuery {
         ChoresTable.update({ (ChoresTable.id eq choreId) and (ChoresTable.familyId eq familyId) }) {
             it[status] = newStatus.name
+            it[updatedAt] = System.currentTimeMillis()
+        } > 0
+    }
+
+    override suspend fun updateChoreProof(
+        choreId: String,
+        familyId: String,
+        proofFileId: String
+    ): Boolean = dbQuery {
+        ChoresTable.update({ (ChoresTable.id eq choreId) and (ChoresTable.familyId eq familyId) }) {
+            it[status] = ChoreStatus.PENDING_APPROVAL.name
+            it[this.proofFileId] = proofFileId
             it[updatedAt] = System.currentTimeMillis()
         } > 0
     }
@@ -81,7 +94,8 @@ class SqlChoreRepository : ChoreRepository {
             requiresPhotoProof = this[ChoresTable.requiresPhotoProof],
             iconName = this[ChoresTable.iconName],
             parentChoreId = this[ChoresTable.parentChoreId],
-            dueDate = this[ChoresTable.dueDate]
+            dueDate = this[ChoresTable.dueDate],
+            proofFileId = this[ChoresTable.proofFileId]
         )
     }
 }

@@ -31,7 +31,8 @@ data class Chore(
     val requiresPhotoProof: Boolean = false,
     val iconName: String? = null,
     val parentChoreId: String? = null, // null if this is a template
-    val dueDate: Long? = null // timestamp for the specific instance
+    val dueDate: Long? = null, // timestamp for the specific instance
+    val proofFileId: String? = null
 )
 
 @Serializable

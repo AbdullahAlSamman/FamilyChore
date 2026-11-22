@@ -8,4 +8,5 @@ interface ChoreRepository {
     suspend fun getChoresByUser(userId: String): List<Chore>
     suspend fun createChore(chore: Chore): Chore
     suspend fun updateChoreStatus(choreId: String, familyId: String, newStatus: ChoreStatus, adminId: String? = null): Boolean
+    suspend fun updateChoreProof(choreId: String, familyId: String, proofFileId: String): Boolean
 }

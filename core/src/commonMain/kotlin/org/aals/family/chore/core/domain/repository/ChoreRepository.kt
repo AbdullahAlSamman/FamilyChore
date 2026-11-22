@@ -18,6 +18,11 @@ interface ChoreRepository {
         fileName: String,
         photoBytes: ByteArray
     ): Result<String, DataError>
+    suspend fun downloadPhotoProof(
+        familyId: String,
+        choreId: String,
+        proofFileId: String
+    ): Result<ByteArray, DataError>
     suspend fun updateChoreStatus(
         familyId: String,
         choreId: String, 

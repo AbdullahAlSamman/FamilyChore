@@ -95,6 +95,20 @@ fun Route.choreRoutes(choreRepository: ChoreRepository, sessionManager: ChoreSes
             val choreId = call.parameters["choreId"] ?: return@patch call.respond(HttpStatusCode.BadRequest)
             val request = call.receive<UpdateChoreStatusRequest>()
             
+            val familyChores = choreRepository.getChoresByFamily(familyId)
+            val existingChore = familyChores.find { it.id == choreId }
+            if (existingChore != null && (request.newStatus == ChoreStatus.COMPLETED || request.newStatus == ChoreStatus.PENDING_APPROVAL)) {
+                existingChore.activeWindowEnd?.let { windowEnd ->
+                    val nowMinutes = java.time.LocalTime.now().run { hour * 60 + minute }
+                    if (nowMinutes > windowEnd) {
+                        return@patch call.respond(
+                            HttpStatusCode.BadRequest,
+                            ErrorResponse("Active window has ended for this chore")
+                        )
+                    }
+                }
+            }
+
             val success = choreRepository.updateChoreStatus(
                 choreId = choreId,
                 familyId = familyId,
@@ -188,5 +202,6 @@ fun Chore.toDto(): ChoreDto = ChoreDto(
     requiresPhotoProof = requiresPhotoProof,
     iconName = iconName,
     parentChoreId = parentChoreId,
-    dueDate = dueDate
+    dueDate = dueDate,
+    proofFileId = proofFileId
 )

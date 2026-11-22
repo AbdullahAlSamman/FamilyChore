@@ -106,6 +106,7 @@ object ChoresTable : Table("chores") {
     val iconName = varchar("icon_name", 100).nullable()
     val parentChoreId = varchar("parent_chore_id", 50).nullable()
     val dueDate = long("due_date").nullable()
+    val proofFileId = varchar("proof_file_id", 255).nullable()
 
     override val primaryKey = PrimaryKey(id)
 }

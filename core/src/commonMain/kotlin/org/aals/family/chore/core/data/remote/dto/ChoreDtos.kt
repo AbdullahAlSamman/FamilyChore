@@ -24,7 +24,8 @@ data class ChoreDto(
     val requiresPhotoProof: Boolean = false,
     val iconName: String? = null,
     val parentChoreId: String? = null,
-    val dueDate: Long? = null
+    val dueDate: Long? = null,
+    val proofFileId: String? = null
 )
 
 @Serializable

@@ -69,6 +69,6 @@ fun Application.module() {
         transactionRoutes(transactionRepository)
         choreRoutes(choreRepository, sessionManager, fileStorage)
         choreSyncRoutes(sessionManager)
-        photoProofRoutes(fileStorage)
+        photoProofRoutes(choreRepository, sessionManager, fileStorage)
     }
 }

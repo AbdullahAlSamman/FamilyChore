@@ -75,6 +75,8 @@ sealed interface DashboardState {
         val showChorePresetPicker: Boolean = false,
         val isSavingChoreImage: Boolean = false,
         val choreImages: Map<String, String> = emptyMap(), // choreId -> iconName/path
+        val proofViewerChore: Chore? = null,
+        val proofViewerBytes: ByteArray? = null
     ) : DashboardState
 
     data class Error(val message: UiText) : DashboardState

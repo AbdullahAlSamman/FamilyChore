@@ -78,4 +78,8 @@ sealed interface DashboardAction {
     data class SelectChorePreset(val choreId: String, val preset: String) : DashboardAction
     data class OnChoreImagePicked(val choreId: String, val imageBytes: ByteArray) : DashboardAction
     data class ClearChoreImage(val choreId: String) : DashboardAction
+
+    // Photo Proof Viewing
+    data class ViewPhotoProof(val chore: org.aals.family.chore.core.domain.model.Chore) : DashboardAction
+    data object DismissPhotoProofViewer : DashboardAction
 }

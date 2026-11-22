@@ -49,6 +49,15 @@ open class ChoreDataSource(
             }
         }.map { it.fileId }
     }
+
+    open suspend fun downloadPhotoProof(
+        familyId: String,
+        choreId: String,
+        proofFileId: String
+    ): Result<ByteArray, DataError.Network> {
+        val relativePath = proofFileId.removePrefix("$familyId/$choreId/").removePrefix("/")
+        return httpClient.get<ByteArray>("family/$familyId/chores/$choreId/proof/$relativePath")
+    }
     open fun observeChoreSync(familyId: String): Flow<ChoreDto> = flow {
         val baseUrl = baseUrlProvider.getBaseUrl() ?: return@flow
         val wsUrl = baseUrl.replace("http://", "ws://").replace("https://", "wss://").trimEnd('/') + "/family/$familyId/chores/ws"

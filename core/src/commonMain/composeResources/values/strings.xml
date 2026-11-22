@@ -205,8 +205,16 @@
     <string name="chore_image_updated_success">Task image updated</string>
     <string name="chore_image_source_title">Set Task Image</string>
     <string name="choose_chore_preset">Choose a Chore Image</string>
+    <string name="remove_image">Remove Image</string>
+    <string name="add_proof">Add Proof</string>
+    <string name="approve">Approve</string>
+    <string name="decline">Decline</string>
     <string name="gallery">Gallery</string>
     <string name="presets">Presets</string>
     <string name="camera">Camera</string>
     <string name="picture_picker_gallery">Gallery</string>
+    <string name="proof_verification_title">Photo Proof Verification</string>
+    <string name="proof_verification_desc">Review the photo proof submitted for this chore before approving or declining.</string>
+    <string name="view_proof">View Proof</string>
+    <string name="no_proof_submitted">No photo proof submitted yet.</string>
 </resources>

@@ -242,6 +242,27 @@ class DashboardViewModel(
             DashboardAction.DismissChoreImageSourceDialog -> updateSuccessState {
                 it.copy(choreImageTarget = null, showChorePresetPicker = false)
             }
+            is DashboardAction.ViewPhotoProof -> {
+                val currentState = _state.value as? DashboardState.Success
+                if (currentState != null) {
+                    updateSuccessState { it.copy(proofViewerChore = action.chore, proofViewerBytes = null) }
+                    val proofFileId = action.chore.proofFileId
+                    if (!proofFileId.isNullOrBlank()) {
+                        viewModelScope.launch {
+                            choreRepository.downloadPhotoProof(
+                                familyId = currentState.user.familyId,
+                                choreId = action.chore.id,
+                                proofFileId = proofFileId
+                            ).onSuccess { bytes ->
+                                updateSuccessState { it.copy(proofViewerBytes = bytes) }
+                            }
+                        }
+                    }
+                }
+            }
+            DashboardAction.DismissPhotoProofViewer -> {
+                updateSuccessState { it.copy(proofViewerChore = null, proofViewerBytes = null) }
+            }
             DashboardAction.ShowChorePresetPicker -> updateSuccessState {
                 it.copy(showChorePresetPicker = true)
             }

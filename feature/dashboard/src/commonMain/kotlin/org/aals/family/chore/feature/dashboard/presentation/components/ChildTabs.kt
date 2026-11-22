@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.add_proof
 import familychore.core.generated.resources.behavior_award_to
 import familychore.core.generated.resources.behavior_helping
 import familychore.core.generated.resources.behavior_ignoring
@@ -32,6 +33,7 @@ import familychore.core.generated.resources.dashboard_points_label
 import familychore.core.generated.resources.dashboard_tab_today
 import familychore.core.generated.resources.pts
 import familychore.core.generated.resources.pts_count
+import familychore.core.generated.resources.submit
 import familychore.core.generated.resources.task_today_empty
 import org.aals.family.chore.core.domain.model.BehaviorItem
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
@@ -90,7 +92,7 @@ fun ChildTodayContent(
                                             onAction(DashboardAction.RequestApproval(chore.id)) 
                                         }
                                     }) {
-                                        Text(if (chore.requiresPhotoProof) "Add Proof" else "Submit")
+                                        Text(if (chore.requiresPhotoProof) stringResource(Res.string.add_proof) else stringResource(Res.string.submit))
                                     }
                                 }
                             }

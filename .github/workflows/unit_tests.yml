@@ -1,4 +1,4 @@
-name: CI Android Unit Tests
+name: CI Android & JVM Unit Tests
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   unit-tests:
-    name: Run Android Unit Tests
+    name: Run Android & JVM Unit Tests
     runs-on: ubuntu-latest
     
     steps:
@@ -28,8 +28,12 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Run Android Unit Tests
-        run: ./gradlew testDebugUnitTest --continue --stacktrace -Dksp.useKSP2=true -Dkotlin.compiler.execution.strategy=in-process
+      - name: Run Android & JVM Unit Tests
+        env:
+          # GitHub Actions runners have 7GB of RAM total.
+          # Limit the Gradle Daemon to 3GB to prevent the OS from killing the process (OOM).
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx3g"
+        run: ./gradlew testDebugUnitTest jvmTest test --no-daemon --continue --stacktrace -Dksp.useKSP2=true -Dkotlin.compiler.execution.strategy=in-process
 
       - name: Show JVM Crash Logs
         if: failure()

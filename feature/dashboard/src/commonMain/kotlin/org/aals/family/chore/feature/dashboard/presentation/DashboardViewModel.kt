@@ -436,7 +436,7 @@ class DashboardViewModel(
     }
 
     private fun openChoreImageSourceDialog(choreId: String) {
-        val exists = (_state.value as? DashboardState.Success)?.chores?.any { it.id == choreId } ?: false
+        val exists = choreId == "NEW_CHORE" || ((_state.value as? DashboardState.Success)?.chores?.any { it.id == choreId } ?: false)
         if (exists) {
             updateSuccessState { it.copy(choreImageTarget = choreId, showChorePresetPicker = false, isSavingChoreImage = false) }
         }

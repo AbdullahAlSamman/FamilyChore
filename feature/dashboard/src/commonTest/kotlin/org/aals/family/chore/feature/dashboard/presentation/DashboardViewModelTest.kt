@@ -752,6 +752,18 @@ class DashboardViewModelTest {
     }
 
     @Test
+    fun `ShowChoreImageSourceDialog with NEW_CHORE sets choreImageTarget`() = runTest {
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.onAction(DashboardAction.ShowChoreImageSourceDialog("NEW_CHORE"))
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.choreImageTarget).isEqualTo("NEW_CHORE")
+            assertThat(state.showChorePresetPicker).isEqualTo(false)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `SelectChorePreset saves preset image for chore`() = runTest {
         choreRepository.chores.value = listOf(
             Chore("chore1", "family1", "Clean Room", null, 10, ChoreStatus.PENDING, "child1", "parent1", 0L, 0L)

@@ -7,6 +7,7 @@ import org.aals.family.chore.core.data.local.DatabaseFactory
 import org.aals.family.chore.core.data.local.FamilyDatabase
 import org.aals.family.chore.core.data.local.FamilyDatabaseConstructor
 import org.aals.family.chore.core.data.local.ProfilePictureStorage
+import org.aals.family.chore.core.data.local.ChoreImageStorage
 import org.aals.family.chore.core.data.repository.JvmHardwareAvailabilityRepository
 import org.aals.family.chore.core.domain.discovery.JvmServerDiscovery
 import org.aals.family.chore.core.domain.discovery.ServerDiscovery
@@ -45,4 +46,5 @@ actual val platformModule: Module = module {
     single { get<FamilyDatabase>().transactionDao() }
     single { get<FamilyDatabase>().familyDao() }
     single { ProfilePictureStorage(File(System.getProperty("user.home"), ".familychore").absolutePath) }
+    single { ChoreImageStorage(File(System.getProperty("user.home"), ".familychore").absolutePath) }
 }

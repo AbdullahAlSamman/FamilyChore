@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import familychore.core.generated.resources.Res
+import familychore.core.generated.resources.add_proof
 import familychore.core.generated.resources.behavior_award_to
 import familychore.core.generated.resources.behavior_helping
 import familychore.core.generated.resources.behavior_ignoring
@@ -32,6 +33,7 @@ import familychore.core.generated.resources.dashboard_points_label
 import familychore.core.generated.resources.dashboard_tab_today
 import familychore.core.generated.resources.pts
 import familychore.core.generated.resources.pts_count
+import familychore.core.generated.resources.submit
 import familychore.core.generated.resources.task_today_empty
 import org.aals.family.chore.core.domain.model.BehaviorItem
 import org.aals.family.chore.feature.dashboard.presentation.DashboardAction
@@ -66,9 +68,34 @@ fun ChildTodayContent(
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(state.chores) { chore ->
                     Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(chore.name, style = MaterialTheme.typography.titleMedium)
-                            Text(stringResource(Res.string.pts_count, chore.points), color = MaterialTheme.colorScheme.primary)
+                        androidx.compose.foundation.layout.Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            org.aals.family.chore.core.presentation.components.ChoreImage(
+                                imagePath = state.choreImages[chore.id] ?: chore.iconName,
+                                size = 48.dp,
+                                modifier = Modifier.padding(end = 12.dp)
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(chore.name, style = MaterialTheme.typography.titleMedium)
+                                Text(chore.status.name, style = MaterialTheme.typography.labelSmall)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(stringResource(Res.string.pts_count, chore.points), color = MaterialTheme.colorScheme.primary)
+                                if (chore.status == org.aals.family.chore.core.domain.model.ChoreStatus.PENDING || 
+                                    chore.status == org.aals.family.chore.core.domain.model.ChoreStatus.IN_PROGRESS) {
+                                    androidx.compose.material3.Button(onClick = { 
+                                        if (chore.requiresPhotoProof) {
+                                            onAction(DashboardAction.StartPhotoProofCapture(chore.id))
+                                        } else {
+                                            onAction(DashboardAction.RequestApproval(chore.id)) 
+                                        }
+                                    }) {
+                                        Text(if (chore.requiresPhotoProof) stringResource(Res.string.add_proof) else stringResource(Res.string.submit))
+                                    }
+                                }
+                            }
                         }
                     }
                 }

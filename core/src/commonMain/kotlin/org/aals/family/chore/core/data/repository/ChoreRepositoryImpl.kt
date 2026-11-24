@@ -10,9 +10,11 @@ import org.aals.family.chore.core.data.remote.dto.CreateChoreRequest
 import org.aals.family.chore.core.data.remote.dto.UpdateChoreStatusRequest
 import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.ChoreStatus
+import org.aals.family.chore.core.domain.repository.ChoreImageRepository
 import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.TokenStorage
 import org.aals.family.chore.core.domain.util.DataError
+import org.aals.family.chore.core.domain.util.EmptyResult
 import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.core.domain.util.TimeProvider
 import org.aals.family.chore.core.domain.util.map
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.map as flowMap
 class ChoreRepositoryImpl(
     private val choreDao: ChoreDao,
     private val choreDataSource: ChoreDataSource,
+    private val choreImageRepository: ChoreImageRepository,
     private val tokenStorage: TokenStorage,
     private val timeProvider: TimeProvider,
     private val logger: Logger
@@ -53,7 +56,16 @@ class ChoreRepositoryImpl(
             description = chore.description,
             points = chore.points,
             assignedTo = chore.assignedTo,
-            createdBy = chore.createdBy
+            createdBy = chore.createdBy,
+            recurrence = chore.recurrence,
+            activeDays = chore.activeDays,
+            activeWindowStart = chore.activeWindowStart,
+            activeWindowEnd = chore.activeWindowEnd,
+            penalty = chore.penalty,
+            requiresPhotoProof = chore.requiresPhotoProof,
+            iconName = chore.iconName,
+            parentChoreId = chore.parentChoreId,
+            dueDate = chore.dueDate
         )
         
         return choreDataSource.createChore(request).map { Unit }
@@ -103,6 +115,47 @@ class ChoreRepositoryImpl(
             }
             .map { Unit }
     }
+
+    override fun observeRemoteChanges(familyId: String): Flow<Unit> {
+        return choreDataSource.observeChoreSync(familyId).flowMap { choreDto ->
+            choreDao.upsertChore(choreDto.toEntity())
+        }
+    }
+
+    override suspend fun uploadPhotoProof(
+        familyId: String,
+        choreId: String,
+        fileName: String,
+        photoBytes: ByteArray
+    ): Result<String, DataError> {
+        return choreDataSource.uploadPhotoProof(familyId, choreId, fileName, photoBytes)
+    }
+
+    override suspend fun downloadPhotoProof(
+        familyId: String,
+        choreId: String,
+        proofFileId: String
+    ): Result<ByteArray, DataError> {
+        return choreDataSource.downloadPhotoProof(familyId, choreId, proofFileId)
+    }
+
+    override suspend fun saveChoreImage(familyId: String, choreId: String, imageBytes: ByteArray): EmptyResult<DataError> =
+        choreImageRepository.saveCustomPicture(familyId, choreId, imageBytes)
+
+    override suspend fun saveChoreImagePreset(familyId: String, choreId: String, presetKey: String): EmptyResult<DataError> =
+        choreImageRepository.savePreset(familyId, choreId, presetKey)
+
+    override suspend fun downloadChoreImage(familyId: String, choreId: String): EmptyResult<DataError> =
+        choreImageRepository.downloadImage(familyId, choreId)
+
+    override suspend fun saveTempChoreImage(imageBytes: ByteArray): Result<String, DataError> =
+        choreImageRepository.saveTempImage(imageBytes)
+
+    override suspend fun clearTempChoreImage(filePath: String) =
+        choreImageRepository.clearTempImage(filePath)
+
+    override suspend fun saveChoreImageFromPath(familyId: String, choreId: String, filePath: String): EmptyResult<DataError> =
+        choreImageRepository.saveCustomPictureFromPath(familyId, choreId, filePath)
 }
 
 fun ChoreDto.toChore(): Chore = Chore(
@@ -115,7 +168,17 @@ fun ChoreDto.toChore(): Chore = Chore(
     assignedTo = assignedTo,
     createdBy = createdBy,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    recurrence = recurrence,
+    activeDays = activeDays,
+    activeWindowStart = activeWindowStart,
+    activeWindowEnd = activeWindowEnd,
+    penalty = penalty,
+    requiresPhotoProof = requiresPhotoProof,
+    iconName = iconName,
+    parentChoreId = parentChoreId,
+    dueDate = dueDate,
+    proofFileId = proofFileId
 )
 
 fun ChoreDto.toEntity(): ChoreEntity = ChoreEntity(
@@ -128,7 +191,17 @@ fun ChoreDto.toEntity(): ChoreEntity = ChoreEntity(
     assignedTo = assignedTo,
     createdBy = createdBy,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    recurrence = recurrence.name,
+    activeDays = activeDays.joinToString(","),
+    activeWindowStart = activeWindowStart,
+    activeWindowEnd = activeWindowEnd,
+    penalty = penalty,
+    requiresPhotoProof = requiresPhotoProof,
+    iconName = iconName,
+    parentChoreId = parentChoreId,
+    dueDate = dueDate,
+    proofFileId = proofFileId
 )
 
 fun ChoreEntity.toChore(): Chore = Chore(
@@ -141,7 +214,17 @@ fun ChoreEntity.toChore(): Chore = Chore(
     assignedTo = assignedTo,
     createdBy = createdBy,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    recurrence = org.aals.family.chore.core.domain.model.Recurrence.valueOf(recurrence),
+    activeDays = activeDays.split(",").filter { it.isNotEmpty() }.map { it.toInt() },
+    activeWindowStart = activeWindowStart,
+    activeWindowEnd = activeWindowEnd,
+    penalty = penalty,
+    requiresPhotoProof = requiresPhotoProof,
+    iconName = iconName,
+    parentChoreId = parentChoreId,
+    dueDate = dueDate,
+    proofFileId = proofFileId
 )
 
 fun Chore.toEntity(): ChoreEntity = ChoreEntity(
@@ -154,5 +237,15 @@ fun Chore.toEntity(): ChoreEntity = ChoreEntity(
     assignedTo = assignedTo,
     createdBy = createdBy,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    recurrence = recurrence.name,
+    activeDays = activeDays.joinToString(","),
+    activeWindowStart = activeWindowStart,
+    activeWindowEnd = activeWindowEnd,
+    penalty = penalty,
+    requiresPhotoProof = requiresPhotoProof,
+    iconName = iconName,
+    parentChoreId = parentChoreId,
+    dueDate = dueDate,
+    proofFileId = proofFileId
 )

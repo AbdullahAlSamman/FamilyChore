@@ -142,6 +142,29 @@
     <string name="task_status_prefix">الحالة: %1$s</string>
     <string name="task_assigned_to">معين لـ: %1$s</string>
     <string name="task_unknown_user">غير معروف</string>
+    <string name="recurrence_label">التكرار</string>
+    <string name="recurrence_custom">مخصص</string>
+    <string name="recurrence_daily">يومي</string>
+    <string name="recurrence_weekly">أسبوعي</string>
+    <string name="recurrence_monthly">شهري</string>
+    <string name="recurrence_none">بدون تكرار</string>
+    <string name="active_days_label">الأيام النشطة</string>
+    <string name="requires_photo_proof_label">يتطلب إثبات بالصورة</string>
+    <string name="due_date_label">تاريخ الاستحقاق</string>
+    <string name="time_window_label">الفترة الزمنية</string>
+    <string name="window_start_label">من</string>
+    <string name="window_end_label">إلى</string>
+    <string name="date_hint">yyyy-MM-dd</string>
+    <string name="time_hint">HH:mm</string>
+    <string name="time_window_invalid_error">وقت الانتهاء يجب أن يكون بعد وقت البدء</string>
+    <string name="due_date_past_error">تاريخ الاستحقاق لا يمكن أن يكون في الماضي</string>
+    <string name="day_sunday">الأحد</string>
+    <string name="day_monday">الاثنين</string>
+    <string name="day_tuesday">الثلاثاء</string>
+    <string name="day_wednesday">الأربعاء</string>
+    <string name="day_thursday">الخميس</string>
+    <string name="day_friday">الجمعة</string>
+    <string name="day_saturday">السبت</string>
 
     <!-- Behavior -->
     <string name="behavior_title">إدارة السلوك</string>
@@ -179,8 +202,19 @@
     <string name="choose_preset">اختر صورة جاهزة</string>
     <string name="preset_avatar">صورة جاهزة %1$s</string>
     <string name="picture_updated_success">تم تحديث صورة الملف الشخصي</string>
+    <string name="remove_image">إزالة الصورة</string>
+    <string name="add_proof">إضافة إثبات</string>
+    <string name="approve">موافقة</string>
+    <string name="decline">رفض</string>
     <string name="gallery">المعرض</string>
     <string name="presets">صور جاهزة</string>
     <string name="camera">الكاميرا</string>
     <string name="picture_picker_gallery">المعرض</string>
+    <string name="chore_image_updated_success">تم تحديث صورة المهمة</string>
+    <string name="chore_image_source_title">تعيين صورة المهمة</string>
+    <string name="choose_chore_preset">اختر صورة مهمة</string>
+    <string name="proof_verification_title">التحقق من إثبات الصورة</string>
+    <string name="proof_verification_desc">مراجعة إثبات الصورة المقدم لهذه المهمة قبل القبول أو الرفض.</string>
+    <string name="view_proof">عرض الإثبات</string>
+    <string name="no_proof_submitted">لم يتم تقديم إثبات بصورة بعد.</string>
 </resources>

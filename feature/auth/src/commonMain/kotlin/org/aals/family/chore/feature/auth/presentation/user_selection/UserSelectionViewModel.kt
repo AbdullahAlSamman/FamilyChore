@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.aals.family.chore.core.domain.model.ChoreStatus
+import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.AuthRepository
 import org.aals.family.chore.core.domain.repository.ProfilePictureRepository
@@ -26,6 +28,7 @@ import org.aals.family.chore.core.presentation.toUiText
 
 class UserSelectionViewModel(
     private val authRepository: AuthRepository,
+    private val choreRepository: ChoreRepository,
     private val observeConnectivityUseCase: ObserveConnectivityUseCase,
     private val savedStateHandle: SavedStateHandle,
     private val profilePictureRepository: ProfilePictureRepository,
@@ -134,6 +137,9 @@ class UserSelectionViewModel(
                         isOfflineMode = currentConnectivityStatus.isOfflineMode,
                         isServerReachable = currentConnectivityStatus.isServerReachable,
                     )
+                    if (familyId != null) {
+                        observePendingCounts(familyId, users)
+                    }
                 }
                 .onFailure { error ->
                     _state.value = UserSelectionState.Error(
@@ -142,6 +148,31 @@ class UserSelectionViewModel(
                         isServerReachable = currentConnectivityStatus.isServerReachable,
                     )
                 }
+        }
+    }
+
+    private fun observePendingCounts(familyId: String, users: List<org.aals.family.chore.core.domain.model.User>) {
+        viewModelScope.launch {
+            choreRepository.getChoresForFamily(familyId).collect { chores ->
+                val counts = mutableMapOf<String, Int>()
+                users.forEach { user ->
+                    val count = if (user.role == UserRole.PARENT) {
+                        chores.count { it.status == ChoreStatus.PENDING_APPROVAL }
+                    } else {
+                        chores.count { it.assignedTo == user.id && (it.status == ChoreStatus.PENDING || it.status == ChoreStatus.IN_PROGRESS) }
+                    }
+                    if (count > 0) {
+                        counts[user.id] = count
+                    }
+                }
+                _state.update { currentState ->
+                    if (currentState is UserSelectionState.Success) {
+                        currentState.copy(pendingCounts = counts)
+                    } else {
+                        currentState
+                    }
+                }
+            }
         }
     }
 

@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.util.DataError
+import org.aals.family.chore.core.domain.util.EmptyResult
 import org.aals.family.chore.core.domain.util.Result
 
 interface ChoreRepository {
@@ -11,6 +12,17 @@ interface ChoreRepository {
     fun getChoresForUser(userId: String): Flow<List<Chore>>
     
     suspend fun createChore(chore: Chore): Result<Unit, DataError>
+    suspend fun uploadPhotoProof(
+        familyId: String,
+        choreId: String,
+        fileName: String,
+        photoBytes: ByteArray
+    ): Result<String, DataError>
+    suspend fun downloadPhotoProof(
+        familyId: String,
+        choreId: String,
+        proofFileId: String
+    ): Result<ByteArray, DataError>
     suspend fun updateChoreStatus(
         familyId: String,
         choreId: String, 
@@ -19,4 +31,14 @@ interface ChoreRepository {
     ): Result<Unit, DataError>
     
     suspend fun syncChores(familyId: String): Result<Unit, DataError>
+    
+    fun observeRemoteChanges(familyId: String): Flow<Unit>
+
+    suspend fun saveChoreImage(familyId: String, choreId: String, imageBytes: ByteArray): EmptyResult<DataError>
+    suspend fun saveChoreImagePreset(familyId: String, choreId: String, presetKey: String): EmptyResult<DataError>
+    suspend fun downloadChoreImage(familyId: String, choreId: String): EmptyResult<DataError>
+
+    suspend fun saveTempChoreImage(imageBytes: ByteArray): Result<String, DataError>
+    suspend fun clearTempChoreImage(filePath: String)
+    suspend fun saveChoreImageFromPath(familyId: String, choreId: String, filePath: String): EmptyResult<DataError>
 }

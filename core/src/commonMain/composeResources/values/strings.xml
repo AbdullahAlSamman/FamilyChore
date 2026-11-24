@@ -142,6 +142,29 @@
     <string name="task_status_prefix">Status: %1$s</string>
     <string name="task_assigned_to">Assigned to: %1$s</string>
     <string name="task_unknown_user">Unknown</string>
+    <string name="recurrence_label">Recurrence</string>
+    <string name="recurrence_custom">Custom</string>
+    <string name="recurrence_daily">Daily</string>
+    <string name="recurrence_weekly">Weekly</string>
+    <string name="recurrence_monthly">Monthly</string>
+    <string name="recurrence_none">No Repeat</string>
+    <string name="active_days_label">Active Days</string>
+    <string name="requires_photo_proof_label">Requires Photo Proof</string>
+    <string name="due_date_label">Due Date</string>
+    <string name="time_window_label">Time Window</string>
+    <string name="window_start_label">From</string>
+    <string name="window_end_label">To</string>
+    <string name="date_hint">yyyy-MM-dd</string>
+    <string name="time_hint">HH:mm</string>
+    <string name="time_window_invalid_error">End time must be after start time</string>
+    <string name="due_date_past_error">Due date cannot be in the past</string>
+    <string name="day_sunday">Sun</string>
+    <string name="day_monday">Mon</string>
+    <string name="day_tuesday">Tue</string>
+    <string name="day_wednesday">Wed</string>
+    <string name="day_thursday">Thu</string>
+    <string name="day_friday">Fri</string>
+    <string name="day_saturday">Sat</string>
 
     <!-- Behavior -->
     <string name="behavior_title">Behavior Management</string>
@@ -179,8 +202,19 @@
     <string name="choose_preset">Choose a Preset</string>
     <string name="preset_avatar">Preset %1$s</string>
     <string name="picture_updated_success">Profile picture updated</string>
+    <string name="chore_image_updated_success">Task image updated</string>
+    <string name="chore_image_source_title">Set Task Image</string>
+    <string name="choose_chore_preset">Choose a Chore Image</string>
+    <string name="remove_image">Remove Image</string>
+    <string name="add_proof">Add Proof</string>
+    <string name="approve">Approve</string>
+    <string name="decline">Decline</string>
     <string name="gallery">Gallery</string>
     <string name="presets">Presets</string>
     <string name="camera">Camera</string>
     <string name="picture_picker_gallery">Gallery</string>
+    <string name="proof_verification_title">Photo Proof Verification</string>
+    <string name="proof_verification_desc">Review the photo proof submitted for this chore before approving or declining.</string>
+    <string name="view_proof">View Proof</string>
+    <string name="no_proof_submitted">No photo proof submitted yet.</string>
 </resources>

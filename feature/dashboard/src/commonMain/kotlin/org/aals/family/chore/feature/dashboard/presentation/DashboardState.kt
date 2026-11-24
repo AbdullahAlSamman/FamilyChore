@@ -14,6 +14,17 @@ import org.aals.family.chore.feature.dashboard.presentation.navigation.Dashboard
 data class AddChoreFormState(
     val nameError: UiText? = null,
     val pointsError: UiText? = null,
+    val dueDateError: UiText? = null,
+    val timeWindowError: UiText? = null,
+    val recurrence: org.aals.family.chore.core.domain.model.Recurrence = org.aals.family.chore.core.domain.model.Recurrence.NONE,
+    val activeDays: Set<Int> = emptySet(),
+    val dueDate: String = "",
+    val activeWindowStart: String = "",
+    val activeWindowEnd: String = "",
+    val penalty: String = "0",
+    val requiresPhotoProof: Boolean = false,
+    val iconName: String? = null,
+    val tempImagePath: String? = null,
 )
 
 @Immutable
@@ -38,6 +49,7 @@ sealed interface DashboardState {
         val transactions: List<Transaction> = emptyList(),
         val chores: List<Chore> = emptyList(),
         val behaviorItems: List<BehaviorItem> = emptyList(),
+        val pendingCounts: Map<String, Int> = emptyMap(),
         val currentTab: DashboardTabRoute,
         val isServerReachable: Boolean = true,
         val isOfflineMode: Boolean = false,
@@ -56,8 +68,15 @@ sealed interface DashboardState {
         val showPresetPicker: Boolean = false,
         val cameraPermissionRequestCount: Int = 0,
         val showCameraCapture: Boolean = false,
+        val photoProofChoreId: String? = null, // Which chore we are capturing proof for
         val isSavingPicture: Boolean = false,
         val memberPictures: Map<String, String> = emptyMap(),
+        val choreImageTarget: String? = null, // Which chore we are setting an image for
+        val showChorePresetPicker: Boolean = false,
+        val isSavingChoreImage: Boolean = false,
+        val choreImages: Map<String, String> = emptyMap(), // choreId -> iconName/path
+        val proofViewerChore: Chore? = null,
+        val proofViewerBytes: ByteArray? = null
     ) : DashboardState
 
     data class Error(val message: UiText) : DashboardState

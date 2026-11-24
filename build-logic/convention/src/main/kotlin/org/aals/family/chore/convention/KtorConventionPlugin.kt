@@ -20,6 +20,7 @@ class KtorConventionPlugin : Plugin<Project> {
                     implementation(libs.findLibrary("ktor.serialization.kotlinx.json").get())
                     implementation(libs.findLibrary("ktor.client.logging").get())
                     implementation(libs.findLibrary("ktor.client.auth").get())
+                    implementation(libs.findLibrary("ktor.client.websockets").get())
                 }
             }
         }

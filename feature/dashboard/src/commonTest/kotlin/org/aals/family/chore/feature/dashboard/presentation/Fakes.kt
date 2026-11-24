@@ -2,6 +2,7 @@ package org.aals.family.chore.feature.dashboard.presentation
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.model.Family
@@ -13,6 +14,7 @@ import org.aals.family.chore.core.domain.repository.ChoreRepository
 import org.aals.family.chore.core.domain.repository.ConnectivityRepository
 import org.aals.family.chore.core.domain.repository.TransactionRepository
 import org.aals.family.chore.core.domain.util.DataError
+import org.aals.family.chore.core.domain.util.EmptyResult
 import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.core.domain.util.TimeProvider
 
@@ -88,6 +90,7 @@ class FakeTransactionRepository : TransactionRepository {
     override suspend fun syncTransactions(familyId: String): Result<Unit, DataError> = Result.Success(Unit)
     override suspend fun addTransaction(transaction: Transaction): Result<Unit, DataError> {
         addedTransactions.add(transaction)
+        transactions.value = transactions.value + transaction
         return Result.Success(Unit)
     }
 }
@@ -103,8 +106,37 @@ class FakeChoreRepository : ChoreRepository {
         chores.value = chores.value + chore
         return Result.Success(Unit)
     }
-    override suspend fun updateChoreStatus(familyId: String, choreId: String, newStatus: ChoreStatus, adminId: String?): Result<Unit, DataError> = Result.Success(Unit)
+    override suspend fun updateChoreStatus(familyId: String, choreId: String, newStatus: ChoreStatus, adminId: String?): Result<Unit, DataError> {
+        val updated = chores.value.map { if (it.id == choreId) it.copy(status = newStatus) else it }
+        chores.value = updated
+        return Result.Success(Unit)
+    }
     override suspend fun syncChores(familyId: String): Result<Unit, DataError> = Result.Success(Unit)
+    override fun observeRemoteChanges(familyId: String): Flow<Unit> = emptyFlow()
+    override suspend fun uploadPhotoProof(familyId: String, choreId: String, fileName: String, photoBytes: ByteArray): Result<String, DataError> = Result.Success("fileId")
+    override suspend fun downloadPhotoProof(familyId: String, choreId: String, proofFileId: String): Result<ByteArray, DataError> = Result.Success(byteArrayOf(1, 2, 3))
+
+    override suspend fun saveChoreImage(familyId: String, choreId: String, imageBytes: ByteArray): EmptyResult<DataError> {
+        val updated = chores.value.map { if (it.id == choreId) it.copy(iconName = "/fake/path/for/$choreId.jpg") else it }
+        chores.value = updated
+        return Result.Success(Unit)
+    }
+
+    override suspend fun saveChoreImagePreset(familyId: String, choreId: String, presetKey: String): EmptyResult<DataError> {
+        val updated = chores.value.map { if (it.id == choreId) it.copy(iconName = "bundled:$presetKey") else it }
+        chores.value = updated
+        return Result.Success(Unit)
+    }
+
+    override suspend fun downloadChoreImage(familyId: String, choreId: String): EmptyResult<DataError> = Result.Success(Unit)
+
+    override suspend fun saveTempChoreImage(imageBytes: ByteArray): Result<String, DataError> = Result.Success("/temp/fake_chore.jpg")
+    override suspend fun clearTempChoreImage(filePath: String) {}
+    override suspend fun saveChoreImageFromPath(familyId: String, choreId: String, filePath: String): EmptyResult<DataError> {
+        val updated = chores.value.map { if (it.id == choreId) it.copy(iconName = "/fake/path/for/$choreId.jpg") else it }
+        chores.value = updated
+        return Result.Success(Unit)
+    }
 }
 
 class FakeConnectivityRepository : ConnectivityRepository {

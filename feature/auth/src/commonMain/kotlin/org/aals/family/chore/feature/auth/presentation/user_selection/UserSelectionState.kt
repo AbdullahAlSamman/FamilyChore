@@ -21,6 +21,7 @@ sealed interface UserSelectionState {
     data class Success(
         val users: List<User>,
         val picturePaths: Map<String, String> = emptyMap(),
+        val pendingCounts: Map<String, Int> = emptyMap(), // userId -> count
         val isConfirming: Boolean = false,
         val isFromDiscovery: Boolean = false,
         override val isOfflineMode: Boolean = false,

@@ -8,6 +8,7 @@ import org.aals.family.chore.core.data.local.DatabaseFactory
 import org.aals.family.chore.core.data.local.FamilyDatabase
 import org.aals.family.chore.core.data.local.FamilyDatabaseConstructor
 import org.aals.family.chore.core.data.local.ProfilePictureStorage
+import org.aals.family.chore.core.data.local.ChoreImageStorage
 import org.aals.family.chore.core.data.repository.IosHardwareAvailabilityRepository
 import org.aals.family.chore.core.domain.discovery.IosServerDiscovery
 import org.aals.family.chore.core.domain.discovery.ServerDiscovery
@@ -68,5 +69,15 @@ actual val platformModule: Module = module {
             error = null
         )
         ProfilePictureStorage(requireNotNull(documentDirectory).path!!)
+    }
+    single {
+        val documentDirectory: NSURL? = NSFileManager.defaultManager.URLForDirectory(
+            directory = NSDocumentDirectory,
+            inDomain = NSUserDomainMask,
+            appropriateForURL = null,
+            create = false,
+            error = null
+        )
+        ChoreImageStorage(requireNotNull(documentDirectory).path!!)
     }
 }

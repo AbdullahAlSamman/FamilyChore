@@ -6,6 +6,7 @@ import org.aals.family.chore.core.data.local.DataStoreFactory
 import org.aals.family.chore.core.data.local.DatabaseFactory
 import org.aals.family.chore.core.data.local.FamilyDatabase
 import org.aals.family.chore.core.data.local.FamilyDatabaseConstructor
+import org.aals.family.chore.core.data.local.ChoreImageStorage
 import org.aals.family.chore.core.data.local.ProfilePictureStorage
 import org.aals.family.chore.core.data.repository.AndroidHardwareAvailabilityRepository
 import org.aals.family.chore.core.domain.discovery.AndroidServerDiscovery
@@ -43,4 +44,5 @@ actual val platformModule: Module = module {
     single { get<FamilyDatabase>().transactionDao() }
     single { get<FamilyDatabase>().familyDao() }
     single { ProfilePictureStorage(androidContext().filesDir.absolutePath) }
+    single { ChoreImageStorage(androidContext().filesDir.absolutePath) }
 }

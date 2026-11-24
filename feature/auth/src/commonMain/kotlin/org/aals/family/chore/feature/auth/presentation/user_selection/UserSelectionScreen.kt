@@ -12,6 +12,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -110,11 +112,20 @@ fun UserSelectionScreen(
                             items(state.users) { user ->
                                 ListItem(
                                     leadingContent = {
-                                        MemberAvatar(
-                                            user = user,
-                                            picturePath = state.picturePaths[user.id],
-                                            size = 40.dp,
-                                        )
+                                        BadgedBox(
+                                            badge = {
+                                                val count = state.pendingCounts[user.id]
+                                                if (count != null && count > 0) {
+                                                    Badge { Text("$count") }
+                                                }
+                                            }
+                                        ) {
+                                            MemberAvatar(
+                                                user = user,
+                                                picturePath = state.picturePaths[user.id],
+                                                size = 40.dp,
+                                            )
+                                        }
                                     },
                                     headlineContent = { Text(user.nickname) },
                                     supportingContent = {

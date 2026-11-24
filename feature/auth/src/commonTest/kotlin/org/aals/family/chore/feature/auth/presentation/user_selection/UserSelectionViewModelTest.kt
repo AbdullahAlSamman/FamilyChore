@@ -21,6 +21,10 @@ import org.aals.family.chore.core.domain.util.Result
 import org.aals.family.chore.feature.auth.presentation.FakeAuthRepository
 import org.aals.family.chore.feature.auth.presentation.FakeConnectivityRepository
 import org.aals.family.chore.feature.auth.presentation.FakeTokenStorage
+import org.aals.family.chore.core.domain.repository.ChoreRepository
+import org.aals.family.chore.core.domain.model.Chore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -58,6 +62,7 @@ class UserSelectionViewModelTest {
         
         viewModel = UserSelectionViewModel(
             authRepository,
+            FakeChoreRepository(),
             observeConnectivityUseCase,
             SavedStateHandle(mapOf("pairingToken" to pairingToken)),
             profilePictureRepository,
@@ -77,6 +82,7 @@ class UserSelectionViewModelTest {
         authRepository.users.add(user)
         viewModel = UserSelectionViewModel(
             authRepository,
+            FakeChoreRepository(),
             observeConnectivityUseCase,
             SavedStateHandle(mapOf("pairingToken" to pairingToken)),
             profilePictureRepository,
@@ -88,6 +94,22 @@ class UserSelectionViewModelTest {
             assertThat(awaitItem()).isEqualTo(UserSelectionEvent.PairingConfirmed(user.id))
         }
     }
+}
+
+class FakeChoreRepository : ChoreRepository {
+    override fun getChoresForFamily(familyId: String): Flow<List<Chore>> = emptyFlow()
+    override fun getChoresForUser(userId: String): Flow<List<Chore>> = emptyFlow()
+    override suspend fun createChore(chore: Chore): Result<Unit, DataError> = Result.Success(Unit)
+    override suspend fun updateChoreStatus(familyId: String, choreId: String, newStatus: org.aals.family.chore.core.domain.model.ChoreStatus, adminId: String?): Result<Unit, DataError> = Result.Success(Unit)
+    override suspend fun syncChores(familyId: String): Result<Unit, DataError> = Result.Success(Unit)
+    override fun observeRemoteChanges(familyId: String): Flow<Unit> = emptyFlow()
+    override suspend fun uploadPhotoProof(familyId: String, choreId: String, fileName: String, photoBytes: ByteArray): Result<String, DataError> = Result.Success("fileId")
+    override suspend fun saveChoreImage(familyId: String, choreId: String, imageBytes: ByteArray): EmptyResult<DataError> = Result.Success(Unit)
+    override suspend fun saveChoreImagePreset(familyId: String, choreId: String, presetKey: String): EmptyResult<DataError> = Result.Success(Unit)
+    override suspend fun downloadChoreImage(familyId: String, choreId: String): EmptyResult<DataError> = Result.Success(Unit)
+    override suspend fun saveTempChoreImage(imageBytes: ByteArray): Result<String, DataError> = Result.Success("/temp/fake.jpg")
+    override suspend fun clearTempChoreImage(filePath: String) {}
+    override suspend fun saveChoreImageFromPath(familyId: String, choreId: String, filePath: String): EmptyResult<DataError> = Result.Success(Unit)
 }
 
 private class FakeProfilePictureRepository : ProfilePictureRepository {

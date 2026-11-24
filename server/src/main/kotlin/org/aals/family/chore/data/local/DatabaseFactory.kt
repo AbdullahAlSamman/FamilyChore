@@ -97,6 +97,16 @@ object ChoresTable : Table("chores") {
     val createdBy = varchar("created_by", 50) references UsersTable.id
     val createdAt = long("created_at")
     val updatedAt = long("updated_at")
+    val recurrence = varchar("recurrence", 20).default("NONE")
+    val activeDays = varchar("active_days", 50).default("")
+    val activeWindowStart = integer("active_window_start").nullable()
+    val activeWindowEnd = integer("active_window_end").nullable()
+    val penalty = integer("penalty").default(0)
+    val requiresPhotoProof = bool("requires_photo_proof").default(false)
+    val iconName = varchar("icon_name", 100).nullable()
+    val parentChoreId = varchar("parent_chore_id", 50).nullable()
+    val dueDate = long("due_date").nullable()
+    val proofFileId = varchar("proof_file_id", 255).nullable()
 
     override val primaryKey = PrimaryKey(id)
 }

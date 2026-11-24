@@ -8,6 +8,7 @@ import org.aals.family.chore.domain.repository.ChoreRepository
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
@@ -36,6 +37,16 @@ class SqlChoreRepository : ChoreRepository {
             it[createdBy] = chore.createdBy
             it[createdAt] = chore.createdAt
             it[updatedAt] = chore.updatedAt
+            it[recurrence] = chore.recurrence.name
+            it[activeDays] = chore.activeDays.joinToString(",")
+            it[activeWindowStart] = chore.activeWindowStart
+            it[activeWindowEnd] = chore.activeWindowEnd
+            it[penalty] = chore.penalty
+            it[requiresPhotoProof] = chore.requiresPhotoProof
+            it[iconName] = chore.iconName
+            it[parentChoreId] = chore.parentChoreId
+            it[dueDate] = chore.dueDate
+            it[proofFileId] = chore.proofFileId
         }
         chore
     }
@@ -52,6 +63,22 @@ class SqlChoreRepository : ChoreRepository {
         } > 0
     }
 
+    override suspend fun updateChoreProof(
+        choreId: String,
+        familyId: String,
+        proofFileId: String
+    ): Boolean = dbQuery {
+        ChoresTable.update({ 
+            (ChoresTable.id eq choreId) and 
+            (ChoresTable.familyId eq familyId) and 
+            (ChoresTable.status inList listOf(ChoreStatus.PENDING.name, ChoreStatus.IN_PROGRESS.name))
+        }) {
+            it[status] = ChoreStatus.PENDING_APPROVAL.name
+            it[this.proofFileId] = proofFileId
+            it[updatedAt] = System.currentTimeMillis()
+        } > 0
+    }
+
     private fun ResultRow.toChore(): Chore {
         return Chore(
             id = this[ChoresTable.id],
@@ -63,7 +90,17 @@ class SqlChoreRepository : ChoreRepository {
             assignedTo = this[ChoresTable.assignedTo],
             createdBy = this[ChoresTable.createdBy],
             createdAt = this[ChoresTable.createdAt],
-            updatedAt = this[ChoresTable.updatedAt]
+            updatedAt = this[ChoresTable.updatedAt],
+            recurrence = org.aals.family.chore.core.domain.model.Recurrence.valueOf(this[ChoresTable.recurrence]),
+            activeDays = this[ChoresTable.activeDays].split(",").mapNotNull { it.toIntOrNull() },
+            activeWindowStart = this[ChoresTable.activeWindowStart],
+            activeWindowEnd = this[ChoresTable.activeWindowEnd],
+            penalty = this[ChoresTable.penalty],
+            requiresPhotoProof = this[ChoresTable.requiresPhotoProof],
+            iconName = this[ChoresTable.iconName],
+            parentChoreId = this[ChoresTable.parentChoreId],
+            dueDate = this[ChoresTable.dueDate],
+            proofFileId = this[ChoresTable.proofFileId]
         )
     }
 }

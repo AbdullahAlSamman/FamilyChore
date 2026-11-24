@@ -19,4 +19,10 @@ interface ChoreDao {
     
     @Upsert
     suspend fun upsertChore(chore: ChoreEntity)
+
+    @Query("UPDATE ChoreEntity SET iconName = :iconName WHERE id = :choreId AND familyId = :familyId")
+    suspend fun updateChoreIcon(choreId: String, familyId: String, iconName: String)
+
+    @Query("SELECT iconName FROM ChoreEntity WHERE id = :choreId AND familyId = :familyId")
+    suspend fun getChoreIcon(choreId: String, familyId: String): String?
 }

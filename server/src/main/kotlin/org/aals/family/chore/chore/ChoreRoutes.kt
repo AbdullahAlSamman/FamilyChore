@@ -18,9 +18,18 @@ import org.aals.family.chore.core.domain.model.Chore
 import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.validation.ChoreValidator
 import org.aals.family.chore.domain.repository.ChoreRepository
+import org.aals.family.chore.storage.FileStorage
+import java.io.File
 import java.util.UUID
 
-fun Route.choreRoutes(choreRepository: ChoreRepository) {
+import org.aals.family.chore.chore.sync.ChoreSessionManager
+import io.ktor.http.content.PartData
+import io.ktor.server.request.receiveMultipart
+import io.ktor.http.content.forEachPart
+import io.ktor.http.content.streamProvider
+import io.ktor.server.response.respondBytes
+
+fun Route.choreRoutes(choreRepository: ChoreRepository, sessionManager: ChoreSessionManager, fileStorage: FileStorage) {
     route("/family/{familyId}/chores") {
         get {
             val familyId = call.parameters["familyId"] ?: return@get call.respond(HttpStatusCode.BadRequest)
@@ -65,10 +74,21 @@ fun Route.choreRoutes(choreRepository: ChoreRepository) {
                 assignedTo = request.assignedTo,
                 createdBy = request.createdBy,
                 createdAt = now,
-                updatedAt = now
+                updatedAt = now,
+                recurrence = request.recurrence,
+                activeDays = request.activeDays,
+                activeWindowStart = request.activeWindowStart,
+                activeWindowEnd = request.activeWindowEnd,
+                penalty = request.penalty,
+                requiresPhotoProof = request.requiresPhotoProof,
+                iconName = request.iconName,
+                parentChoreId = request.parentChoreId,
+                dueDate = request.dueDate
             )
             val createdChore = choreRepository.createChore(chore)
-            call.respond(HttpStatusCode.Created, createdChore.toDto())
+            val choreDto = createdChore.toDto()
+            sessionManager.broadcastChoreUpdate(request.familyId, choreDto)
+            call.respond(HttpStatusCode.Created, choreDto)
         }
 
         patch("/{choreId}/status") {
@@ -76,6 +96,18 @@ fun Route.choreRoutes(choreRepository: ChoreRepository) {
             val choreId = call.parameters["choreId"] ?: return@patch call.respond(HttpStatusCode.BadRequest)
             val request = call.receive<UpdateChoreStatusRequest>()
             
+            val familyChores = choreRepository.getChoresByFamily(familyId)
+            val existingChore = familyChores.find { it.id == choreId }
+            if (existingChore != null && (request.newStatus == ChoreStatus.COMPLETED || request.newStatus == ChoreStatus.PENDING_APPROVAL)) {
+                val nowMinutes = java.time.LocalTime.now().run { hour * 60 + minute }
+                if (!isWithinActiveWindow(nowMinutes, existingChore.activeWindowStart, existingChore.activeWindowEnd)) {
+                    return@patch call.respond(
+                        HttpStatusCode.BadRequest,
+                        ErrorResponse("Chore is outside of its active time window")
+                    )
+                }
+            }
+
             val success = choreRepository.updateChoreStatus(
                 choreId = choreId,
                 familyId = familyId,
@@ -84,7 +116,76 @@ fun Route.choreRoutes(choreRepository: ChoreRepository) {
             )
             
             if (success) {
+                // Fetch the updated chore to broadcast
+                val updatedChoreList = choreRepository.getChoresByFamily(familyId)
+                val updatedChore = updatedChoreList.find { it.id == choreId }
+                if (updatedChore != null) {
+                    sessionManager.broadcastChoreUpdate(familyId, updatedChore.toDto())
+                }
                 call.respond(HttpStatusCode.OK)
+            } else {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+
+        post("/{choreId}/image") {
+            val familyId = call.parameters["familyId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+            val choreId = call.parameters["choreId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+            
+            val chores = choreRepository.getChoresByFamily(familyId)
+            val chore = chores.find { it.id == choreId }
+            if (chore == null) {
+                return@post call.respond(HttpStatusCode.NotFound, ErrorResponse("Chore not found"))
+            }
+
+            val oldIconName = chore.iconName
+            val multipart = call.receiveMultipart()
+            var fileId: String? = null
+
+            multipart.forEachPart { part ->
+                if (part is PartData.FileItem) {
+                    val fileName = part.originalFileName ?: "image.jpg"
+                    val inputStream = part.streamProvider()
+                    fileId = fileStorage.saveFile(familyId, choreId, fileName, inputStream)
+                }
+                part.dispose()
+            }
+
+            val savedFileId = fileId
+            if (savedFileId != null) {
+                val newIconName = File(savedFileId).name
+                if (!oldIconName.isNullOrBlank() && !oldIconName.startsWith("bundled:") && oldIconName != newIconName) {
+                    fileStorage.deleteFile("$familyId/$choreId/$oldIconName")
+                }
+                call.respond(HttpStatusCode.OK)
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "No file found")
+            }
+        }
+
+        get("/{choreId}/image") {
+            val familyId = call.parameters["familyId"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+            val choreId = call.parameters["choreId"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+            
+            val chores = choreRepository.getChoresByFamily(familyId)
+            val chore = chores.find { it.id == choreId }
+            val iconName = chore?.iconName
+            
+            if (iconName == null || iconName.startsWith("bundled:")) {
+                return@get call.respond(HttpStatusCode.NotFound)
+            }
+            
+            // The fileId convention in LocalDiskFileStorage is familyId/choreId/uuid_filename
+            // but the client uploads a unique filename via remoteDataSource.uploadTaskImage and it gets saved under family/chore/file.
+            // Wait, we need to map iconName to the actual file ID, or just search the folder.
+            // Let's just assume the file ID is familyId/choreId/iconName
+            val fileId = "$familyId/$choreId/$iconName"
+            val fileStream = fileStorage.getFile(fileId)
+            
+            if (fileStream != null) {
+                val bytes = fileStream.readBytes()
+                fileStream.close()
+                call.respondBytes(bytes)
             } else {
                 call.respond(HttpStatusCode.NotFound)
             }
@@ -102,5 +203,26 @@ fun Chore.toDto(): ChoreDto = ChoreDto(
     assignedTo = assignedTo,
     createdBy = createdBy,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    recurrence = recurrence,
+    activeDays = activeDays,
+    activeWindowStart = activeWindowStart,
+    activeWindowEnd = activeWindowEnd,
+    penalty = penalty,
+    requiresPhotoProof = requiresPhotoProof,
+    iconName = iconName,
+    parentChoreId = parentChoreId,
+    dueDate = dueDate,
+    proofFileId = proofFileId
 )
+
+internal fun isWithinActiveWindow(nowMinutes: Int, windowStart: Int?, windowEnd: Int?): Boolean {
+    if (windowStart == null && windowEnd == null) return true
+    val start = windowStart ?: 0
+    val end = windowEnd ?: 1439
+    return if (start <= end) {
+        nowMinutes in start..end
+    } else {
+        nowMinutes >= start || nowMinutes <= end
+    }
+}

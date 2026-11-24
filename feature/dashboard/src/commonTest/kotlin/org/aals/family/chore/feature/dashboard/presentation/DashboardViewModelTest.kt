@@ -11,6 +11,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.aals.family.chore.core.domain.model.AppLanguage
+import org.aals.family.chore.core.domain.model.Chore
+import org.aals.family.chore.core.domain.model.ChoreStatus
 import org.aals.family.chore.core.domain.model.User
 import org.aals.family.chore.core.domain.model.UserRole
 import org.aals.family.chore.core.domain.repository.HardwareAvailabilityRepository
@@ -66,6 +68,7 @@ class DashboardViewModelTest {
             transactionRepository = transactionRepository,
             choreRepository = choreRepository,
             observeConnectivityUseCase = observeConnectivityUseCase,
+            choreGenerationUseCase = org.aals.family.chore.core.domain.usecase.ChoreGenerationUseCase(choreRepository, timeProvider),
             tokenStorage = tokenStorage,
             profilePictureRepository = profilePictureRepository,
             hardwareAvailabilityRepository = hardwareAvailabilityRepository,
@@ -114,6 +117,81 @@ class DashboardViewModelTest {
     }
 
     @Test
+    fun `Load dashboard computes pendingCounts correctly for parent and child`() = runTest {
+        val now = 1000L
+        timeProvider.staticTime = now
+        val parentPendingChore = Chore(
+            id = "chore_child1_1", familyId = "family1", name = "Test 1", description = null, points = 10,
+            status = ChoreStatus.PENDING_APPROVAL, assignedTo = "child1", createdBy = "parent1", createdAt = now, updatedAt = now
+        )
+        val childPendingChore = Chore(
+            id = "chore_child2_1", familyId = "family1", name = "Test 2", description = null, points = 10,
+            status = ChoreStatus.PENDING, assignedTo = "child2", createdBy = "parent1", createdAt = now, updatedAt = now
+        )
+        choreRepository.chores.value = listOf(parentPendingChore, childPendingChore)
+
+        // Test as PARENT
+        viewModel.onAction(DashboardAction.Refresh)
+        viewModel.state.test {
+            val state = awaitItem()
+            if (state is DashboardState.Success) {
+                assertThat(state.pendingCounts["tasks"]).isEqualTo(1)
+                assertThat(state.pendingCounts["child1"]).isEqualTo(1)
+                assertThat(state.pendingCounts["child2"] == null).isEqualTo(true)
+            } else {
+                val nextState = awaitItem() as DashboardState.Success
+                assertThat(nextState.pendingCounts["tasks"]).isEqualTo(1)
+                assertThat(nextState.pendingCounts["child1"]).isEqualTo(1)
+                assertThat(nextState.pendingCounts["child2"] == null).isEqualTo(true)
+            }
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        // Test as CHILD
+        authRepository.currentUser = User("child2", "family1", "Bob", UserRole.CHILD, 50)
+        viewModel.onAction(DashboardAction.Refresh)
+        viewModel.state.test {
+            var state = awaitItem()
+            if (state !is DashboardState.Success || state.user.role != UserRole.CHILD) {
+                state = awaitItem()
+            }
+            val successState = state as DashboardState.Success
+            assertThat(successState.pendingCounts["today"]).isEqualTo(1)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `Load dashboard invokes ChoreGenerationUseCase and creates daily instances`() = runTest {
+        val now = 1000L
+        timeProvider.staticTime = now
+        val template = Chore(
+            id = "template1", familyId = "family1", name = "Daily Chore", description = null, points = 10,
+            status = ChoreStatus.PENDING, assignedTo = "child1", createdBy = "parent1", createdAt = now, updatedAt = now,
+            recurrence = org.aals.family.chore.core.domain.model.Recurrence.DAILY
+        )
+        choreRepository.chores.value = listOf(template)
+
+        viewModel.onAction(DashboardAction.Refresh)
+        viewModel.state.test {
+            var state = awaitItem()
+            while (state !is DashboardState.Success) {
+                state = awaitItem()
+            }
+            // Wait for coroutines to settle and generation to finish
+            kotlinx.coroutines.delay(50) 
+            
+            // Check that the generated instance(s) are added to the repository
+            // (ChoreGenerationUseCase should add them via createChore)
+            assertThat(choreRepository.createdChores.isNotEmpty()).isEqualTo(true)
+            val generated = choreRepository.createdChores.first()
+            assertThat(generated.parentChoreId).isEqualTo("template1")
+            
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `AwardPoints action adds transaction`() = runTest {
         val behaviorItem = BehaviorDefaults.defaultItems.first()
         viewModel.onAction(DashboardAction.AwardPoints("child1", behaviorItem))
@@ -121,6 +199,30 @@ class DashboardViewModelTest {
         assertThat(transactionRepository.addedTransactions.size).isEqualTo(1)
         assertThat(transactionRepository.addedTransactions[0].userId).isEqualTo("child1")
         assertThat(transactionRepository.addedTransactions[0].amount).isEqualTo(behaviorItem.points)
+    }
+
+    @Test
+    fun `ApproveChore adds transaction and updates member points`() = runTest {
+        val now = 1000L
+        timeProvider.staticTime = now
+        val pendingChore = Chore(
+            id = "chore_child1_1", familyId = "family1", name = "Clean Room", description = null, points = 20,
+            status = ChoreStatus.PENDING_APPROVAL, assignedTo = "child1", createdBy = "parent1", createdAt = now, updatedAt = now
+        )
+        choreRepository.chores.value = listOf(pendingChore)
+
+        viewModel.onAction(DashboardAction.Refresh)
+        viewModel.state.test {
+            awaitItem() // Skip initial state
+            
+            viewModel.onAction(DashboardAction.ApproveChore("chore_child1_1", "child1"))
+            
+            val state = awaitItem() as DashboardState.Success
+            val child1 = state.familyMembers.find { it.id == "child1" }
+            assertThat(child1?.points).isEqualTo(20)
+            
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test
@@ -196,6 +298,59 @@ class DashboardViewModelTest {
             viewModel.onAction(DashboardAction.OnChoreNameChange("A"))
             val state = awaitItem() as DashboardState.Success
             assertThat(state.addChoreForm.nameError).isEqualTo(null)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `Time window validation sets error when end time is before start time`() = runTest {
+        viewModel.state.test {
+            awaitItem() // Initial state
+            
+            viewModel.onAction(DashboardAction.OnChoreWindowStartChange("13:00"))
+            awaitItem()
+            
+            viewModel.onAction(DashboardAction.OnChoreWindowEndChange("12:00"))
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.addChoreForm.timeWindowError != null).isEqualTo(true)
+            
+            // Attempt creation - should be blocked
+            val createAction = DashboardAction.CreateChore(
+                name = "Valid Chore",
+                points = 10,
+                description = null,
+                assignedTo = "child1",
+                recurrence = org.aals.family.chore.core.domain.model.Recurrence.CUSTOM
+            )
+            viewModel.onAction(createAction)
+            assertThat(choreRepository.createdChores.isEmpty()).isEqualTo(true)
+            
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `Due date validation sets error when date is in the past`() = runTest {
+        timeProvider.staticTime = 1761400000000L
+        viewModel.state.test {
+            awaitItem() // Initial state
+            
+            // Set past date
+            viewModel.onAction(DashboardAction.OnChoreDueDateChange("2020-01-01"))
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.addChoreForm.dueDateError != null).isEqualTo(true)
+            
+            // Attempt creation - should be blocked
+            val createAction = DashboardAction.CreateChore(
+                name = "Past Chore",
+                points = 10,
+                description = null,
+                assignedTo = "child1",
+                recurrence = org.aals.family.chore.core.domain.model.Recurrence.CUSTOM
+            )
+            viewModel.onAction(createAction)
+            assertThat(choreRepository.createdChores.isEmpty()).isEqualTo(true)
+            
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -350,6 +505,7 @@ class DashboardViewModelTest {
             transactionRepository = transactionRepository,
             choreRepository = choreRepository,
             observeConnectivityUseCase = observeConnectivityUseCase,
+            choreGenerationUseCase = org.aals.family.chore.core.domain.usecase.ChoreGenerationUseCase(choreRepository, timeProvider),
             tokenStorage = tokenStorage,
             profilePictureRepository = profilePictureRepository,
             hardwareAvailabilityRepository = hardwareAvailabilityRepository,
@@ -431,6 +587,7 @@ class DashboardViewModelTest {
             transactionRepository = transactionRepository,
             choreRepository = choreRepository,
             observeConnectivityUseCase = observeConnectivityUseCase,
+            choreGenerationUseCase = org.aals.family.chore.core.domain.usecase.ChoreGenerationUseCase(choreRepository, timeProvider),
             tokenStorage = tokenStorage,
             profilePictureRepository = profilePictureRepository,
             hardwareAvailabilityRepository = hardwareAvailabilityRepository,
@@ -575,6 +732,52 @@ class DashboardViewModelTest {
             val state = viewModel.state.value as DashboardState.Success
             assertThat(state.pictureTarget).isEqualTo(null)
             assertThat(state.memberPictures["child1"]).isEqualTo("/fake/path/for/child1.jpg")
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `ShowChoreImageSourceDialog sets choreImageTarget`() = runTest {
+        choreRepository.chores.value = listOf(
+            Chore("chore1", "family1", "Clean Room", null, 10, ChoreStatus.PENDING, "child1", "parent1", 0L, 0L)
+        )
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.onAction(DashboardAction.ShowChoreImageSourceDialog("chore1"))
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.choreImageTarget).isEqualTo("chore1")
+            assertThat(state.showChorePresetPicker).isEqualTo(false)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `ShowChoreImageSourceDialog with NEW_CHORE sets choreImageTarget`() = runTest {
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.onAction(DashboardAction.ShowChoreImageSourceDialog("NEW_CHORE"))
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.choreImageTarget).isEqualTo("NEW_CHORE")
+            assertThat(state.showChorePresetPicker).isEqualTo(false)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `SelectChorePreset saves preset image for chore`() = runTest {
+        choreRepository.chores.value = listOf(
+            Chore("chore1", "family1", "Clean Room", null, 10, ChoreStatus.PENDING, "child1", "parent1", 0L, 0L)
+        )
+        viewModel.state.test {
+            awaitItem() // initial
+            viewModel.events.test {
+                viewModel.onAction(DashboardAction.SelectChorePreset("chore1", "clean"))
+                val event = awaitItem()
+                assertThat(event is DashboardEvent.ShowMessage).isEqualTo(true)
+            }
+            val state = awaitItem() as DashboardState.Success
+            assertThat(state.choreImageTarget).isEqualTo(null)
+            assertThat(state.choreImages["chore1"]).isEqualTo("bundled:clean")
             cancelAndIgnoreRemainingEvents()
         }
     }

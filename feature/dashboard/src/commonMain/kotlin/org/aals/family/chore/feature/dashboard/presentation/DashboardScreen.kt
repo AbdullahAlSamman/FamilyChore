@@ -176,6 +176,35 @@ fun DashboardContent(
                 onDismiss = { onAction(DashboardAction.DismissChildPinSetup) }
             )
         }
+
+        val permissionManager = org.aals.family.chore.core.presentation.permissions.rememberCameraPermissionManager()
+
+        if (state.cameraPermissionRequestCount > 0) {
+            permissionManager.requestPermission { granted ->
+                onAction(DashboardAction.OnCameraPermissionResult(granted))
+            }
+        }
+
+        if (state.showCameraCapture && state.photoProofChoreId != null) {
+            org.aals.family.chore.core.presentation.components.CameraCaptureView(
+                onImageCaptured = { bytes -> onAction(DashboardAction.OnPhotoProofCaptured(state.photoProofChoreId, bytes)) },
+                onCancel = { onAction(DashboardAction.CancelCameraCapture) }
+            )
+        }
+
+        if (state.choreImageTarget != null) {
+            if (state.showChorePresetPicker) {
+                org.aals.family.chore.feature.dashboard.presentation.components.ChorePresetPickerDialog(
+                    choreId = state.choreImageTarget,
+                    onAction = onAction
+                )
+            } else {
+                org.aals.family.chore.feature.dashboard.presentation.components.ChoreImageSourceDialog(
+                    choreId = state.choreImageTarget,
+                    onAction = onAction
+                )
+            }
+        }
     }
 }
 
